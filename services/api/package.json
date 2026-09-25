@@ -1,0 +1,16 @@
+{
+  "name": "@vision-board/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "esbuild ./src/health.ts --bundle --platform=node --target=node22 --format=cjs --outfile=dist/health.cjs"
+  },
+  "dependencies": {
+    "@vision-board/contracts": "0.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

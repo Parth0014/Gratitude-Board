@@ -1,0 +1,14 @@
+package-lock.json
+node_modules
+.next
+dist
+cdk.out
+coverage
+playwright-report
+test-results
+.npm-cache
+.cache
+tmp
+docs/
+*.pdf
+next-env.d.ts

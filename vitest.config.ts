@@ -1,0 +1,13 @@
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    include: [
+      'packages/**/*.test.ts',
+      'services/**/*.test.ts',
+      'infra/**/*.test.ts',
+    ],
+    environment: 'node',
+    clearMocks: true,
+  },
+});

@@ -1,0 +1,62 @@
+{
+  "name": "vision-board",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "packageManager": "npm@10.9.3",
+  "engines": {
+    "node": ">=22.19.0 <23",
+    "npm": ">=10.9.3 <11"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*",
+    "infra"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @vision-board/web",
+    "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspace @vision-board/web",
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit -p tsconfig.tools.json",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run infra:synth",
+    "infra:synth": "npm run synth --workspace @vision-board/infra",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/aws-lambda": "8.10.163",
+    "@types/node": "22.20.4",
+    "eslint": "10.11.0",
+    "eslint-config-prettier": "10.1.8",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0",
+    "pg": "8.23.0",
+    "prettier": "3.9.9",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.1",
+    "vitest": "5.0.1",
+    "@next/eslint-plugin-next": "16.3.6",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "@axe-core/playwright": "4.13.0"
+  },
+  "lint-staged": {
+    "*.{js,mjs,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md,yml,yaml}": "prettier --write"
+  },
+  "type": "module"
+}
