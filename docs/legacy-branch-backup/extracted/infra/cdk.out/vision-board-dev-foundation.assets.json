@@ -1,0 +1,20 @@
+{
+  "version": "54.0.0",
+  "files": {
+    "2073a5f23836df3a147b5964d37cf49ad6392dc3428469697b49b6668e760b4f": {
+      "displayName": "vision-board-dev-foundation Template",
+      "source": {
+        "path": "vision-board-dev-foundation.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region-7d80e4fd": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "2073a5f23836df3a147b5964d37cf49ad6392dc3428469697b49b6668e760b4f.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

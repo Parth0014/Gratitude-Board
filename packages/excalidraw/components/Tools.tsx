@@ -285,6 +285,7 @@ const createToolButton = (
         className={clsx({ fillable: config.fillable })}
         type="toggle"
         icon={config.icon}
+        showAriaLabel={!!app.props.renderEditorUI}
         checked={activeTool.type === type}
         disabled={isToolButtonDisabled(app, type)}
         title={shortcut ? `${label} — ${shortcut}` : label}

@@ -4,8 +4,9 @@ Branch: `route/excalidraw-fresh`. This branch begins with official Excalidraw so
 
 - [x] Create a clean orphan branch in a separate worktree so the existing tldraw checkout remains untouched.
 - [x] Copy official Excalidraw source to the root and retain its license.
-- [ ] Install locked upstream dependencies and start the unmodified app for an initial preview.
+- [x] Install locked upstream dependencies and start the unmodified app for an initial preview.
 - [ ] Map the existing Gratitude design, photo assets, templates, pin, reflection note, and export flow.
+- [ ] Agree on design system and visual mockups before changing the editor layout.
 - [ ] Build Gratitude's curated studio UI on the Excalidraw engine from this source tree.
 - [ ] Add private persistence and a safe import path for any existing boards without overwriting old local data.
 - [ ] Check photo editing, text, shapes, drawing, undo/redo, export, mobile, and accessibility in the browser.

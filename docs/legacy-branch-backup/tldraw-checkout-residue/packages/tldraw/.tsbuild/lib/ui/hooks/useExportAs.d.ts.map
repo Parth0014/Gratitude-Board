@@ -1,0 +1,1 @@
+{"version":3,"file":"useExportAs.d.ts","sourceRoot":"","sources":["../../../../src/lib/ui/hooks/useExportAs.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,SAAS,EAA0B,MAAM,gBAAgB,CAAA;AAMhF,cAAc;AACd,wBAAgB,WAAW,UAMnB,SAAS,EAAE,SAAQ;IAAE,MAAM,CAAC,EAAE,YAAY,CAAC;IAAC,IAAI,CAAC,EAAE,MAAM,CAAC;IAAC,KAAK,CAAC,EAAE,MAAM,CAAA;CAAE,UAmBlF"}

@@ -1,0 +1,1 @@
+import config from 'C:/Users/jaypa/OneDrive/Pictures/gratitudeBoard/vendor/tldraw/lazy.config.ts'; export default config

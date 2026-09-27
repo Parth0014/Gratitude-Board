@@ -1,0 +1,1686 @@
+        DEEP RESEARCH + PRODUCT INSIGHTS
+
+
+
+
+        Vision Board
+        Experience Atlas
+        Psychology, creation, discovery, reels, social rituals,
+        living boards and cross-industry storytelling patterns
+        Prepared 24 Sep 2026
+
+
+
+
+A product research report for a premium gratitude / vision-board experience
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ HOW TO READ THIS REPORT
+
+
+
+ The short version
+ This report treats a vision board as a system, not a collage. The strongest opportunity is to connect
+ inspiration, self-relevance, action, storytelling, revisiting and reflection into one loop. The research also
+ shows an important constraint: visualizing the outcome alone is not the same as building motivation or
+ follow-through.
+
+
+
+
+      SEE              FEEL           CONTRAST             PLAN     ACT            RECORD             REVISIT           SHARE
+
+
+
+
+   Core product thesis
+   A premium vision-board product should make it effortless to find personally meaningful material, turn that material
+   into a vivid future story, connect each aspiration to a small behavior, and repeatedly re-present the board in fresh
+   forms - without forcing the user to keep rebuilding it.
+
+
+
+
+ Evidence labels used throughout
+    A - Research evidence                                         B - First-party platform
+    Peer-reviewed studies, reviews or meta-analyses. Best for     Canva, Pinterest, Apple, Spotify, Milanote and similar product
+    psychology and behavior design.                               or trend data.
+
+
+
+
+    C - Creator / social signal                                   D - Emerging product
+    Creator videos, social indexes and trend reports. Good for    New commercial products. Useful as competitive signals;
+    format behavior, not causal claims.                           marketing claims require skepticism.
+
+
+
+
+ Important: psychology sections distinguish what research supports from what is merely a product
+ hypothesis. The report deliberately avoids treating “manifestation” claims as established science.
+
+
+
+
+                                                                                                                                   2
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     EXECUTIVE SYNTHESIS
+
+
+
+     12 insights that change the
+     product direction
+●
+       Creation is no longer the endpoint. Canva describes vision boards becoming social, motion-based and
+        “living artefacts.” The board should continue to evolve after it is made.
+●
+       Process beats fantasy. Process-focused mental simulation has evidence for improving planning and
+        performance, while idealized positive fantasy can reduce energization. The board should show actions as
+        well as outcomes.
+●
+       The most valuable image may be the user inside the future. Future-self research suggests vividness and
+        continuity with one’s future self can affect choices. AI can personalize imagery, but should not make
+        magical causal claims.
+●
+       Discovery friction is a product problem. Milanote’s integrated search and Pinterest’s cutout workflow show
+        why forcing users through browser -> download -> gallery -> upload is outdated.
+●
+       Dense, “imperfect” collage is not a mistake. Pinterest references and Canva’s 2026 trend data favor tactile,
+        scrapbook, lo-fi and zine-like aesthetics. Full-space composition can feel more authored than sterile grid
+        templates.
+●
+       The reel should be a story generator, not a slideshow exporter. Apple Memories offers the best adjacent
+        model: select media, write a storyline, create chapters, add music, then let the user change a few
+        high-leverage controls.
+●
+       Year-end “board vs reality” is inherently social. Creator formats repeatedly turn the previous board into
+        proof, reflection and narrative before building the next one. The product should store versions and make
+        comparison automatic.
+●
+       Social sharing needs care. Research on public identity intentions suggests recognition can sometimes
+        reduce subsequent action. Share progress, evidence and rituals - not only declarations.
+●
+       Personalization drives shareability. Spotify Wrapped works because the content is “about me,” modular
+        and surprising. Vision-board showcases should generate distinctive cards and chapters from the user’s
+        actual board metadata.
+●
+       Group creation can be a ritual. YouTube group-board videos, Canva’s social trend framing and Spotify’s
+        newer Party mode all point toward synchronized, co-present experiences rather than only asynchronous
+        sharing.
+●
+       The board should live in multiple surfaces. Wallpaper, lock screen, widget, reel, printable Polaroids, journal
+        prompt and monthly recap are not separate products - they are renditions of one underlying vision graph.
+●
+       Gratitude can provide the differentiator. A board can connect future aspiration to present appreciation:
+        “what I already have,” “what I want to grow,” and “what I can do next.” That makes the experience less
+        acquisitive and more emotionally grounded.
+
+
+
+
+                                                                                                                        3
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ PART 1 / PSYCHOLOGY
+
+
+
+ What actually helps - and what
+ can backfire
+    The psychology is strongest when a vision board functions as a cue
+    for a personally meaningful future plus concrete behavior. It is
+    weakest when it is treated as a magical outcome generator.
+
+
+ 1. Outcome imagery vs. process imagery
+ Pham and Taylor (1999) compared students who mentally simulated the process required to perform
+ well with students who simulated the desired outcome. Process simulation improved studying and
+ grades, with planning and reduced anxiety helping explain the result. This is directly relevant to vision
+ boards: “graduating” is an outcome image; “sitting down at 7pm with notes open” is process imagery.
+
+
+   Design implication
+   For every large aspiration image, offer an optional “how this happens” layer: a tiny ritual, environment, recurring
+   action or next step. The board can stay beautiful while the action layer lives behind a tap.
+
+
+
+
+ 2. The positive-fantasy trap
+ Kappes and Oettingen (2011) experimentally found that positive fantasies about idealized futures can
+ reduce energization. Earlier work from Oettingen’s research program similarly distinguishes
+ expectations from fantasy. The product consequence is not “do not visualize”; it is do not let the
+ experience stop at effortless success imagery.
+
+ A useful board therefore includes tension: desired future, present obstacle, and a bridge between
+ them. That bridge is what separates emotionally satisfying imagination from self-regulation.
+
+
+ 3. Mental contrasting + implementation
+ intentions
+ Mental contrasting asks people to imagine a desired future and then identify the obstacle in present
+ reality. MCII combines that with an if-then plan. A 2021 meta-analysis of 21 studies / 15,907
+ participants found a small-to-moderate overall benefit for goal attainment, while noting publication
+ bias and moderator uncertainty. Separately, the classic implementation-intention meta-analysis
+ summarized 94 tests and reported a medium-to-large effect on goal attainment.
+
+
+   Best product primitive
+   Wish -> Outcome -> Obstacle -> Plan can exist as a 20-second optional interaction after a user saves an important
+   board item. Example: “I want calm mornings” -> “I feel unhurried” -> “I stay up too late” -> “If it is 10:30pm on a
+   weekday, I plug my phone in outside the bed.”
+
+
+
+
+                                                                                                                         4
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ 4. Episodic future thinking: make the future
+ concrete
+ Episodic Future Thinking (EFT) is the vivid simulation of specific personal future events. Reviews
+ identify functions in decision-making, emotion regulation and prospective memory. A 2022
+ meta-analysis of 47 studies found a significant reduction in delay discounting, with positive EFT
+ performing better than neutral or negative variants. The evidence base is not “vision boards work”; it
+ is that specific, personally vivid future episodes can change how people value the future.
+
+ This suggests moving from generic nouns (“travel”, “wealth”, “health”) to scenes: “Saturday morning
+ in Kyoto, raining, buying coffee before a train” or “finishing a 5K at the park with my sister.” Scene
+ specificity is a powerful design direction for AI image generation and reel narration.
+
+
+ 5. Self-concordance: aesthetically attractive goals
+ can still be the wrong goals
+ Sheldon and Elliot’s self-concordance model argues that goals aligned with a person’s interests and
+ core values receive more sustained effort and produce greater well-being benefits when attained. This
+ matters because visual platforms can bias users toward goals that photograph well - luxury objects,
+ ideal bodies, travel - rather than goals they deeply endorse.
+
+
+   Design implication
+   Before image search, ask “Why does this matter to you?” or “How do you want this part of life to feel?” Use the
+   answer to shape search results and captions. The goal is to make the aesthetic downstream of meaning, not the
+   other way around.
+
+
+
+ 6. Future-self continuity: make “later me” feel
+ like me
+ Hershfield’s research links stronger continuity with one’s future self to more future-oriented decisions.
+ Related experiments with age-progressed renderings found greater preference for later financial
+ rewards after interacting with representations of the future self. This supports a careful hypothesis: a
+ future-self board may become more behaviorally relevant when the imagery feels autobiographical
+ rather than generic.
+
+ AI-generated scenes that place the user in a plausible future are therefore interesting - but should be
+ framed as personalized imagination, not as proof that a neural pathway will “manifest” the scene.
+
+
+
+
+                                                                                                                     5
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     7. Public goals: sharing can motivate, but
+     recognition can also substitute for action
+     Gollwitzer and colleagues (2009) found that when identity-related intentions were noticed by others,
+     participants sometimes translated them into action less intensively; the authors proposed that social
+     recognition can create a premature sense of possessing the desired identity. This does not mean
+     “never share goals.” It means the social layer should avoid turning declaration itself into the
+     achievement.
+
+
+        Better social object                                            Riskier social object
+        “I completed my first 3 runs” or “week 2 update” - evidence     “This is who I will be” posted for identity recognition before
+        of movement.                                                    any behavior.
+
+
+
+
+        Better ritual                                                   Better recap
+        Co-create privately with friends, choose a next action, check   Share board-vs-reality or lessons learned after a time interval.
+        in later.
+
+
+
+
+     Psychology principles to encode in the product
+●
+       Meaning before imagery: start with desired feeling, value or life domain.
+●
+       Specific future episodes: scenes beat vague category labels.
+●
+       Process pairing: every important outcome can optionally carry a behavior or ritual.
+●
+       Obstacle awareness: ask what might get in the way without turning the board into a task manager.
+●
+       If-then bridge: turn intention into an environmental cue and small response.
+●
+       Revisit with variation: present the same vision through different stories, prompts and media so it does not
+        become wallpaper noise.
+●
+       Progress over proclamation: social formats should reward evidence, reflection and iteration.
+●
+       Autobiographical relevance: user photos, own words, own voice and meaningful places are more defensible
+        personalization levers than generic luxury imagery.
+
+
+
+
+                                                                                                                                           6
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ PART 2 / CREATION ECOSYSTEM
+
+
+
+ What each product teaches that a
+ normal vision-board editor misses
+    The most useful ideas are scattered across collage tools, creative
+    research spaces, social video platforms and memory products. Below,
+    each resource is reduced to its unique mechanism and translated into
+    a product opportunity.
+
+
+Pinterest Collages - remix + video sharing                                                             B FIRST-PARTY PRODUCT
+
+  Unique signal           Pinterest turned collage from a finished image into a remixable content format. Users can start
+                          from another collage and share the result as video to other social platforms.
+
+  Observed pattern        The unit of creation is not the rectangular image. It is a set of cutouts that can be rearranged,
+                          referenced and recontextualized.
+
+  Product                 Board DNA: let users “remix this board style” without copying the person’s goals. Preserve
+  adaptation              layout grammar, paper textures, transitions and density, but replace media with the user’s own
+                          vision.
+
+  Watch-out               Separate aesthetic remixing from copying private/personal content. A remix should inherit
+                          structure, not someone else’s identity or goals.
+
+ Source: https://newsroom.pinterest.com/en-gb/news/introducing-new-ways-to-create-and-share-collages/
+
+
+
+
+Pinterest Shuffles - object-level play                                                                 B FIRST-PARTY PRODUCT
+
+  Unique signal           Shuffles made search -> cutout -> collage -> motion a single playful loop. Keyframe animation
+                          and effects make composition itself entertaining.
+
+  Observed pattern        Removing backgrounds at the object level creates a much richer visual language than simply
+                          placing rectangular photos on a canvas.
+
+  Product                 Offer tap-to-cut people, objects, products and typography from saved imagery. Let individual
+  adaptation              objects move subtly in reels instead of moving the whole card.
+
+  Watch-out               Too many animated cutouts becomes chaotic quickly. Use motion hierarchy: one dominant
+                          moving layer, a few secondary micro-motions, everything else still.
+
+ Source: https://newsroom.pinterest.com/news/shuffles-by-pinterest-expands-to-nine-additional-countries/
+
+
+
+
+                                                                                                                               7
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+Pinterest aesthetic boards - dense editorial
+                                                                                              C VISUAL REFERENCE
+collage
+  Unique signal          High-density boards regularly remove almost all dead space. Hierarchy comes from scale,
+                         overlap and contrast rather than equal-sized cells.
+
+  Observed pattern       Large type fragments, tiny “supporting” pictures, edge crops and partially hidden imagery
+                         make the board feel authored and discovered over time.
+
+  Product                Add a Maximal Editorial preset: 25-60 pieces, no gutters, asymmetric focal images, controlled
+  adaptation             overlaps, some typography treated as imagery, and smart crop protection for faces.
+
+  Watch-out              Density needs semantic hierarchy. If every image has equal contrast and scale, the result
+                         becomes visual noise rather than intentional maximalism.
+
+ Source: https://www.pinterest.com/pin/aesthetic-vision-board--47358233576658233/
+
+
+
+
+Pinterest scrapbook references - page as
+                                                                                              C VISUAL REFERENCE
+artifact
+  Unique signal          Scrapbook-style boards visibly preserve the act of making: handwriting, tape, tickets, torn
+                         paper, stickers and imperfect alignment.
+
+  Observed pattern       The board communicates “this belongs to me” through traces of authorship, not through
+                         flawless layout.
+
+  Product                Allow micro-personal marks: a handwriting note, a doodle, date stamp, torn edge, screenshot
+  adaptation             fragment or voice-note waveform. These should be sparse and user-specific.
+
+  Watch-out              Do not fake “authenticity” with the same canned tape and doodles on every board. Randomize
+                         sparingly and prioritize the user’s own marks.
+
+ Source: https://www.pinterest.com/pin/2025-vision-board-scrapbook-page--844493675747302/
+
+
+
+
+Canva - vision boards becoming social +
+                                                                                             B FIRST-PARTY TREND
+living
+  Unique signal          Canva reported vision-board creations up 13.3% year over year in 2025, while describing a shift
+                         toward social rituals, motion, sound, narrative and ongoing revisiting.
+
+  Observed pattern       A board is increasingly something people experience, document, share and update, not a
+                         one-time January poster.
+
+  Product                Treat the saved board as a persistent object with versions, history, completed items, recurring
+  adaptation             re-renders, and “what changed?” stories throughout the year.
+
+  Watch-out              Platform trend data describes behavior on Canva, not causal psychological effectiveness. Use it
+                         to guide format strategy, not health claims.
+
+ Source: https://www.canva.com/newsroom/news/vision-board-trend/
+
+
+
+
+                                                                                                                           8
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+Canva Design Trends 2026 - Imperfect by
+                                                                                               B FIRST-PARTY TREND
+Design
+  Unique signal           Canva’s 2026 trend set emphasizes Notes App Chic, Explorecore, Texture Check, Drama Club
+                          and other styles that move away from sterile perfection.
+
+  Observed pattern        Search growth around lo-fi, scrapbook, zine, tactile and simple editorial aesthetics suggests an
+                          appetite for materiality, personality and purposeful irregularity.
+
+  Product                 Preset families should differ in behavior, not only colors: zine density, notes-app ephemera,
+  adaptation              cinematic chaptering, tactile scrapbook, clean editorial and culturally specific maximalism.
+
+  Watch-out               Trend presets age quickly. Store them as modular visual grammars so palettes, type and
+                          textures can evolve without rebuilding layout logic.
+
+ Source: https://www.canva.com/newsroom/news/design-trends-2026/
+
+
+
+
+Canva Vision Board Templates - one board,
+                                                                                             B FIRST-PARTY PRODUCT
+many surfaces
+  Unique signal           Canva exposes vision-board templates as posters, wallpapers, Instagram Stories, Pinterest pins,
+                          presentations and other formats.
+
+  Observed pattern        Users do not have one “correct” canvas. They want the same intent translated into the surface
+                          where it will be encountered.
+
+  Product                 Build a render system: one board model -> phone wallpaper, desktop wallpaper, 9:16 reel, 4:5
+  adaptation              feed post, printable A4/A3, Polaroids and widget cards.
+
+  Watch-out               Do not simply crop the same composition. Each surface needs a layout pass that preserves
+                          focal subjects and text safe zones.
+
+ Source: https://www.canva.com/templates/s/vision-board/
+
+
+
+
+Milanote - integrated search + mixed media
+                                                                                             B FIRST-PARTY PRODUCT
+canvas
+  Unique signal           Milanote keeps image search inside the board and supports images, video, notes, links, files,
+                          GIFs, color swatches and collaboration.
+
+  Observed pattern        The core value is reducing context switching between discovery and composition while keeping
+                          the workspace flexible.
+
+  Product                 Put search beside the canvas. Search stock, Pinterest-like sources, user library and AI
+  adaptation              generation from one query; drag results directly into a target slot or freeform board.
+
+  Watch-out               Infinite freeform can overwhelm novice users. Preserve the “structured layouts first, freeform
+                          last” approach for fast completion.
+
+ Source: https://milanote.com/product/vision-board
+
+
+
+
+                                                                                                                           9
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+Milanote moodboard hierarchy - anchor,
+                                                                                                B FIRST-PARTY GUIDE
+then relationships
+  Unique signal           Milanote explicitly recommends refining layout by introducing hierarchy: use a key element to
+                          anchor the board, then size and position other elements according to importance and
+                          relationships.
+
+  Observed pattern        Aesthetic quality often comes from hierarchy, not more assets.
+
+  Product                 Ask for 3 hero aspirations or infer them from user emphasis. Auto-layout should reserve large
+  adaptation              “hero zones” before packing secondary imagery.
+
+  Watch-out               Do not let automatic packing erase chronology or category grouping when those are
+                          meaningful to the user.
+
+ Source: https://milanote.com/templates/filmmaking/filmmaking-moodboard
+
+
+
+
+Are.na - slow curation + connected
+                                                                                              B FIRST-PARTY PRODUCT
+knowledge
+  Unique signal           Are.na is built around saving over time, organizing into channels and reusing existing material
+                          to create new contexts.
+
+  Observed pattern        Collections become valuable because relationships accumulate. Discovery is not only “find a
+                          pretty picture”; it is “connect this idea to something else.”
+
+  Product                 Let a saved image belong to multiple life themes and years. A “travel” image might also
+  adaptation              represent courage, relationship, photography and learning. Build a lightweight vision graph, not
+                          duplicate files.
+
+  Watch-out               Keep the consumer experience simple. Expose the graph implicitly through smart resurfacing,
+                          not through knowledge-management complexity.
+
+ Source: https://www.are.na/about
+
+
+
+
+Adobe Express - templates by destination                                                      B FIRST-PARTY PRODUCT
+
+  Unique signal           Adobe’s moodboard templates are categorized directly into destination formats such as
+                          Instagram Story, square post, poster and Pinterest post.
+
+  Observed pattern        Template choice is easier when framed by intended use, not only by aesthetic style.
+
+  Product                 Start export with Where will this live? Lock screen, room print, Story, Reel, desktop, private
+  adaptation              journal. Then offer a small set of optimized compositions.
+
+  Watch-out               Destination-first should be an export decision, not force users to design the source board
+                          repeatedly for every ratio.
+
+ Source: https://www.adobe.com/express/templates/mood-board
+
+
+
+
+                                                                                                                           10
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ CANVA 2026 SIGNALS
+
+
+
+ The visual direction is moving
+ toward texture, imperfection and
+ authored mess
+ Selected search-growth signals reported by Canva are useful as creative-direction evidence. They
+ should not be read as universal market share, but they do indicate where a very large creator
+ ecosystem is moving.
+
+ Lo-fi aesthetic                                                                                               527%
+
+
+
+ Data visualization animation                                                                                  201%
+
+
+
+ DIY / scrapbook elements                                                                                       90%
+
+
+
+ Zine + Substack aesthetics                                                                                     85%
+
+
+
+ Bold type / DIY layouts                                                                                        77%
+
+
+
+ Clean layout / serif / simple branding                                                                         54%
+
+
+
+ Tactile design                                                                                                 30%
+
+
+
+ Desi elements                                                                                                  26%
+
+
+
+ Hindi typography                                                                                               17%
+
+
+
+
+   What this means for the prototype
+   Your strongest preset should not be “another grid.” It should feel like a designed editorial object with controlled
+   disorder. The system needs semantic packing, focal-image hierarchy, collage cutouts and texture - while preserving
+   fast editing and reliable export.
+
+
+
+
+                                                                                                                    11
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ PART 3 / SOCIAL + SHOWCASE
+
+
+
+ What people actually watch and
+ share
+    The best social content is rarely “here is my finished board.” It
+    usually has a transformation, a method, a reveal, a social ritual or
+    proof over time.
+
+
+Spate 2026 culture report - TikTok
+                                                                                                     C TREND REPORT
+vision-board cluster
+  Unique signal           Spate surfaced three high-view formats around the vision-board trend: a categorized board
+                          example (~2.0M views), counter-content arguing boards do not work (~1.5M), and a free
+                          digital-board tutorial (~1.2M).
+
+  Observed pattern        Audiences consume method and debate, not just aesthetic inspiration. “How to make one,”
+                          “why yours fails,” and “how I structure mine” are content categories.
+
+  Product                 Generate shareable “method cards”: My 5 themes, What I left off my board, My rule for
+  adaptation              choosing images, One obstacle I am planning around, How my board changed this month.
+
+  Watch-out               View counts in a trend report are snapshots and do not establish which format will perform for a
+                          specific app or audience.
+
+ Source: https://storage.googleapis.com/spate-186619/reports/us/beauty/2026-03-Global-Culture-Report/Spate%202026%20Global%20C
+ ulture%20Shifts%20Report_Key%20Themes%20and%20Trends.pdf
+
+
+
+
+Instagram success-story Reels - board vs
+                                                                                                      C SOCIAL INDEX
+reality
+  Unique signal           Indexed Reels repeatedly use a “this was once on my board -> now it is my life” reveal, often
+                          combining old board screenshots with current footage.
+
+  Observed pattern        The temporal contrast is the story. The old artifact becomes meaningful only when placed
+                          beside evidence, effort and hindsight.
+
+  Product                 Store the original board at creation time. Months later, automatically suggest “Vision vs
+  adaptation              Reality” using matched photos, completed goals, journal entries and user-selected wins.
+
+  Watch-out               Avoid implying that the board caused external events. Language can emphasize intention,
+                          effort, reflection and coincidence where appropriate.
+
+ Source: https://pictame.com/en/discover/hashtag/vision-board-success-stories
+
+
+
+
+                                                                                                                                 12
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+Lemon8 - under-an-hour Canva + Pinterest
+                                                                                                   C CREATOR POST
+board
+  Unique signal          The post explicitly celebrates making a 2026 board in less than an hour and using it as a
+                         wallpaper.
+
+  Observed pattern       Fast completion + persistent placement matters. The experience is attractive because it can be
+                         finished in one sitting and then seen repeatedly.
+
+  Product                Create a 20-minute Quick Board path: choose feelings, accept suggested imagery, pick one
+  adaptation             dense preset, export wallpaper immediately. Advanced customization remains optional.
+
+  Watch-out              “Fast” should not mean generic. Ask 3-5 high-signal questions and use those answers to
+                         personalize discovery and captions.
+
+ Source: https://www.lemon8-app.com/@brianna_cantuuu/7590116375709729335?region=us
+
+
+
+
+CapCut 2026 vision-board templates -
+                                                                                              B FIRST-PARTY PRODUCT
+replace media, get motion
+  Unique signal          CapCut treats vision boards as dynamic video templates where users replace photos/clips/text
+                         and inherit professional timing and music.
+
+  Observed pattern       For social video, users often want edit substitution, not a timeline editor.
+
+  Product                Create 8-12 cinematic “story engines” with different narrative grammars: Future Memory,
+  adaptation             Scrapbook Build, Chapters, Board Dive, Before/Becoming, Year Recap, Letter From Future Me,
+                         Vision-to-Action.
+
+  Watch-out              Do not expose dozens of transition controls. Let users edit music, pace, text density and focal
+                         ordering; keep animation choreography authored.
+
+ Source: https://www.capcut.com/explore/visionboard2026
+
+
+
+
+Adelaine Morin - 2026 board vlog                                                                C YOUTUBE CREATOR
+
+  Unique signal          The board is embedded in a broader personal vlog: travel, business, work and life goals. The
+                         value is personality and narrative, not instructional efficiency.
+
+  Observed pattern       Long-form content makes the reason behind each image interesting. A board can be a prompt
+                         for self-explanation.
+
+  Product                When a user adds a hero image, invite a one-sentence voice note: “What would this change for
+  adaptation             you?” Those clips can later become narration in the reel.
+
+  Watch-out              Do not interrupt every save with prompts. Capture meaning selectively for hero items or in a
+                         dedicated reflection pass.
+
+ Source: https://www.youtube.com/watch?v=uWuzZX2dp2M
+
+
+
+
+                                                                                                                        13
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+Gerohan - making our 2026 vision board                                                             C YOUTUBE CREATOR
+
+  Unique signal          The “our” framing turns vision boarding into shared entertainment and a
+                         relationship/friend-group activity.
+
+  Observed pattern       Co-presence is part of the value: reacting to each other’s goals, helping choose images and
+                         revealing boards.
+
+  Product                Design a Vision Board Night room: shared timer + music + private personal canvases +
+  adaptation             optional prompt rounds + synchronized reveal at the end.
+
+  Watch-out              Keep personal goals private by default even in a shared room. Users choose which tiles or final
+                         render to reveal.
+
+ Source: https://www.youtube.com/watch?v=tnYSIHl7ROs
+
+
+
+
+Ashi Khanna - new board + what came true
+                                                                                                   C YOUTUBE CREATOR
+last year
+  Unique signal          The video pairs retrospective proof/reflection with creating the next board.
+
+  Observed pattern       This closes the loop. The old board is not discarded; it becomes source material for the next
+                         identity narrative.
+
+  Product                New-year flow: “Open last year” -> mark Achieved / Evolved / No longer matters / Carry forward
+  adaptation             -> generate recap -> start next board with retained themes.
+
+  Watch-out              Do not define success only as completion. “No longer matters” and changed priorities are
+                         legitimate outcomes and can reduce guilt.
+
+ Source: https://www.youtube.com/watch?v=1WgCLjqhBzI
+
+
+
+
+Tam Kaur / Self Obsessed - chaptered
+                                                                                                   C CREATOR FORMAT
+vision-board episode
+  Unique signal          The episode moves through previous-year results, science, tips, a master plan, digital board
+                         creation and physical board creation.
+
+  Observed pattern       A compelling vision-board experience naturally has chapters: reflect -> understand -> plan ->
+                         create -> materialize.
+
+  Product                Make onboarding chaptered rather than tool-first. Users should not land in a blank canvas. A
+  adaptation             guided sequence can progressively unlock the editor.
+
+  Watch-out              Creator “science” explanations may mix evidence with manifestation claims. Use original
+                         research for product copy.
+
+ Source:
+ https://podcasts.apple.com/gb/podcast/2026-vision-board-that-actually-works-2025-goals-came/id1675911426?i=1000739882818
+
+
+
+
+                                                                                                                            14
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ SOCIAL FORMAT MAP
+
+
+
+ The most reusable showcase
+ archetypes
+    Transformation                                                   Construction
+    Board -> reality, before -> becoming, year-over-year             Watch the board assemble, search, cut, tape, write and
+    evolution.                                                       reorder.
+
+
+
+
+    Explanation                                                      Ritual
+    Why I chose this, categories, rules, lessons, what I excluded.   Board night, reveal, partner board, friend group, live
+                                                                     reactions.
+
+
+
+
+ A high-performing system can generate all four from the same source board. That means the product
+ should store provenance and meaning: when an item was saved, its category, why it matters, whether
+ it is a hero item, associated action, and later whether it was achieved or changed. Those metadata
+ become story material.
+
+
+
+
+                                                                                                                              15
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ PART 4 / ADJACENT STORYTELLING
+
+
+
+ The best ideas may not come from
+ vision-board apps
+    Spotify and Apple solve the harder problem: turning personal data or
+    personal media into emotionally resonant, shareable stories with
+    almost no editing.
+
+
+Spotify Wrapped 2025 - modular personal
+                                                                                               B FIRST-PARTY PRODUCT
+stories
+  Unique signal          Wrapped converts raw personal history into a sequence of distinct “data stories,” each
+                         individually shareable, with controls to revisit specific moments and a new Party mode.
+
+  Observed pattern       Shareability emerges from specificity + surprise + self-recognition. Users share because the
+                         artifact says something about them.
+
+  Product                Generate modular board stories such as “your 3 strongest themes,” “the feeling you saved
+  adaptation             most,” “your boldest aspiration,” “what changed,” “your future-self soundtrack,” and “goals
+                         you carried forward.”
+
+  Watch-out              Avoid fake statistics based on too little data. If the board has only eight images, tell a
+                         qualitative story rather than pretending precision.
+
+ Source: https://newsroom.spotify.com/2025-12-03/2025-wrapped-user-experience/
+
+
+
+
+Spotify Wrapped campaign - visual mixtape                                                      B FIRST-PARTY CREATIVE
+
+  Unique signal          Spotify describes 2025 Wrapped as a modern “visual mixtape” mixing analog and digital
+                         aesthetics, then extends the story into physical installations and live experiences.
+
+  Observed pattern       A digital personal artifact can become a cultural ritual when it has a recognizable annual
+                         moment and aesthetic language.
+
+  Product                Create an annual “Vision Wrapped” moment for the user: what they imagined, what they acted
+  adaptation             on, what changed, gratitude highlights, fulfilled moments and what they are carrying forward.
+
+  Watch-out              The user’s board is intimate. Annual recaps should be private-first with selective sharing, unlike
+                         a music taste recap that is lower stakes for many users.
+
+ Source: https://newsroom.spotify.com/2025-12-03/wrapped-marketing-campaign/
+
+
+
+
+                                                                                                                        16
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+Apple Photos Memories - prompt to story arc B FIRST-PARTY PRODUCT
+  Unique signal           Apple lets users describe a memory movie; the system selects media, creates a storyline with
+                          chapters and narrative arc, and pairs music.
+
+  Observed pattern        The user does not edit a timeline. They express story intent; the system handles sequencing.
+
+  Product                 For Vision Reel, ask “What should this feel like?” or let the user choose a narrative: calm future,
+  adaptation              energetic becoming, reflective letter, adventurous year, romantic life, grounded growth. Then
+                          auto-build chapters.
+
+  Watch-out               A good auto-story needs manual escape hatches: reorder hero items, exclude an image, change
+                          soundtrack, shorten/lengthen and regenerate.
+
+ Source: https://www.apple.com/in/newsroom/2025/03/apple-intelligence-features-are-now-available-in-india/
+
+
+
+
+Apple Memories personalization - few
+                                                                                                      B FIRST-PARTY PRODUCT
+high-leverage controls
+  Unique signal           Memory movies can be personalized by changing music, title, length and included photos rather
+                          than exposing a professional video editor.
+
+  Observed pattern        Autogeneration feels premium when users can correct the few decisions that matter most.
+
+  Product                 Vision Reel controls: music, length, mood, text level, focal order. Keep transition choreography
+  adaptation              and camera behavior under the preset engine.
+
+  Watch-out               If generation is wrong, a user needs precise “fix this shot” controls: recenter subject, lock crop,
+                          pin zoom bounds, hide text, skip item.
+
+ Source: https://support.apple.com/en-in/guide/photos/pht69f4420d8/mac
+
+
+
+
+                                                                                                                              17
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ EMERGING AI PATTERNS
+
+
+
+ The board is becoming
+ autobiographical, multimodal and
+ generative
+FutureSelf AI - the user inside the future
+                                                                                                 D EMERGING PRODUCT
+scene
+  Unique signal             The product replaces generic aspirational imagery with AI-generated scenes containing the
+                            user’s face.
+
+  Observed pattern          The competitive proposition is not “better collage.” It is more self-relevant source material. The
+                            board becomes a simulated autobiography.
+
+  Product                   Inside the image picker, offer “Put me here” for selected aspirations. Generate multiple scene
+  adaptation                variants: realistic, subtle and activity-focused rather than luxury-only.
+
+  Watch-out                 Treat claims about neural activation or guaranteed behavior change skeptically unless
+                            independently supported. Also require clear labeling of generated imagery and privacy controls
+                            for selfies.
+
+ Source: https://futureself-ai.com/
+
+
+
+
+DeepBliss - a vision board you can listen to                                                     D EMERGING PRODUCT
+
+  Unique signal             The product combines future-self visuals with playable audio / own-voice style reflection and
+                            explicitly positions itself as a reflection tool rather than magic.
+
+  Observed pattern          The future can be represented across image + language + voice, making the board usable
+                            eyes-free and emotionally richer.
+
+  Product                   Let users record a 5-15 second note for hero tiles. The reel can use the user’s own voice as
+  adaptation                narration, and the app can generate a private “audio walk through my board.”
+
+  Watch-out                 Voice can feel intimate or uncanny. User-recorded audio should be default; synthetic voice
+                            should be opt-in and clearly labeled.
+
+ Source: https://www.deepbliss.me/vision-board
+
+
+
+
+                                                                                                                            18
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ PART 5 / EXPERIENCE CONCEPTS
+
+
+
+ Twelve showcase formats worth
+ prototyping
+    These are not just visual themes. Each one uses a different
+    psychological or storytelling mechanic, so the outputs should feel
+    meaningfully different rather than like the same template with new
+    transitions.
+
+
+ 01 Future Memory
+ Open as if the goals already became memories. Use dates, quiet captions and imperfect “found
+ footage.” Only reveal the full board at the end.
+
+
+   Best for: emotional, reflective boards.
+   Mechanic: episodic future thinking + Apple Memories narrative grammar.
+
+
+
+
+ 02 Enter the Board
+ Start on the finished board, zoom through one photo into a full-screen scene, then transition through
+ an object or texture into the next aspiration.
+
+
+   Best for: cinematic boards.
+   Mechanic: spatial continuity; the board becomes a world, not a slideshow.
+
+
+
+
+ 03 Before -> Becoming
+ Pair each aspiration with a current behavior or starting point. “I want” transforms into “I am becoming”
+ and ends with one action per chapter.
+
+
+   Best for: self-growth.
+   Mechanic: identity + process simulation.
+
+
+
+
+ 04 Letter From Future Me
+ A short first-person letter appears over carefully selected imagery. The last line returns to the present:
+ “Here is what you did next.”
+
+
+   Best for: vulnerable, introspective boards.
+   Mechanic: future-self continuity + narrative voice.
+
+
+
+
+                                                                                                          19
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ 05 Future Wrapped
+ Fast cards reveal themes, top feelings, boldest goal, carried-forward dream, and chosen soundtrack.
+
+
+   Best for: annual reset and sharing.
+   Mechanic: Spotify Wrapped modular personalization.
+
+
+
+
+ 06 Scrapbook Comes Alive
+ Tape lands, cutouts settle, handwriting appears, images shift slightly within their paper masks. No
+ full-screen transition overload.
+
+
+   Best for: tactile / maximalist preset.
+   Mechanic: visible authorship + Pinterest Shuffles object motion.
+
+
+
+
+ 07 Vision -> Obstacle -> Plan
+ For 3 hero goals, reveal dream image, likely obstacle and a tiny if-then action. End on the board as a
+ living plan.
+
+
+   Best for: action-oriented users.
+   Mechanic: mental contrasting + implementation intentions.
+
+
+
+
+ 08 Board vs Reality
+ Split or match old board items against later photos, journal entries or completed milestones. Include
+ “evolved” and “no longer matters,” not only success.
+
+
+   Best for: year-end recap.
+   Mechanic: temporal contrast + reflection.
+
+
+
+
+ 09 One Feeling, Many Scenes
+ Instead of categories, organize the reel around a feeling: calm, freedom, connection, aliveness.
+ Different life domains become evidence for the same desired emotional state.
+
+
+   Best for: Gratitude brand differentiation.
+   Mechanic: self-concordance and affective coherence.
+
+
+
+
+ 10 Day In My Future
+ Construct a plausible day from board assets: morning, work, body, people, place, night. Add small
+ environmental details rather than only big milestones.
+
+
+   Best for: immersive visualization.
+   Mechanic: specific episodic future scenes.
+
+
+
+
+                                                                                                          20
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ 11 The Making Of
+ Screen-capture or reconstruct key creation moments: search query, cutout, image swap, handwritten
+ note, final reveal.
+
+
+   Best for: creator/social content.
+   Mechanic: process-as-content.
+
+
+
+
+ 12 Vision Board Night Recap
+ Show the prompt rounds, each participant’s hidden progress, reactions, synchronized reveal and one
+ next action.
+
+
+   Best for: groups.
+   Mechanic: social ritual without over-public declaration.
+
+
+
+
+                                                                                                      21
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     REEL SYSTEM PRINCIPLES
+
+
+
+     How to keep generated video from
+     feeling templated
+●
+       Story grammar before transitions. A reel needs a beginning, development and payoff. Transitions cannot
+        supply narrative.
+●
+       Never center everything the same way. Composition should respond to faces, horizons, text-safe areas and
+        object direction.
+●
+       Motion hierarchy. One dominant camera move or object motion per beat; micro-motion can support it, but
+        avoid simultaneous competing moves.
+●
+       Sequence by meaning. Group or deliberately contrast related goals rather than shuffling images randomly.
+●
+       Hold the emotional image longer. Users should have enough time to read and feel an image. Fast-cut
+        tempo belongs only to specific presets.
+●
+       Text should enter after image recognition. This matches the direction already identified in your current
+        prototype: image first, then words, so the text never visually buries the source image.
+●
+       Music is structural. Beat detection can guide cuts, but mood and chapter pacing matter more than forcing
+        every transition onto a beat.
+●
+       Ending matters. The last slide must resolve: board reveal, one action, final sentence or return to present.
+        Do not simply run out of items.
+
+
+
+
+                                                                                                                     22
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     PART 6 / DISCOVERY + CREATION
+
+
+
+     Remove the most boring part of
+     vision boarding
+        The strongest creation experience removes repeated browsing,
+        downloading, uploading and crop-fixing while keeping enough
+        authorship that the result still feels personal.
+
+
+     A unified source drawer
+     Search should return multiple source types in one place: curated stock, visual-search results, the
+     user’s camera roll, previously saved board items, generated images, quotes/typography and object
+     cutouts. Results should be filterable by scene, emotion, aesthetic, color, people/no people and
+     orientation.
+
+
+       Key interaction
+       Tap a grid cell -> search opens already constrained to that cell’s aspect ratio and semantic theme -> choose result
+       -> smart crop previews immediately -> swipe for alternatives. Freeform mode uses the same source drawer but
+       drops onto the canvas.
+
+
+
+     AI should solve specificity, not replace taste
+     A useful image-generation prompt should come from the user’s meaning, not from a generic category.
+     “Travel” produces cliché. “A quiet rainy morning in Kyoto after I finally took my first solo trip” produces
+     a scene. The app can ask one question - “what exact moment would make this feel real?” - then
+     generate 4-6 visual directions.
+
+
+     Make source selection reversible
+     Saving an image should not feel like commitment. Use a shortlist tray per tile or goal: save 3-5
+     candidates, preview them instantly in the board, and pick later. This removes the fear of “finding the
+     perfect image” before proceeding.
+
+
+     Layout system: structured first, authored
+     complexity second
+●
+       10 structured layouts: zero-gap geometry, clear slots, tap-to-fill, reliable export.
+●
+       Maximal Editorial: intelligent overlap and variable image count; no visible gutters; focal hierarchy.
+●
+       Scrapbook: mixed cutouts, handwriting, tape and paper artifacts.
+●
+       Clean Editorial: restrained palette, serif type, wide margins, a few hero images.
+●
+       Freeform: powerful transform handles, pan/zoom bounds and no accidental clipping at canvas edges.
+●
+       Adaptive remixer: take any board and reflow it into another grammar without losing semantic groupings or
+        crops.
+
+
+
+
+                                                                                                                         23
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     LIVING BOARD
+
+
+
+     The board should become more
+     valuable after day one
+     Static boards often disappear into a folder. A living board can create a gentle revisit loop without
+     becoming another streak mechanic.
+
+
+
+                                                                             MATCH
+          CREATE         PIN MEANING      DO ONE THING   CAPTURE LIFE                         REFLECT          EVOLVE
+                                                                            PROGRESS
+
+
+
+
+     Revisit surfaces
+●
+       Daily glimpse: one hero image + the user’s own reason for saving it. Do not show the whole board every
+        time.
+●
+       Weekly micro-story: 3 tiles around one feeling or domain, plus a tiny action prompt.
+●
+       Monthly pulse: “What still feels true? What changed?” Re-rank hero items without rebuilding the board.
+●
+       Photo match: when the user adds a gratitude photo or journal entry, suggest possible links to existing
+        vision items.
+●
+       Quarterly remix: generate a fresh composition from the same underlying items to fight visual habituation.
+●
+       Annual archive: immutable snapshot + later status for each aspiration: achieved, in progress, evolved,
+        released, private.
+
+
+       Gratitude-specific idea
+       Then / Now / Next: For each life domain, show something the user is grateful for now, something they hope to grow,
+       and one next step. This avoids making the board feel like a catalog of what is missing.
+
+
+
+
+                                                                                                                        24
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     GROUP RITUAL
+
+
+
+     Vision Board Night as a native
+     product mode
+     A social board night can combine the communal energy visible in creator content with the privacy
+     required for personal goals. The room does not need shared editing. It needs synchronized structure.
+●
+       Room setup: 2-8 people, 20/30/45 minute mode, shared music or silence.
+●
+       Prompt rounds: “how you want to feel,” “something money cannot buy,” “a place you want to be,” “a
+        relationship to nurture,” “a courage goal,” “a tiny behavior.”
+●
+       Private canvas: everyone creates independently; progress indicator shows only participation, not content.
+●
+       Optional reactions: lightweight “love this” only after a user reveals a tile.
+●
+       Reveal: synchronized final animation; each user chooses Full board / 3 highlights / Keep private.
+●
+       Action close: everyone privately chooses one 7-day action. Sharing the action is optional.
+●
+       Aftermovie: group reel can contain only voluntarily shared tiles and reactions.
+
+
+       Why this matters
+       It transforms a solitary editor into an occasion. Occasions are easier to remember, repeat and invite others into than
+       features.
+
+
+
+
+                                                                                                                           25
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ PART 7 / PRODUCT DIRECTION
+
+
+
+ What to build first
+      The research supports a sequence that improves the core experience
+      before adding novelty. The biggest wins are discovery, authored
+      layouts, story generation and living-board metadata.
+
+
+ Priority   Capability                    Why it matters                          What “done” looks like
+
+ P0         Integrated image              Solves the most repetitive creation     Search + stock + user library + AI in
+            discovery                     friction.                               one drawer; direct placement into
+                                                                                  slot.
+
+ P0         Robust layout/crop engine     Every premium experience collapses      No clipping at corners; focal-point
+                                          if pans crop edges or presets show      aware crop; zero-gap structured
+                                          gaps.                                   layouts; reliable export.
+
+ P0         Meaning metadata              Without it, every reel is only a        Hero status, theme, “why this
+                                          slideshow.                              matters,” feeling, optional action
+                                                                                  stored per item.
+
+ P1         Maximal Editorial preset      Directly addresses the missing visual   25-60 assets, no dead space,
+                                          power in current presets.               semantic hierarchy, controlled
+                                                                                  overlap.
+
+ P1         3 authored Reel engines       Proves showcase differentiation         Future Memory + Scrapbook Alive +
+                                          without building a video editor.        Board vs Reality, with
+                                                                                  music/length/text controls.
+
+ P1         Living board archive          Creates long-term value and future      Immutable snapshots, status
+                                          social content.                         changes, carry-forward, version
+                                                                                  history.
+
+ P2         Future-self image             High emotional novelty and              “Put me here” flow with realistic,
+            generation                    personalization.                        activity-based scene variants.
+
+ P2         Vision Board Night            Growth and ritual layer.                Private room, prompt rounds, timed
+                                                                                  session, consent-based reveal.
+
+ P2         Vision Wrapped                High-share annual payoff dependent      Personalized recap from real activity
+                                          on history.                             and board evolution, not fabricated
+                                                                                  metrics.
+
+
+
+
+                                                                                                                          26
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     ANTI-PATTERNS
+
+
+
+     What not to copy
+●
+       Generic luxury-feed imagery. It optimizes for aesthetic desire rather than self-concordant meaning and
+        quickly makes boards look interchangeable.
+●
+       Outcome-only “manifestation” framing. It risks overclaiming and can reinforce passive fantasy. Pair
+        aspiration with process and obstacles.
+●
+       Infinite customization before completion. A powerful editor is useful, but defaults must get a novice to a
+         strong result quickly.
+●
+       Every reel = pan + zoom + text. Camera movement without story grammar still feels templated.
+●
+       One static board shown every day. Repetition can become invisible. Recompose, excerpt and narrate
+        instead.
+●
+       Public declaration as the main social mechanic. Favor private co-creation, progress, reflection and
+        completed evidence.
+●
+       Fake personalization. Changing a name, color or quote does not create self-relevance. Use actual user
+        language, media and choices.
+●
+       AI scene overload. If every image is synthetic and idealized, the board can lose connection to the user’s
+        current life. Mix real photos, reference imagery and generated scenes.
+●
+       Layout presets that are merely color skins. Each preset should embody a different spatial and storytelling
+        grammar.
+●
+       Export-only thinking. Reels, wallpapers and Polaroids should be ongoing surfaces of the same living board,
+        not dead files generated once.
+
+
+
+
+                                                                                                                    27
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ OPPORTUNITY MAP
+
+
+
+ From source insight to product
+ system
+ User problem                       Reference mechanism                    Product move
+
+ Finding the right visual takes     Milanote integrated search +           Unified search drawer; AI scene
+ forever                            Pinterest cutouts                      generation; target-slot search; shortlist
+                                                                           tray.
+
+ Boards feel generic                Pinterest editorial collage + Canva    Maximal preset, user handwriting/voice,
+                                    Notes App Chic                         tactile artifacts, hierarchy.
+
+ Reels feel templated               Apple Memories + CapCut + Spotify      Narrative engines, modular chapters,
+                                    Wrapped                                authored motion, few high-leverage
+                                                                           controls.
+
+ Board disappears after             Canva living artefact + wallpaper      Daily excerpts, monthly pulse, quarterly
+ creation                           behavior                               remix, widget / lock screen outputs.
+
+ Goals become aesthetic wish        Self-concordance + process             Meaning prompt, process imagery,
+ lists                              simulation                             obstacle + if-then plan.
+
+ Sharing is shallow                 Board-vs-reality creators +            Progress recaps, evidence, lessons, group
+                                    public-intention caveat                rituals; declaration optional.
+
+ Yearly reset loses history         Ashi / Tam Kaur + Wrapped              Annual archive, carry-forward statuses,
+                                                                           Vision Wrapped and next-board seed.
+
+ Generic people in images           Future-self continuity + AI products   Optional personalized future scenes, own
+ reduce identification                                                     voice, own places and photos.
+
+
+
+
+                                                                                                                       28
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ PART 8 / REFERENCE ATLAS
+
+
+
+ Source-by-source bibliography
+ and evidence notes
+    Use this section as the jumping-off point when designing, writing
+    product copy, or validating future experiments. Links are included as
+    clickable URLs.
+
+ Source                                   Unique relevance                                                   Evidence
+
+ Pham & Taylor, 1999                      Process vs outcome mental simulation; process imagery improved A
+ open source                              studying/performance.
+
+ Kappes & Oettingen, 2011                 Positive fantasies about idealized futures reduced energization    A
+ open source                              across experiments.
+
+ Gollwitzer & Sheeran, 2006               Meta-analysis of implementation intentions; 94 independent         A
+ open source                              tests.
+
+ Wang, Wang & Gai, 2021                   Meta-analysis of mental contrasting with implementation            A
+ open source                              intentions; 21 studies / 15,907 participants.
+
+ Sheldon & Elliot, 1999                   Self-concordant goals: sustained effort, attainment and            A
+ open source                              well-being.
+
+ Sheldon & Houser-Marko, 2001             Self-concordance and goal attainment in longitudinal well-being.   A
+ open source
+
+ Schacter et al., 2017                    Review of episodic future thinking mechanisms and functions.       A
+ open source
+
+ Ye et al., 2022                          Meta-analysis: episodic future thinking and delay discounting.     A
+ open source
+
+ Hershfield, 2011                         Review of future-self continuity and intertemporal choice.         A
+ open source
+
+ Hershfield et al., 2011                  Age-progressed renderings of future self and future-oriented       A
+ open source                              financial choices.
+
+ Gollwitzer et al., 2009                  Public identity-related intentions and later goal striving.        A
+ open source
+
+ Canva - Vision Board Trend, 2026         13.3% YoY creation growth; social ritual, motion, sound, narrative, B
+ open source                              living artefacts.
+
+ Canva - Design Trends 2026               Imperfect by Design; Notes App Chic, Explorecore, Texture Check    B
+ open source                              and trend search data.
+
+ Canva - Vision Board templates           Multiple surface formats: wallpapers, stories, posters, pins,      B
+ open source                              presentations.
+
+ Pinterest - Collages remix/share,        Collage remixing and export/share to social video.                 B
+ 2024
+ open source
+
+
+
+
+                                                                                                                    29
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ Source                                   Unique relevance                                                     Evidence
+
+ Pinterest - Shuffles                     Object cutouts, keyframe motion, search, backgrounds and social      B
+ open source                              sharing.
+
+ Pinterest - Editorial vision-board       Dense collage / editorial reference set.                             C
+ board
+ open source
+
+ Pinterest - Aesthetic Vision Board pin   Edge-to-edge maximal collage example.                                C
+ open source
+
+ Pinterest - Scrapbook page               Visible authorship through handwritten notes and layered             C
+ open source                              ephemera.
+
+ Milanote - Vision Board                  Integrated search; mobile capture; flexible visual workspace.        B
+ open source
+
+ Milanote - Filmmaking Moodboard          Explicit hierarchy guidance: anchor element, size/position by        B
+ open source                              importance.
+
+ Milanote - Moodboard guide               Mixed media, color, fonts, audio/video and web capture.              B
+ open source
+
+ Are.na - About                           Capture, arrange, connect, reuse and collaborate over time.          B
+ open source
+
+ Adobe Express - Mood board               Destination-based formats and editable stock assets.                 B
+ templates
+ open source
+
+ Spate Global Culture Shifts 2026         Vision boarding as “new self-branding”; TikTok/Instagram/Google      C
+ open source                              trend examples.
+
+ CapCut - Visionboard2026 templates       Dynamic video templates with replaceable photos, text and            B
+ open source                              music.
+
+ Adelaine Morin - 2026 board              Creator vlog; board as personal narrative across work/travel/life.   C
+ open source
+
+ Gerohan - making our board               Group creation as entertainment and ritual.                          C
+ open source
+
+ Ashi Khanna - 2026 board + 2025          Retrospective + new-board creation loop.                             C
+ results
+ open source
+
+ Tam Kaur / Self Obsessed episode         Chaptered flow from prior results -> science -> plan -> digital +    C
+ open source                              physical creation.
+
+ Instagram indexed success stories        Board-vs-reality and action framing in Reels.                        C
+ open source
+
+ Lemon8 2026 board post                   Fast Canva/Pinterest creation + wallpaper use.                       C
+ open source
+
+ Spotify Wrapped 2025 UX                  Personalized story sequence, share cards, revisit controls, Party.   B
+ open source
+
+ Spotify Wrapped campaign 2025            “Visual mixtape” analog/digital design and global physical           B
+ open source                              activations.
+
+ Apple Intelligence in Photos             Prompted memory movie -> selected media, chapters, narrative         B
+ open source                              arc and music.
+
+
+
+
+                                                                                                                      30
+VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+ Source                                   Unique relevance                                                    Evidence
+
+ Apple Photos memory personalization      Change music, title, length and included media.                     B
+ open source
+
+ FutureSelf AI                            AI future-self scenes with user likeness.                           D
+ open source
+
+ DeepBliss Vision Board                   Future-self visual board with playable audio / own-voice framing.   D
+ open source
+
+
+
+
+                                                                                                                     31
+    VISION BOARD EXPERIENCE RESEARCH / SEPTEMBER 2026
+
+
+
+
+     FINAL PRODUCT PRINCIPLES
+
+
+
+     The north star
+        “A vision board should not be a poster of a life you do not have. It
+        should be a living, personal story that helps you notice what matters,
+        imagine it vividly, take one step toward it, and later recognize how
+        you changed.”
+
+     If this principle is followed, the product architecture becomes clearer:
+●
+       Discover without leaving the app.
+●
+       Compose with authored presets that range from structured to maximal.
+●
+       Explain why a few important images matter.
+●
+       Act with lightweight process / obstacle / if-then layers.
+●
+       Experience the board as cinematic stories rather than one export.
+●
+       Revisit through excerpts, remixes and different surfaces.
+●
+       Record progress and life events that connect back to the board.
+●
+       Reflect on what happened, what changed and what no longer matters.
+●
+       Share selectively through progress, rituals and meaningful recap - not forced public proclamation.
+
+
+
+
+       Recommended immediate prototype
+       Build one end-to-end path: Quick Board -> integrated discovery -> Maximal Editorial composition -> 3 hero
+       meanings -> Future Memory reel -> wallpaper export -> 30-day revisit card. This single path tests the most
+       important insights from the research without requiring the entire long-term system.
+
+
+
+
+     Prepared as an exploratory product research document. Platform examples reflect sources available up to 24 Sep 2026. Social examples are
+     directional observations, not performance guarantees. Academic findings are summarized conservatively and should not be turned into
+     medical or guaranteed-behavior claims.
+
+
+
+
+                                                                                                                                            32
+

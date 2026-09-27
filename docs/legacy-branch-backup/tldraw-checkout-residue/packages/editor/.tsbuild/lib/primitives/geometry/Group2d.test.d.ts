@@ -1,0 +1,2 @@
+export {};
+//# sourceMappingURL=Group2d.test.d.ts.map

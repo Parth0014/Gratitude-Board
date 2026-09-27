@@ -1,0 +1,30 @@
+{
+  "analyzed_on": "2026-09-25",
+  "total_pages": 61,
+  "sources": [
+    {
+      "file": "docs/Vision_Board_Experience_Insights_Deep_Dive_2026.pdf",
+      "pages": 32,
+      "sha256": "7fb8498cdd15520027ab03b9fe4a995ee6136d45ff459e00d19a34ddcfe0f15e",
+      "text_file": "docs/source-text/Vision_Board_Experience_Insights_Deep_Dive_2026.txt",
+      "extraction": "Poppler pdftotext -layout, UTF-8; form-feed page separators",
+      "nonempty_extracted_pages": 32
+    },
+    {
+      "file": "docs/Vision_Board_Psychology_Behavioral_Design_Research.pdf",
+      "pages": 5,
+      "sha256": "c1990b24a0a1ad08d1b7da99a277b0fa81d120a1d01c5da2a145361f8103eeea",
+      "text_file": "docs/source-text/Vision_Board_Psychology_Behavioral_Design_Research.txt",
+      "extraction": "Poppler pdftotext -layout, UTF-8; form-feed page separators",
+      "nonempty_extracted_pages": 5
+    },
+    {
+      "file": "docs/Vision_Board_Web_App_Technical_Architecture.pdf",
+      "pages": 24,
+      "sha256": "000c07eaa4720ea8ac8fde55efe87ac3726b58e0b60165e6b1aeebc48c9ad63f",
+      "text_file": "docs/source-text/Vision_Board_Web_App_Technical_Architecture.txt",
+      "extraction": "Poppler pdftotext -layout, UTF-8; form-feed page separators",
+      "nonempty_extracted_pages": 24
+    }
+  ]
+}

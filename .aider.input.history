@@ -1,0 +1,85 @@
+
+# 2026-09-26 21:35:07.485968
++y
+
+# 2026-09-26 21:35:31.189968
++n
+
+# 2026-09-26 21:38:39.222684
++we are in branch route/tldraw adn we have implemetred tldraw but one drawback with tldraw is that it requires activation fee for production but i dont wanna do taht so i cloned its repo here but if we deploy the code it might get us backfired in the future so i want you to keep the implemetation of tldraw module wise like individual feature but change the codebase a little remove extra fetaures like langauge and all that are not required for vision board also cahnge codebase a little so our codebase dosne match thiers
+
+# 2026-09-26 21:40:40.107486
++D
+
+# 2026-09-26 21:44:24.361310
++proceed
+
+# 2026-09-26 21:46:08.431333
++they are uploaded start the process
+
+# 2026-09-26 21:47:57.486421
++/add apps\web\src\components\board-editor.tsx
+
+# 2026-09-26 21:48:10.097983
++n
+
+# 2026-09-26 21:49:22.163531
++/add apps\web\src\components\& {
++    $QwenBin  = "$env:USERPROFILE\bin"
++    $AiderBin = "$env:USERPROFILE\.local\bin"
++
++    # Verify qwen.cmd exists
++    $QwenCmd = Join-Path $QwenBin "qwen.cmd"
++
++    if (-not (Test-Path $QwenCmd)) {
++        throw "qwen.cmd not found at $QwenCmd"
++    }
++
++    Write-Host "Found qwen.cmd at:" -ForegroundColor Green
++    Write-Host $QwenCmd
++
++    # Fix current terminal immediately
++    $env:Path = "$QwenBin;$AiderBin;$env:Path"
++
++    # Fix future terminals permanently
++    $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
++
++    $Parts = @(
++        $UserPath -split ";" |
++        Where-Object { $_ -and $_.Trim() }
++    )
++
++    foreach ($p in @($QwenBin, $AiderBin)) {
++        if ($Parts -notcontains $p) {
++            $Parts += $p
++        }
++    }
++
++    $NewUserPath = ($Parts | Select-Object -Unique) -join ";"
++
++    [Environment]::SetEnvironmentVariable(
++        "Path",
++        $NewUserPath,
++        "User"
++    )
++
++    Write-Host ""
++    Write-Host "Testing..." -ForegroundColor Cya   Get    Write-Host ""    Write-Host "PATH FIXED." -ForegroundColor Gr    Write-Host "You can now run:"    Write-Host "    qwen" -ForegroundColor Cyan}
+
+# 2026-09-26 21:49:24.823554
++n
+
+# 2026-09-26 21:49:44.048036
++N
+
+# 2026-09-26 21:49:54.502747
++exit
+
+# 2026-09-26 21:50:03.081074
++skip
+
+# 2026-09-26 22:04:32.773736
++exit
+
+# 2026-09-26 22:10:31.914972
++we have cloned tldraw repo but we cant push it beacuase of copyright issues in prod can you keep the feature and tool implmanetation code excalty same but change the codebase style or flow so we can avoid copyrigth issues

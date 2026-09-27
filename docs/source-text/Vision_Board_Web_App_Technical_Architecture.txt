@@ -1,0 +1,1358 @@
+                                         VISION BOARD WEB APP
+
+
+                 Technical Architecture &
+                      Stack Decision Record
+     AWS-first, serverless-first architecture for a fast, media-heavy, extensible
+                                                vision-board product
+
+
+
+    Core architecture principle
+    Keep application metadata relational, keep media in object storage, keep the canvas
+    document compact, move slow work to asynchronous jobs, and never make the first
+    meaningful render depend on downloading the entire world.
+
+
+
+                            Area                                            Primary decision
+
+
+ Frontend                                                 Next.js + React + TypeScript
+
+ Canvas                                                   tldraw SDK
+
+ Database                                                 Amazon Aurora PostgreSQL Serverless v2
+
+ Media                                                    Amazon S3 + CloudFront
+
+ API/compute                                              AWS Lambda + API Gateway
+
+ Auth                                                     Amazon Cognito
+
+ Async processing                                         SQS + Lambda
+
+ Observability                                            CloudWatch + Sentry
+
+ Deployment                                               Vercel for frontend; AWS for backend/data
+
+ EC2                                                      Not required for MVP or normal production operation
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                        Page 1
+                                      Prepared as a living architecture reference
+
+
+Contents
+   1. Executive decision summary
+   2. Product requirements that drive architecture
+   3. Final stack and service decision matrix
+   4. Target system architecture
+   5. Frontend and canvas architecture
+   6. Data model and persistence strategy
+   7. Media upload, delivery, and image processing
+   8. API and compute architecture
+   9. Performance design and the 750-post lesson
+   10. Authentication, authorization, and security
+   11. Async jobs and event-driven workflows
+   12. Realtime and collaboration strategy
+   13. AI-ready architecture
+   14. Observability, reliability, and SLOs
+   15. Cost and scaling strategy
+   16. MVP-to-production roadmap
+   17. Anti-patterns and decisions to avoid
+   18. Architecture decision records (ADRs)
+   19. Launch checklist
+   Appendix A. Suggested schema
+   Appendix B. Suggested API surface
+   Appendix C. Performance investigation checklist
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                    Page 2
+1. Executive decision summary
+    Recommended baseline
+    Build the product as a TypeScript web application using Next.js and tldraw, backed by AWS
+    managed services. Use Aurora PostgreSQL for structured product data and S3/CloudFront
+    for board media. Use Lambda for stateless APIs and SQS for slow/background work. Avoid
+    EC2 unless a future workload truly requires a continuously running server.
+
+The architecture is intentionally optimized for the product characteristics that matter most: a
+highly interactive canvas, many user-uploaded images, fast board opening, autosave, templates,
+future collaboration, and optional AI generation. The core design avoids coupling those concerns
+together.
+
+        Decision area                 Selected option                      Reason                      Decision status
+
+
+                                                               Fast product development,
+                                                               strong React ecosystem,
+ Web framework                  Next.js + React + TypeScript                                   Adopt
+                                                               server/client flexibility,
+                                                               shared types.
+
+                                                               Avoid building
+ Canvas/editor                  tldraw SDK                     zoom/pan/selection/transfor     Adopt
+                                                               m/undo/redo from scratch.
+
+                                                               Relational model fits users,
+                                Aurora PostgreSQL              boards, sharing, templates,
+ Primary database                                                                              Adopt
+                                Serverless v2                  goals, subscriptions and
+                                                               permissions.
+
+                                                               Designed for durable object
+ Media storage                  S3                             storage; do not place           Adopt
+                                                               uploaded images in DB rows.
+
+                                                               CDN delivery reduces latency
+ Media delivery                 CloudFront                                                     Adopt
+                                                               and origin traffic.
+
+                                                               No server management,
+ Backend compute                Lambda                         scales per request, good fit    Adopt
+                                                               for API and event work.
+
+                                                               Managed routing, throttling,
+ API front door                 API Gateway                    auth integration and            Adopt
+                                                               Lambda invocation.
+
+                                                               AWS-native managed user
+ Authentication                 Cognito                                                        Adopt
+                                                               identity and token issuance.
+
+                                                               Separates user-facing latency
+ Async jobs                     SQS + Lambda                   from image processing,          Adopt
+                                                               exports, AI jobs and emails.
+
+Vision Board Web App - Technical Architecture
+                                                                                                                         Page 3
+        Decision area                 Selected option              Reason                          Decision status
+
+
+                                                        Adds architectural
+                                                        complexity; first validate
+ Realtime multiplayer           Defer from MVP                                             Defer
+                                                        single-user board value and
+                                                        persistence.
+
+                                                        Most workloads are stateless
+ EC2                            Do not use by default   or event-driven and fit            Avoid by default
+                                                        managed/serverless services.
+
+
+
+
+2. Product requirements that drive architecture
+                        Requirement                                      Architectural implication
+
+
+                                                        Users drag, resize, rotate, group, layer, zoom and pan
+ Interactive infinite canvas                            hundreds of elements. The editor must remain responsive
+                                                        independently of backend latency.
+
+                                                        Images dominate bytes transferred. The architecture must
+ Media-heavy boards
+                                                        keep media out of API responses and databases.
+
+                                                        A user should see the board shell and meaningful content
+ Fast perceived load
+                                                        quickly, while heavier images load progressively.
+
+                                                        Edits need durable persistence without blocking
+ Autosave and recovery
+                                                        interaction or writing on every pointer movement.
+
+                                                        Template cloning should create a board quickly without
+ Templates
+                                                        duplicating unnecessary media.
+
+                                                        The model should support owner/editor/viewer roles even
+ Sharing and permissions
+                                                        if collaboration launches later.
+
+                                                        Generation, image processing and summarization should
+ Future AI workflows
+                                                        run asynchronously and output normal board objects.
+
+                                                        The team generally avoids EC2; the stack should favor
+ Serverless preference
+                                                        managed services and functions.
+
+                                                        Start with a small number of services, introduce
+ Scalability without premature complexity
+                                                        specialized systems only when metrics justify them.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                     Page 4
+3. Final stack and service decision matrix
+                                                       Alternatives
+           Layer                    Decision                                  Why this decision                Status
+                                                       considered
+
+
+                                                                           One codebase, SSR/SPA
+                          Next.js + React +     Vite SPA + separate API;   options, strong
+ Frontend                                                                                              Use
+                          TypeScript            Remix                      ecosystem, shared
+                                                                           types.
+
+
+                                                                           Fast iteration without
+                          Tailwind CSS +
+ Design system                                  Material UI; custom CSS    locking the product into    Use
+                          shadcn/ui
+                                                                           a heavy visual system.
+
+
+                                                                           Most editor primitives
+                                                Konva/Fabric.js; fully
+ Canvas                   tldraw SDK                                       already exist; supports     Use
+                                                custom canvas
+                                                                           custom shapes.
+
+
+                                                                           Relational domain
+                          Aurora PostgreSQL     DynamoDB; RDS fixed        model and SQL
+ Primary DB                                                                                            Use
+                          Serverless v2         instance                   flexibility; managed
+                                                                           scaling.
+
+
+                                                Database blobs; local      Durable, cheap, scalable
+ Object storage           S3                                                                           Use
+                                                disk                       object storage.
+
+
+                                                                           Lower latency, caching,
+ CDN                      CloudFront            Direct S3 URLs             custom domain and           Use
+                                                                           access control.
+
+
+                                                                           Stateless request/event
+                                                EC2; long-running Node
+ Backend                  Lambda                                           workloads; no instance      Use
+                                                server
+                                                                           administration.
+
+
+                                                                           Central auth, routing,
+                                                Direct Lambda URLs;
+ API gateway              API Gateway                                      rate limits and             Use
+                                                custom reverse proxy
+                                                                           observability.
+
+
+                                                                           AWS-managed identity
+ Authentication           Cognito               Custom auth; Auth0                                     Use
+                                                                           and token verification.
+
+
+                                                Doing work inside
+                                                                           Reliable decoupling and
+ Async queue              SQS                   request; database                                      Use
+                                                                           retries.
+                                                polling
+
+
+                                                                           Pre-generate
+ Image transforms         Lambda initially      Always serve originals     thumbnails/optimized        Use
+                                                                           variants.
+
+
+                                                                           Managed transactional
+ Email                    SES                   SMTP server                                            Later / use as needed
+                                                                           email.
+
+
+                                                                           Fast event/funnel
+                                                Build analytics            visibility; keeps product
+ Analytics                PostHog                                                                      Use
+                                                internally                 analytics separate from
+                                                                           CloudWatch.
+
+Vision Board Web App - Technical Architecture
+                                                                                                                         Page 5
+                                                             Alternatives
+         Layer                      Decision                                  Why this decision               Status
+                                                             considered
+
+
+                                                                            Better frontend stack
+ App errors               Sentry                     CloudWatch only        traces and release        Use
+                                                                            diagnostics.
+
+
+                                                                            Reproducible
+                                                     Manual console-only
+ Infra as code            AWS CDK or Terraform                              environments and          Use
+                                                     setup
+                                                                            reviewable changes.
+
+
+                          Defer; then managed                               Do not pay complexity
+                                                     DIY WebSocket server
+ Realtime                 sync or Fargate if self-                          tax until collaboration   Defer
+                                                     on EC2
+                          hosting                                           is required.
+
+
+
+
+4. Target system architecture
+The architecture deliberately separates the interactive editor, structured application state, media,
+and background processing.
+
+    USER BROWSER
+       |
+       +--> Next.js UI / tldraw editor
+       |       |
+       |       +--> Cognito (sign-in / tokens)
+       |       |
+       |       +--> API Gateway --> Lambda --> Aurora PostgreSQL
+       |       |                         |
+       |       |                         +--> SQS
+       |       |                              +--> worker Lambda
+       |       |                                   +--> transforms / exports
+       |       |                                   +--> AI / email
+       |       |
+       |       +--> request presigned upload URL
+       |                  |
+       |                  +--> direct upload to S3
+       |
+       +--> CloudFront --> S3 optimized images / thumbnails / exports
+
+
+
+
+    Critical rule
+    Large media should travel directly between the browser and S3/CloudFront. Lambda should
+    authorize and coordinate media operations, not proxy every image byte.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                       Page 6
+5. Frontend and canvas architecture
+                 Concern                                 Decision                    Why
+
+
+                                                                    Suitable for marketing pages,
+                                                                    authenticated dashboard, server-side
+ Application shell                         Next.js App Router
+                                                                    data loading and client-heavy editor
+                                                                    routes.
+
+                                                                    Canvas libraries require browser
+ Editor route                              Client-heavy island      APIs; isolate that complexity to
+                                                                    /board/[id].
+
+                                                                    Provides selection, transforms,
+ Canvas engine                             tldraw                   zoom/pan, undo/redo, clipboard,
+                                                                    custom shapes and document state.
+
+                                                                    Use for panels, dialogs, editor
+                                                                    preferences and transient app state -
+ UI state                                  Zustand
+                                                                    not as the source of truth for durable
+                                                                    board data.
+
+                                                                    Validate API payloads and shared
+ Schema validation                         Zod
+                                                                    contracts.
+
+                                                                    User actions should feel immediate;
+ Optimistic UI                             Yes                      server confirmation happens after
+                                                                    the local change.
+
+                                                                    Do not write on every pointer move;
+ Autosave                                  Debounced/batched        persist after short idle windows and
+                                                                    important transitions.
+
+
+
+Suggested route structure
+  /app
+    /(marketing)
+    /(auth)
+    /(dashboard)
+      /dashboard
+      /boards
+      /templates
+      /settings
+    /board/[boardId]
+
+
+  /components
+    /board
+    /dashboard
+    /templates
+    /ui
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                       Page 7
+  /lib
+    /api
+    /auth
+    /boards
+    /storage
+    /schemas
+
+
+
+
+Canvas object model
+              Object type                                Examples                             Persistence
+
+
+ Native/basic                              Text, shape, image, drawing          Canvas document
+
+                                           Goal card, affirmation, checklist,   Canvas document + optional domain
+ Product-aware custom shape
+                                           quote card                           reference
+
+                                                                                Canvas stores asset ID/URL; bytes live
+ Asset reference                           Image/video/file
+                                                                                in S3
+
+ Frame/section                             Career, travel, health, finance      Canvas document
+
+                                                                                Canvas metadata; remote content not
+ Link/embed                                Website, video preview
+                                                                                embedded as raw bytes
+
+
+
+6. Data model and persistence strategy
+    Persistence split
+    Use PostgreSQL for relational product metadata and permissions. Use S3 for uploaded
+    media and optionally large immutable board snapshots. The editor document should
+    reference assets rather than contain image bytes.
+
+                  Data                                        Store                               Why
+
+
+ Users, plans, profiles                    Aurora PostgreSQL                    Relational data and transactions.
+
+                                                                                Ownership, title, visibility,
+ Boards metadata                           Aurora PostgreSQL                    timestamps, thumbnail, current
+                                                                                version.
+
+                                                                                Many-to-many relationships and
+ Membership/permissions                    Aurora PostgreSQL
+                                                                                authorization queries.
+
+ Goals, comments, templates
+                                           Aurora PostgreSQL                    Queryable product features.
+ metadata
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                 Page 8
+                                                                                   Simple MVP persistence; move
+                                           JSONB in Postgres initially, or S3 if
+ Canvas snapshot                                                                   large/versioned snapshots to object
+                                           snapshots become large
+                                                                                   storage when needed.
+
+                                                                                   Object storage is cheaper and more
+ Images/videos/files                       S3
+                                                                                   scalable than DB blobs.
+
+                                                                                   Serve correct dimensions through
+ Optimized variants                        S3
+                                                                                   CloudFront.
+
+                                                                                   Transient work queue with retry
+ Jobs                                      SQS
+                                                                                   semantics.
+
+                                                                                   Operational and product telemetry
+ Metrics/logs                              CloudWatch / analytics platform
+                                                                                   should not live in app tables.
+
+
+
+Recommended core relational schema
+                  Table                                    Purpose                               Important fields
+
+
+                                           Application profile mapped to Cognito   id, cognito_sub, display_name, plan,
+ users
+                                           identity                                created_at
+
+                                                                                   id, owner_id, title, visibility,
+ boards                                    Board-level metadata                    thumbnail_key, current_version,
+                                                                                   updated_at
+
+ board_members                             Sharing and role-based access           board_id, user_id, role
+
+                                                                                   id, board_id, version,
+ board_versions                            Optional version history                snapshot_key/jsonb, created_by,
+                                                                                   created_at
+
+                                                                                   id, owner_id, board_id, s3_key,
+ assets                                    Logical media records
+                                                                                   mime_type, width, height, bytes, status
+
+ goals                                     Structured goal metadata                id, board_id, title, target_date, status
+
+                                                                                   id, owner_id, title, category,
+ templates                                 Discoverable reusable board templates
+                                                                                   preview_key, snapshot_key
+
+                                                                                   id, board_id, author_id, anchor, body,
+ comments                                  Future collaboration comments
+                                                                                   resolved_at
+
+                                                                                   user_id, provider_customer_id, plan,
+ subscriptions                             Billing state mirror
+                                                                                   status, period_end
+
+Do not normalize every canvas object into SQL rows unless the product needs database queries
+over those objects. The editor engine should remain the authority for geometry and visual state.
+Relational tables should represent product concepts that the application needs to query
+independently.
+
+Vision Board Web App - Technical Architecture
+                                                                                                                         Page 9
+7. Media upload, delivery, and image processing
+Vision boards are primarily a media-delivery problem. A fast board depends more on asset
+architecture than on the database.
+
+  UPLOAD PATH
+  1. Browser asks API for upload permission
+  2. Lambda validates user/board/file metadata
+  3. Lambda returns an S3 presigned upload URL
+  4. Browser uploads directly to S3
+  5. S3 event -> SQS/Lambda image processor
+  6. Processor creates optimized variants + thumbnail
+  7. Asset row becomes READY
+  8. Board uses CloudFront URLs
+
+
+  DISPLAY PATH
+  Browser -> CloudFront -> cached optimized object -> S3 only on cache miss
+
+
+
+                  Decision                            Recommendation                                    Why
+
+
+                                                                                      Allows future reprocessing/export
+ Originals                                 Keep original privately in S3
+                                                                                      without re-upload.
+
+ Board display                             Serve WebP/AVIF/JPEG variants              Reduce bytes and decode cost.
+
+                                           Generate 256 / 512 / 1024 / larger as      Use the smallest sufficient image for a
+ Sizes
+                                           needed                                     board tile.
+
+                                                                                      Avoid routing multi-MB files through
+ Uploads                                   Direct-to-S3 presigned URL
+                                                                                      Lambda/API Gateway.
+
+                                                                                      Cache close to users and centralize
+ Delivery                                  CloudFront custom domain
+                                                                                      access rules.
+
+                                           Signed CloudFront URLs/cookies or          Keep S3 bucket non-public where
+ Private assets
+                                           controlled origin access                   appropriate.
+
+                                           Store dimensions and byte size in assets   Lets UI choose variants without probing
+ Image metadata
+                                           table                                      files.
+
+                                           Soft-delete metadata first, clean S3       Avoid user-facing latency and handle
+ Deletion
+                                           asynchronously                             shared references safely.
+
+
+    Perceived-speed optimization
+    When a user drops an image onto the canvas, show a local object URL immediately. Upload
+    in the background, then swap to the CDN URL after completion. The editing interaction
+    should not wait for the network.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                       Page 10
+8. API and compute architecture
+               Workload                              Compute choice                                   Reason
+
+
+ CRUD APIs                                 Lambda                                    Short, stateless requests.
+
+ Presigned upload URL                      Lambda                                    Small authenticated operation.
+
+                                                                                     Asynchronous, retryable, does not
+ Image processing                          SQS-triggered Lambda
+                                                                                     block request.
+
+                                                                                     Can be slow; return job status instead
+ Board export                              SQS-triggered worker
+                                                                                     of holding HTTP open.
+
+                                                                                     External API latency and retry
+ AI generation                             Queued worker
+                                                                                     behavior should be isolated.
+
+ Scheduled cleanup                         EventBridge + Lambda                      Lifecycle/maintenance tasks.
+
+                                           Do not use Lambda for a stateful
+                                           socket server; use a managed              Persistent connections have different
+ Long-lived collaboration server
+                                           collaboration service or Fargate if       runtime requirements.
+                                           self-hosting
+
+
+
+Database connectivity from Lambda
+The API should not create uncontrolled PostgreSQL connections during traffic spikes. Use
+connection pooling appropriate to the chosen Aurora configuration. RDS Proxy can be introduced
+when connection churn or concurrency makes it useful. Keep functions in the same AWS region as
+the database and measure connection setup separately from query time.
+
+                      API design rule                                                     Reason
+
+
+ Return only fields needed for the screen                       Serialization and transfer often cost more than the query.
+
+ Paginate lists                                                 Avoid fetching hundreds of full records for initial render.
+
+ Use cursor pagination for large changing lists                 More stable than deep OFFSET pagination.
+
+ Batch related reads where sensible                             Avoid N+1 request patterns.
+
+ Run independent backend calls in parallel                      Avoid sequential await chains.
+
+ Return job IDs for slow operations                             Keep request latency predictable.
+
+ Set explicit timeouts/retries                                  Prevent hidden long-tail latency.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                      Page 11
+9. Performance design and the 750-post lesson
+    Key interpretation
+    A 3-4 second screen for roughly 750 posts does not prove that AWS is slow. It usually means
+    the request is moving, serializing, rendering, or sequentially waiting on too much data.
+    Measure each segment before changing infrastructure.
+
+
+Latency decomposition
+  Total user-perceived latency ~=
+    network to API
+  + API gateway / function startup
+  + database connection acquisition
+  + SQL execution
+  + serialization
+  + response transfer
+  + browser parsing
+  + React rendering / layout
+  + media fetch/decode
+
+
+
+  Potential cause for 750-post slowness              What to measure                                Typical fix
+
+
+                                                                                    Fetch 20-50 summaries; paginate or
+ Fetching all 750 full records             Response row count and payload MB
+                                                                                    virtualize.
+
+ SELECT *                                  Columns and payload size                 Return only list-view fields.
+
+ Missing index                             EXPLAIN / query duration                 Index filter/order keys.
+
+ N+1 queries                               Query count per request                  Join/batch/preload.
+
+                                                                                    Reduce package/startup work; provision
+ Lambda cold start                         Init duration vs execution duration
+                                                                                    only if justified.
+
+ Fresh DB connection each invocation       Connection acquisition time              Pool connections; consider RDS Proxy.
+
+                                                                                    Parallelize with Promise.all or backend
+ Sequential independent calls              Trace waterfall
+                                                                                    batching.
+
+                                                                                    Virtualize list and render visible rows
+ Rendering all rows                        Browser main-thread and React profiler
+                                                                                    only.
+
+                                                                                    Thumbnails, responsive sizes, lazy
+ Images loaded at full resolution          Network transfer and decode time
+                                                                                    loading, CDN.
+
+                                                                                    Place backend near primary users or
+ Region distance                           Network RTT
+                                                                                    use edge/CDN for cacheable content.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                     Page 12
+Performance targets for the vision-board app
+                  Metric                                 Initial target                           How to achieve it
+
+
+                                           ~1 second on a typical broadband          Small first payload, pagination,
+ Dashboard useful content
+                                           connection                                cacheable thumbnails.
+
+                                                                                     Load board metadata/document
+ Board shell usable                        ~0.5-1.5 seconds
+                                                                                     before full-resolution assets.
+
+ Image placement                           Immediate perceived response              Local preview + background upload.
+
+                                                                                     Debounce/batch persistence; send
+ Autosave                                  No visible editor stall
+                                                                                     deltas or compact snapshot.
+
+                                                                                     Indexes, small responses, pooled DB
+ API p95 for simple reads                  Aim for low hundreds of milliseconds
+                                                                                     connectivity, tracing.
+
+ Heavy jobs                                Async                                     Queue work; expose progress/status.
+
+
+    Board loading rule
+    Opening a board must not require downloading every original image. Fetch a compact
+    board document first; load visible/nearby optimized media progressively through
+    CloudFront.
+
+
+
+10. Authentication, authorization, and security
+                  Control                                   Decision                                    Why
+
+
+                                                                                     Managed sign-up/sign-in and token
+ Identity                                  Cognito user pools
+                                                                                     issuance.
+
+                                                                                     Every protected API call is tied to an
+ API authentication                        JWT validation at API layer / Lambda
+                                                                                     authenticated principal.
+
+                                           Check board membership/role server-       Do not trust client-provided owner or
+ Authorization
+                                           side                                      role fields.
+
+                                           Private bucket + presigned uploads +
+ S3 access                                                                           Avoid public writable storage.
+                                           controlled CloudFront delivery
+
+                                           Secrets Manager / environment             Do not ship DB credentials or API
+ Secrets
+                                           configuration                             secrets to the browser.
+
+ Encryption                                TLS in transit; AWS encryption at rest    Baseline protection for DB and S3.
+
+                                           File type/size validation, rate limits,   Media and AI endpoints are cost-
+ Abuse controls
+                                           quotas                                    sensitive.
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                        Page 13
+                 Control                                   Decision                               Why
+
+
+                                                                                Sharing, permissions, deletions, billing
+ Auditability                              Log security-sensitive changes
+                                                                                changes.
+
+
+
+
+11. Async jobs and event-driven workflows
+                  Job                                      Trigger                          Worker output
+
+
+ Image optimization                        S3 upload event -> SQS               Variants, dimensions, status READY.
+
+ Thumbnail generation                      Board save / explicit request        Board preview image in S3.
+
+ PDF/image export                          User request -> SQS                  Export artifact + notification.
+
+                                                                                Structured board shapes + asset
+ AI board generation                       User prompt -> SQS
+                                                                                generation tasks.
+
+ Email                                     Application event -> queue           SES transactional email.
+
+                                                                                Delete orphaned uploads/expired
+ Cleanup                                   Scheduled EventBridge rule
+                                                                                exports.
+
+                                                                                Derived product metrics without
+ Analytics enrichment                      Event stream/queue if needed later
+                                                                                slowing API.
+
+Use idempotency keys for jobs that can be retried. A worker should be safe to execute more than
+once. Record job state such as QUEUED, RUNNING, SUCCEEDED and FAILED when the UI needs
+progress.
+
+
+12. Realtime and collaboration strategy
+Real-time multiplayer is valuable, but it should not dictate MVP infrastructure. Build the board
+model and permission model so collaboration can be added without rewriting ownership and
+sharing.
+
+                 Phase                                    Capability                 Recommended architecture
+
+
+ MVP                                       Single active editor; autosave       tldraw local state + API persistence.
+
+                                                                                Postgres permissions + read API + CDN
+ Early sharing                             View-only links / invited viewers
+                                                                                assets.
+
+                                                                                AWS AppSync/WebSocket-capable
+ Comments/presence                         Light realtime metadata
+                                                                                managed layer can be evaluated.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                  Page 14
+                 Phase                                   Capability                        Recommended architecture
+
+
+                                                                                     Use a collaboration system designed for
+                                           Concurrent shape edits and conflict       shared editor state; if self-hosting
+ Full multiplayer canvas
+                                           handling                                  requires a persistent server, Fargate is
+                                                                                     preferable to managing EC2.
+
+
+    Decision boundary
+    Do not implement full multiplayer by bolting raw WebSockets onto Lambda and inventing
+    a synchronization protocol. Use a purpose-built sync layer when the product requirement
+    becomes real.
+
+
+
+13. AI-ready architecture
+AI should generate normal product data rather than create a parallel AI-only representation. This
+keeps generated content editable and compatible with templates, exports and collaboration.
+
+  User prompt
+    -> API creates generation job
+    -> SQS worker
+        -> classify themes/goals
+        -> generate copy / suggested structure
+        -> optional image generation/search
+        -> create ordinary board objects
+        -> persist board version
+    -> UI receives job completion and opens editable board
+
+
+
+
+                           AI feature                                               Architectural rule
+
+
+ Prompt-to-board                                                Output tldraw/custom-shape JSON that is valid without AI.
+
+                                                                Treat resulting images exactly like user uploads: ingest ->
+ Image generation/editing
+                                                                process -> S3 -> CDN.
+
+                                                                Persist structured goals separately only when the product
+ Goal decomposition
+                                                                needs tracking/querying.
+
+                                                                Store generated recommendations as application records,
+ AI coach/check-ins
+                                                                not hidden model state.
+
+ Cost control                                                   Queue, meter and rate-limit expensive operations.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                        Page 15
+14. Observability, reliability, and SLOs
+                 Layer                                   Telemetry                                 Key questions
+
+
+                                                                                      Are users seeing JS errors, slow route
+ Browser                                   Sentry + web performance
+                                                                                      loads, long tasks?
+
+                                                                                      Which endpoint is slow? cold start or
+ API Gateway/Lambda                        CloudWatch logs/metrics/tracing
+                                                                                      execution?
+
+                                                                                      Which SQL statements dominate
+ Aurora                                    Query metrics / slow-query analysis
+                                                                                      latency?
+
+                                                                                      Are assets cached? Are origin bytes
+ S3/CloudFront                             Request and cache metrics
+                                                                                      excessive?
+
+ Queues                                    SQS depth/age/DLQ                          Are background jobs keeping up?
+
+                                                                                      Do users create boards, upload assets,
+ Product                                   PostHog events/funnels
+                                                                                      return, use templates?
+
+
+
+Suggested service-level indicators
+                          Indicator                                                       Measure
+
+
+ API latency                                                    p50/p95/p99 by endpoint
+
+ API errors                                                     5xx and application-error rate
+
+ Board open                                                     Time to interactive editor + time to visible first assets
+
+ Upload                                                         Success rate and upload duration by size
+
+ Worker health                                                  Queue age, retry rate, DLQ count
+
+ Database                                                       Connection wait + query duration
+
+ CDN                                                            Cache hit ratio and bytes from origin
+
+
+
+15. Cost and scaling strategy
+                         Cost driver                                                       Control
+
+
+ Image storage                                                  Lifecycle old exports/unused originals; compress variants.
+
+ Image egress                                                   CloudFront caching; use appropriate resolutions.
+
+                                                                Keep requests short; do heavy tasks async; watch
+ Lambda
+                                                                memory-duration tradeoff.
+
+Vision Board Web App - Technical Architecture
+                                                                                                                       Page 16
+                           Cost driver                                                     Control
+
+
+                                                                 Choose capacity range based on measured usage;
+ Aurora
+                                                                 optimize SQL before scaling capacity.
+
+                                                                 Per-user quotas, plan limits, queued work and usage
+ AI
+                                                                 metering.
+
+                                                                 Retention policies; structured logs without dumping huge
+ Logs
+                                                                 request bodies.
+
+ Exports                                                         Expire generated artifacts after a suitable period.
+
+Scale by bottleneck, not by instinct. If the database is fast but browser rendering is slow, a larger
+database will not help. If CloudFront is serving cached images, adding API servers will not make
+images faster. Keep end-to-end traces and optimize the measured critical path.
+
+
+16. MVP-to-production roadmap
+                 Phase                                      Scope                                    Exit criterion
+
+
+                                           Next.js, tldraw spike, Cognito, Aurora     Prove editor integration and
+ Phase 0 - foundation
+                                           schema, S3 bucket, CloudFront, IaC         persistence.
+
+                                           Create/edit boards, upload images,
+ Phase 1 - MVP                             text/quotes/stickers, autosave,            Validate core use and retention.
+                                           templates, dashboard, export image
+
+                                           Image variants, direct uploads,
+                                                                                      Make the product feel fast and
+ Phase 2 - performance & polish            pagination, caching, observability, SQS
+                                                                                      operationally safe.
+                                           jobs, production error tracking
+
+                                           Stripe, plan limits, premium templates,    Introduce paid value after usage
+ Phase 3 - monetization
+                                           larger storage/AI quotas                   patterns are known.
+
+                                           Sharing, roles, comments, presence;
+ Phase 4 - collaboration                                                              Add only when user demand exists.
+                                           evaluate full multiplayer sync
+
+                                           Prompt-to-board, AI image workflows,       Use existing board object model and
+ Phase 5 - AI
+                                           goal decomposition/coaching                async workers.
+
+
+
+
+17. Anti-patterns and decisions to avoid
+                             Avoid                                                          Why
+
+
+                                                                 Creates database bloat, backup/restore overhead and poor
+ Store images inside PostgreSQL rows
+                                                                 media-delivery behavior. Use S3.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                         Page 17
+                           Avoid                                                       Why
+
+
+                                                        Adds latency/cost and risks payload/time limits. Use
+ Proxy all uploads through Lambda
+                                                        presigned direct uploads.
+
+                                                        Causes slow transfer and rendering. Paginate and project
+ Fetch entire datasets for list screens
+                                                        only needed fields.
+
+                                                        Wastes bandwidth and decode time. Use responsive
+ Load originals on the canvas
+                                                        optimized variants.
+
+ Save on every pointer event                            Creates excessive writes and editor jank. Debounce/batch.
+
+                                                        Consumes months on editor primitives before validating
+ Build a custom canvas engine first
+                                                        product value.
+
+                                                        The core domain is relational; use DynamoDB only for a
+ Use DynamoDB just because it is AWS
+                                                        workload that benefits from its access model.
+
+                                                        Complicates source-of-truth and conflict semantics. Defer
+ Adopt multiple realtime systems immediately
+                                                        until collaboration scope is clear.
+
+                                                        Function instances are ephemeral. Durable state must live
+ Treat Lambda memory as persistence
+                                                        in DB/object storage.
+
+                                                        Bigger compute cannot fix over-fetching, sequential
+ Scale infrastructure before profiling
+                                                        requests or expensive browser rendering.
+
+
+
+18. Architecture decision records (ADRs)
+D1. Relational primary database
+           Decision                 Selected approach               Why                       Not chosen now
+
+
+                                                                                         DynamoDB as primary
+                                                        The application has              store: would require
+                                                        relational entities, sharing,    access-pattern-first
+                                Aurora PostgreSQL
+ D1                                                     roles, templates, goals and      modeling and more
+                                Serverless v2
+                                                        billing records that benefit     application-side
+                                                        from SQL and transactions.       joins/duplication before
+                                                                                         those benefits are needed.
+
+
+      Revisit trigger
+      Reconsider specialized DynamoDB tables only when a measured high-throughput access
+      pattern clearly benefits from it.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                Page 18
+D2. Media storage
+           Decision                 Selected approach                Why                  Not chosen now
+
+
+                                                        Separates large binary
+                                                        assets from application     Database blobs or local
+ D2                             S3 + CloudFront         data; supports direct       disk: poor fit for durability,
+                                                        upload, CDN caching and     scaling and CDN delivery.
+                                                        lifecycle policies.
+
+
+      Revisit trigger
+      Revisit only for specialized derived media systems, not for basic uploads.
+
+
+D3. Compute
+           Decision                 Selected approach                Why                  Not chosen now
+
+
+                                                        Matches short stateless     EC2: unnecessary
+ D3                             Lambda + API Gateway    APIs and event workers      operational burden for
+                                                        without managing servers.   current workloads.
+
+
+      Revisit trigger
+      Use Fargate or another persistent runtime if a future component requires long-lived
+      processes/connections.
+
+
+D4. Canvas engine
+           Decision                 Selected approach                Why                  Not chosen now
+
+
+                                                        Provides mature editor
+                                                        primitives and lets the     Custom canvas: high
+ D4                             tldraw SDK              product focus on vision-    engineering cost and
+                                                        board-specific shapes and   interaction complexity.
+                                                        workflows.
+
+
+      Revisit trigger
+      Reconsider only if product requirements fundamentally conflict with the SDK model or
+      licensing/business constraints change.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                          Page 19
+D5. Board persistence
+           Decision                 Selected approach                  Why                     Not chosen now
+
+
+                                                            Keeps editor state cohesive
+                                                                                          One SQL row per visual
+                                                            while allowing product-
+                                Compact editor document +                                 primitive from day one:
+ D5                                                         level queries for boards,
+                                relational metadata                                       unnecessary impedance
+                                                            permissions, goals and
+                                                                                          mismatch.
+                                                            assets.
+
+
+      Revisit trigger
+      Extract specific object types into relational tables when they need independent
+      querying/workflows.
+
+
+D6. Realtime multiplayer
+           Decision                 Selected approach                  Why                     Not chosen now
+
+
+                                                            Collaboration is valuable     Immediate custom
+                                                            but not necessary to          WebSocket/sync
+ D6                             Defer from MVP              validate single-user          infrastructure: large
+                                                            creation, media, templates    complexity before
+                                                            and retention.                validated need.
+
+
+      Revisit trigger
+      Implement when shared editing becomes a prioritized user requirement with clear
+      concurrency semantics.
+
+
+D7. Performance strategy
+           Decision                 Selected approach                  Why                     Not chosen now
+
+
+                                                            User-perceived speed          Load everything upfront:
+                                Small first payload +
+                                                            depends on minimizing         simple but degrades
+ D7                             progressive media + async
+                                                            critical-path bytes and       quickly as user content
+                                work
+                                                            blocking work.                grows.
+
+
+      Revisit trigger
+      Keep this principle permanently; adjust cache, pagination and prefetch thresholds from
+      telemetry.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                                                  Page 20
+19. Launch checklist
+   Infrastructure is reproducible from CDK/Terraform and separated by environment.
+   S3 bucket is not publicly writable; upload permissions are scoped and expire.
+   CloudFront serves optimized board assets and cache headers are configured.
+   Board list APIs are paginated and do not use SELECT *.
+   Critical SQL queries have appropriate indexes and are measured with realistic data volumes.
+   Lambda functions log endpoint/job identifiers and latency segments without leaking secrets.
+   Failed background jobs go to a DLQ and can be replayed safely.
+   Image processing generates multiple display sizes and stores dimensions/bytes.
+   Board autosave is debounced and survives refresh/crash scenarios.
+   Access-control tests cover owner/editor/viewer behavior and direct object access attempts.
+   Frontend uses virtualization for any potentially large lists.
+   Sentry/CloudWatch dashboards exist before public launch.
+   Backups/retention policies exist for Aurora and critical S3 data.
+   Cost alerts/quotas exist for AI, storage and unexpected API usage.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                            Page 21
+Appendix A. Suggested schema
+    users
+      id uuid pk
+      cognito_sub text unique
+      display_name text
+      plan text
+      created_at timestamptz
+
+
+    boards
+      id uuid pk
+      owner_id uuid fk users
+      title text
+      visibility text
+      thumbnail_key text null
+      canvas_snapshot jsonb   -- MVP option
+      current_version int
+      created_at timestamptz
+      updated_at timestamptz
+
+
+    board_members
+      board_id uuid fk boards
+      user_id uuid fk users
+      role text               -- owner/editor/viewer
+      primary key (board_id, user_id)
+
+
+    assets
+      id uuid pk
+      owner_id uuid fk users
+      board_id uuid null fk boards
+      s3_key text
+      mime_type text
+      width int null
+      height int null
+      bytes bigint
+      status text             -- uploading/processing/ready/failed
+      created_at timestamptz
+
+
+    board_versions
+      id uuid pk
+      board_id uuid fk boards
+      version int
+      snapshot_json jsonb null
+      snapshot_key text null
+      created_by uuid fk users
+      created_at timestamptz
+
+
+
+
+Indexing starting points
+    boards(owner_id, updated_at desc) for dashboard lists.
+    board_members(user_id, board_id) for shared-board discovery.
+    assets(board_id, created_at) for board asset libraries.
+
+Vision Board Web App - Technical Architecture
+                                                                     Page 22
+     board_versions(board_id, version desc) for history.
+     Use partial/unique indexes where business rules justify them; confirm with real EXPLAIN
+      plans.
+
+
+Appendix B. Suggested API surface
+                Method                                    Endpoint                             Purpose
+
+
+    GET                                    /boards                          Paginated dashboard board summaries.
+
+                                                                            Create board from blank state or
+    POST                                   /boards
+                                                                            template.
+
+                                                                            Board metadata + compact editor
+    GET                                    /boards/{id}
+                                                                            document reference/content.
+
+    PATCH                                  /boards/{id}                     Update metadata.
+
+                                                                            Persist debounced editor
+    PUT                                    /boards/{id}/snapshot
+                                                                            snapshot/version.
+
+                                                                            Authorize direct S3 upload and create
+    POST                                   /boards/{id}/assets/upload-url
+                                                                            pending asset record.
+
+                                                                            Confirm upload; enqueue processing if
+    POST                                   /assets/{id}/complete
+                                                                            required.
+
+    GET                                    /boards/{id}/assets              Paginated asset metadata.
+
+    POST                                   /boards/{id}/exports             Queue export and return job ID.
+
+    GET                                    /jobs/{id}                       Return async job status/result.
+
+    POST                                   /boards/{id}/members             Invite/set role.
+
+    DELETE                                 /boards/{id}/members/{userId}    Remove access.
+
+
+
+
+Appendix C. Performance investigation checklist
+     Measure total API time and separate cold-start/init time from handler time.
+     Measure database connection acquisition time separately from SQL execution.
+     Capture exact response payload size in bytes, not only row count.
+     Check query count per request for N+1 patterns.
+     Run EXPLAIN (ANALYZE in safe environments) on slow SQL and verify index use.
+     Inspect whether independent operations are awaited sequentially.
+     Profile browser parse/render time and React commit time.
+     Virtualize long lists; 750 items should not all need to be in the DOM initially.
+     Check image dimensions, encoded file sizes and actual display sizes.
+
+Vision Board Web App - Technical Architecture
+                                                                                                               Page 23
+   Confirm CDN cache headers and cache-hit ratio.
+   Check region RTT from primary user geography.
+   Repeat tests with warm Lambda and cold Lambda separately.
+   Load test with realistic concurrency rather than only a single developer request.
+   Set a performance budget for initial JSON, initial image bytes and main-thread work.
+
+    Final recommendation
+    Start with the smallest architecture that preserves the right boundaries: Next.js + tldraw on
+    the client; Cognito, API Gateway/Lambda, Aurora PostgreSQL, S3/CloudFront and SQS on
+    AWS. Keep media direct-to-object-storage, keep initial payloads small, defer realtime
+    multiplayer, and let measured bottlenecks determine future infrastructure.
+
+
+
+
+Vision Board Web App - Technical Architecture
+                                                                                              Page 24
+

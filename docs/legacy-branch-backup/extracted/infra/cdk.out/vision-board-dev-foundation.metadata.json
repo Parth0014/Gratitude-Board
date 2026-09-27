@@ -1,0 +1,285 @@
+{
+  "/vision-board-dev-foundation": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    },
+    {
+      "type": "aws:cdk:stack-tags",
+      "data": [
+        {
+          "key": "Environment",
+          "value": "dev"
+        },
+        {
+          "key": "ManagedBy",
+          "value": "cdk"
+        },
+        {
+          "key": "Project",
+          "value": "vision-board"
+        }
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/MediaBucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MediaBucketName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:84:5)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/JobsQueueUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "JobsQueueUrl"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:85:5)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/UserPoolId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:86:5)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/UserPoolClientId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolClientId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:87:5)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/Media/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MediaA721A567"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:23:19)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/JobsDeadLetter/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "JobsDeadLetter4FD84C94"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:34:29)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/Jobs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "JobsDF1CC2D4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:40:18)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/DeadLetterMessages/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeadLetterMessages1E9611F4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Alarm2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:48:5)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/Users/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "Users0A0EEA89"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new UserPool2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:58:22)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...App.synth in aws-cdk-lib...",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:5)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)"
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/CDKMetadata/Condition": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadataAvailable"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...App.synth in aws-cdk-lib...",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:5)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)"
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/Media/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MediaPolicyB55044B9"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:23:19)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)"
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/JobsDeadLetter/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "JobsDeadLetterPolicyC9BE102D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:34:29)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/Jobs/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "JobsPolicy30CCDE58"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:40:18)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/vision-board-dev-foundation/Users/Web/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UsersWebA39D1A70"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addClient in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\lib\\foundation-stack.ts:75:29)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:9:1)",
+        "<anonymous> (C:\\Users\\jaypa\\OneDrive\\Pictures\\gratitudeBoard\\infra\\bin\\app.ts:13:11)",
+        "...node internals, tsx..."
+      ]
+    }
+  ]
+}

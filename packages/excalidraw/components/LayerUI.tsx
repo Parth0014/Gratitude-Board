@@ -32,7 +32,7 @@ import {
   type ColorDefaultKey,
 } from "../actions/colorTargets";
 
-import { SelectedShapeActions, CompactShapeActions } from "./Actions";
+import { SelectedShapeActions, CompactShapeActions, UndoRedoActions, ZoomActions } from "./Actions";
 import { LoadingMessage } from "./LoadingMessage";
 import { MobileMenu } from "./MobileMenu";
 import { PasteChartDialog } from "./PasteChartDialog";
@@ -473,6 +473,13 @@ const LayerUI = ({
       {/* make sure we render host app components first so that we can detect
           them first on initial render to optimize layout shift */}
       {children}
+      {appProps.renderEditorUI?.({
+        tools: !appState.viewModeEnabled && <Toolbar app={app} appState={appState} setAppState={setAppState} UIOptions={UIOptions} onPenModeToggle={onPenModeToggle} onLockToggle={onLockToggle} heading={null} />,
+        properties: showSelectedShapeActions(appState, elements) ? renderSelectedShapeActions() : null,
+        menu: renderCanvasActions(),
+        history: <UndoRedoActions renderAction={actionManager.renderAction} />,
+        zoom: <ZoomActions renderAction={actionManager.renderAction} />,
+      })}
       {/* Fallback entry points are the default UI. Host components above keep
           rendering into the outlets below even when defaults are disabled. */}
       {defaultUIEnabled && (
@@ -609,7 +616,7 @@ const LayerUI = ({
           }
         />
       )}
-      {editorInterface.formFactor === "phone" && (
+      {!appProps.renderEditorUI && editorInterface.formFactor === "phone" && (
         <MobileMenu
           app={app}
           appState={appState}
@@ -627,7 +634,7 @@ const LayerUI = ({
           scrollBackToContentUIEnabled={scrollBackToContentUIEnabled}
         />
       )}
-      {editorInterface.formFactor !== "phone" && (
+      {(appProps.renderEditorUI || editorInterface.formFactor !== "phone") && (
         <>
           {appProps.viewportStatusFrame?.border && (
             <ViewportStatusBorder
@@ -653,15 +660,15 @@ const LayerUI = ({
             }
           >
             {renderWelcomeScreen && <tunnels.WelcomeScreenCenterTunnel.Out />}
-            {renderFixedSideContainer()}
-            <Footer
+            {!appProps.renderEditorUI && renderFixedSideContainer()}
+            {!appProps.renderEditorUI && <Footer
               appState={appState}
               actionManager={actionManager}
               showExitZenModeBtn={showExitZenModeBtn}
               renderWelcomeScreen={renderWelcomeScreen}
               defaultUIEnabled={defaultUIEnabled}
               zoomUIEnabled={zoomUIEnabled}
-            />
+            />}
             {(appState.toast ||
               (scrollBackToContentUIEnabled && appState.scrolledOutside) ||
               appProps.viewportStatusFrame?.label) && (

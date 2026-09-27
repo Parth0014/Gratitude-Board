@@ -1,0 +1,304 @@
+Vision Board Psychology and Behavioral Design
+Research
+Evidence review and product decisions | September 2026
+Companion to the Vision Board Web App Technical Architecture. For product, design, research, and engineering teams.
+
+
+Executive summary
+A vision board is best treated as a reflective interface for articulating and revisiting a desired life, not as a mechanism that makes
+outcomes happen by exposure to images. Direct evidence for vision boards is sparse and largely qualitative. Stronger adjacent
+evidence supports self-endorsed goals, concrete process imagery, obstacle planning, if-then plans, and progress monitoring. The
+product should therefore make personal meaning and feasible action legible behind every chosen image, while allowing goals to
+change without framing change as failure. [1–8]
+ Decision                                                 Why                                                        Product consequence
+ Start with reflection                                    People may not arrive with well-formed goals;              Begin with roles, values, needs and lived
+                                                          direct design research supports scaffolding goal           constraints before image search.
+                                                          articulation. [1]
+ Pair future images with process and obstacles            Outcome fantasy alone can reduce effort; process           Each aspiration can hold a scene, first step,
+                                                          simulation and MCII have stronger goal-pursuit             obstacle and if-then response.
+                                                          evidence. [4–7]
+ Make boards revisable                                    Goals conflict and circumstances change; adaptive          Use pause, reframe, complete and release states
+                                                          disengagement can be healthy. [9]                          plus a private timeline.
+
+
+
+
+Scope and evidence boundaries
+The term “vision board” covers paper collages and digital collections of desired futures. The image can cue reflection and remind
+someone of a chosen direction. No good evidence shows that seeing a board alone causes goal attainment, “manifestation,” or a
+predictable improvement in mental health. The 2025 classroom study involved qualitative reflections and only 10 final-survey
+respondents. Cornell’s Inner Visions work used focus groups (22 young adults) and a small qualitative evaluation (11 young
+adults, 7 professionals); it informs design, not causal efficacy. [1–2]
+ Evidence tier                                            What it warrants                                           What it does not warrant
+ Direct board research: low                               Hypotheses about articulation, autonomy,                   Claims that boards cause goal attainment.
+                                                          reflection and usability. [1–2]
+ Adjacent experiments and meta-analyses:                  Design hypotheses for process imagery, planning            Assuming effects transfer unchanged to a visual
+ moderate to stronger                                     and monitoring. [3–8]                                      app.
+ Theory and correlational work: contextual                Prompts for identity, future self, narrative and           Treating a design framework as a validated
+                                                          social comparison. [3, 10–13]                              intervention.
+
+
+
+
+Research to experience map
+“Internal thought” is a plausible design hypothesis, not a measured universal inner monologue. Evidence labels refer to the cited
+underlying research, not validation of the proposed UI.
+ Mechanism                                   Evidence                                  Possible inner thought                      UI and UX implication
+ Self concordance                            Longitudinal goal research:               Do I actually want this, or should I        Ask why it matters and whose
+                                             autonomous, value-consistent goals        want it?                                    expectation it serves.
+                                             relate to sustained effort and well-
+                                             being. [3]
+ Possible selves                             Foundational identity theory; hoped-      Who could I become?                         Let users name desired identities and
+                                             for and feared selves can organize                                                    optionally avoidances.
+                                             motivation. [10]
+ Future self continuity                      Review and behavioral studies link        Will future me still feel like me?          Offer first-person, realistic future
+                                             perceived future-self connection with                                                 scenes and letters; avoid
+                                             longer-term choices. [11]                                                             photorealistic promises.
+
+
+                                                                                               Vision Board Psychology and Behavioral Design Research
+ Episodic future thinking        Experiments and reviews show             What would an ordinary Tuesday look       Prompt specific time, place, people
+                                 effects on delay discounting in          like?                                     and routine.
+                                 studied settings. [12]
+ Process vs outcome simulation   A student experiment found process       What would I do repeatedly?               Pair outcome image with a process
+                                 simulation improved studying and                                                   image or routine card.
+                                 grades. [4]
+ Positive fantasy risk           Across four studies, positive            This feels good already.                  After inspiration, ask about feasibility
+                                 fantasies related to lower effort than                                             and the next behavior.
+                                 positive expectations. [5]
+ Mental contrasting              Experimental self-regulation             What gets in my way now?                  Use an obstacle step after
+                                 literature supports comparing desired                                              envisioning the outcome.
+                                 future with present obstacle. [6]
+ Implementation intentions       Meta-analysis of 94 tests found          When exactly will I act?                  Convert a blocker into an if-then plan.
+                                 positive goal-attainment effects. [7]
+ WOOP or MCII                    Meta-analysis of 21 studies found a      Wish, outcome, obstacle, plan.            Offer a brief optional guided exercise
+                                 small-to-medium effect, with bias                                                  for one chosen goal.
+                                 caveats. [6]
+ Goal conflict                   Personal-goal research describes         What will this cost or crowd out?         Show time, energy and money
+                                 interference and facilitation among                                                conflicts before overcommitting.
+                                 goals. [13]
+ Progress monitoring             Meta-analysis of 138 experiments         Am I moving, and what have I              Offer gentle check-ins with behavior
+                                 found monitoring interventions           learned?                                  and learning fields.
+                                 increased attainment. [8]
+ Narrative identity              Research describes an evolving life      How does this fit my story?               Record why an image mattered then
+                                 story linking past and imagined                                                    and what it means now.
+                                 future. [14]
+ Goal adjustment                 Three studies associate                  Can I change my mind?                     Support pause, revise, release and
+                                 disengagement and reengagement                                                     reengage states.
+                                 with well-being. [9]
+ Social comparison               Meta-analysis of social-media            Am I behind other people?                 Default to private boards; avoid
+                                 upward comparisons finds small                                                     popularity rankings and aspirational
+                                 adverse average effects. [15]                                                      feeds.
+
+
+
+
+The reflective creation process
+ Stage                           User task                                Interface move                            Output
+ 1 Arrive                        Name current life context and            Private welcome; select a life horizon;   Context note
+                                 capacity.                                offer skip.
+ 2 Reflect                       Identify roles, strengths, needs,        Short prompts before inspiration          Candidate themes
+                                 energizers and friction.                 feed.
+ 3 Imagine                       Describe feasible future scenes.         Ask for an ordinary day, not just a       Future scenes
+                                                                          peak moment.
+ 4 Choose                        Prioritize a small set and surface       Compare meaning, feasibility, time,       Active themes
+                                 conflicts.                               energy and tradeoffs.
+ 5 Represent                     Select images or words and explain       Image library plus meaning card.          Board objects with meaning
+                                 each one.
+ 6 Prepare                       Name obstacle, first step and cue.       Optional WOOP and if-then                 Action plan
+                                                                          microflow.
+ 7 Revisit                       Notice action, feeling and changing      Gentle scheduled or user-led check-       Reflection entry
+                                 relevance.                               in.
+ 8 Revise                        Keep, reframe, pause, complete or        Version history and nonbinary states.     Living board history
+                                 release.
+
+
+
+
+Meaning behind the image
+Treat each board object as a layered record: image or phrase → personal interpretation → underlying value or need → imagined
+lived scene → feasible behavior → obstacle → review note. Example: a beach photograph might mean “unhurried time with family,”
+not “own a beach house.” Ask “What does this stand for to you?” before the app labels it. Store meaning privately and let it
+evolve. Avoid inferring psychological traits from images.
+
+
+Identity and desire framework
+Use Have, Do, Experience, Become, Feel and Contribute as optional lenses, not a diagnostic taxonomy. “Have” can reveal a
+practical resource or status symbol; “Do” identifies actions; “Experience” captures moments; “Become” speaks to identity;
+
+                                                                                  Vision Board Psychology and Behavioral Design Research
+“Feel” names desired states; “Contribute” addresses relationships and impact. A single aspiration may occupy several lenses.
+Example: “home” could mean having stable shelter, feeling safe, hosting friends and contributing care.
+An optional feared-future prompt can clarify boundaries: “What pattern would you like to avoid?” Never force trauma disclosure,
+ask users to picture catastrophe, or convert this into a threat-based streak. Allow skip, delete, and private retention. The goal is to
+identify a helpful guardrail, such as “I do not want work to crowd out sleep.” [10]
+
+
+Why reflection should precede inspiration
+Image search is attractive but can anchor users to visible luxury, body and lifestyle norms. Starting with needs and lived context
+may increase personal relevance and reduce imitation; this is a product hypothesis grounded in self-concordance, direct design
+research and social comparison findings, not a proven ordering effect for boards. Test both orders. Keep an immediate “start with
+images” escape route for users who think visually. [1, 3, 15]
+
+
+AI as mirror, not oracle
+AI may restate the user’s own words, surface tensions, suggest alternate interpretations and ask clarifying questions. It should
+distinguish quotation from inference, show editable suggestions, and ask “Does this fit?” It must not diagnose, assign a life
+purpose, rank the user’s worth, predict success, or invent hidden motives. A useful pattern is: “You wrote that this image
+represents freedom and more time with friends. Is the goal travel, flexible work, or something else?”
+
+
+Reflection tools
+
+The Why Ladder
+For a chosen image, ask “Why does this matter?” then follow the user’s answer with up to two more optional why questions. Stop
+when the answer becomes concrete and personally meaningful. Offer “I am not sure” and “this is enough.” The Why Ladder is a
+facilitation pattern, not a validated psychological scale.
+
+
+The Goal Conflict Map
+Show each active aspiration as a card with time, money, energy, relationships and timing needs. Let users draw a conflict or
+mutual-support link. Ask “If you pursued both this month, what would give way?” Resolve by sequencing, shrinking, combining or
+pausing. Do not tell users which goal to sacrifice. This is a design interpretation of goal-conflict research. [13]
+
+
+Outcome and process imagery
+The board can retain inspiring outcome images, but each active goal should also have a visible process cue: a desk for writing,
+walking shoes for regular movement, a calendar block for family time. A small “next scene” card may be more behaviorally useful
+than another idealized end-state image. Test whether pairing process imagery changes action and perceived pressure. [4–6]
+
+
+Completion and history
+Use states such as exploring, active, paused, evolving, completed and released. “Released” is neutral; “evolving” records a
+meaningful reframe. A longitudinal history should preserve versions, meaning changes, actions and reflections, with private
+default and clear deletion/export controls. The timeline should tell a story of learning rather than display a permanent score.
+
+
+Product philosophy and concrete UX principles
+•   Agency first: every prompt is skippable, and the user owns the meaning and final wording.
+•   Meaning before media: an image is a cue whose interpretation comes from the person.
+•   Hope plus reality: aspiration is followed by feasibility, obstacles and a small action.
+•   Gentle recurrence: revisits invite learning, not guilt or streak preservation.
+•   Multiple futures: support competing desires, uncertainty and changed circumstances.
+•   Privacy by default: intimate reflections are not feed content.
+
+                                                                           Vision Board Psychology and Behavioral Design Research
+•       Accessibility: text-only, low-bandwidth and screen-reader paths must be complete.
+
+
+Recommended screens and flows
+    Screen                                         Minimum interaction                                         Guardrail
+    Welcome and intention                          Choose horizon and “reflect first” or “start                No claim that a board will manifest outcomes.
+                                                   visually.”
+    Life context                                   Roles, needs, constraints, strengths; skip.                 No diagnostic labels.
+    Future scenes                                  Describe an ordinary day and a desired feeling.             Do not require optimistic answers.
+    Theme chooser                                  Select up to three initial priorities.                      Show tradeoffs without moral ranking.
+    Board builder                                  Add image, text or color; attach meaning card.              No infinite aspirational feed by default.
+    Action bridge                                  Optional obstacle, process cue and if-then plan.            One small plan; user can defer.
+    Review and history                             What happened, what changed, and status update.             Neutral language and private timeline.
+    AI reflection panel                            Summarize user words, ask one question, offer               Source attribution and easy rejection.
+                                                   editable suggestion.
+
+
+
+
+Anti patterns and claims to avoid
+•       “Look at this every day and it will happen,” manifestation or neuroscience guarantees.
+•       Unqualified claims that vision boards improve well-being or goal attainment.
+•       Public comparison feeds, follower counts, luxury-heavy defaults and body ideals.
+•       AI-generated certainty about the user’s true self, trauma or optimal future.
+•       Mandatory feared-future exercises, guilt-driven notifications or loss-framed streaks.
+•       One binary “achieved/failed” status and permanent celebration of obsolete goals.
+•       Optimizing only for board creation, image count or daily opens.
+
+
+Metrics and experiments
+    Question                         Experiment or method                         Primary measure                            Guardrail measure
+    Does reflection first help?      Randomize reflection-first vs visual-        User-rated goal clarity and self-          Completion, burden, opt-out.
+                                     first onboarding.                            concordance after creation and at 30
+                                                                                  days.
+    Does meaning capture matter?     Compare image-only vs image-plus-            30-day recall of personal meaning          Time cost and frustration.
+                                     meaning cards.                               and useful revisits.
+    Does action bridging help?       Randomize optional                           Self-reported and, where feasible,         Pressure and shame.
+                                     process/obstacle/if-then module              verifiable first steps at 2–4 weeks.
+                                     exposure.
+    Does gentle review help?         Compare user-led vs light reminders,         Meaningful reflection and goal             Notification fatigue and churn.
+                                     with consent.                                adjustment over 8–12 weeks.
+    Is AI helpful?                   Usability interviews and controlled          Perceived autonomy, accuracy and           Overreliance, false inference, privacy
+                                     comparison of AI mirror vs static            reflection depth.                          concern.
+                                     prompts.
+
+
+
+Pre-register primary outcomes and analyze differential effects by goal domain and user context. A/B tests of clicks cannot
+establish psychological benefit. Pair product analytics with interviews and repeat measures; ask whether users felt clearer, more
+capable and less pressured. Do not infer mental health outcomes from usage.
+
+
+Risks and ethics
+Intimate data may reveal finances, relationships, health and fears. Minimize collection, make sharing opt-in, restrict AI retention
+and explain model use plainly. Avoid body-image and wealth defaults, and test with varied cultures, ages and resource levels.
+Offer crisis and professional-support signposting if a user raises acute distress, without presenting the app as therapy.
+Longitudinal data should be exportable and deletable; users should be able to hide old versions. Design consent around
+reminders and any research measurement.
+
+
+
+
+                                                                                            Vision Board Psychology and Behavioral Design Research
+Prioritized product decisions
+ Priority                                    Decision                                   Rationale                                  Validation gate
+ P0                                          Meaning card on every board object,        Differentiates personal aspiration         Most users can explain an image
+                                             with skip                                  from generic image collection. [1, 3]      without burden.
+ P0                                          Reflection and visual entry routes         Supports self-articulation while           Compare clarity and completion.
+                                                                                        respecting visual thinkers. [1]
+ P0                                          Private default, no public ranking         Reduces comparison and disclosure          Trust and comfort in usability tests.
+                                                                                        risk. [15]
+ P1                                          Process cue plus optional obstacle         Strongest adjacent behavior-change         Improved first-step rate without
+                                             and if-then plan                           evidence. [4, 6–7]                         pressure.
+ P1                                          Nonbinary states and board timeline        Supports adaptive revision. [9, 14]        Users can reframe without feeling
+                                                                                                                                   failed.
+ P1                                          AI mirror with visible provenance          Supports reflection while preserving       High correction ease; low false
+                                                                                        agency. [1]                                inference.
+ P2                                          Goal Conflict Map and feared-future        Potentially useful but less directly       Qualitative benefit with low distress.
+                                             prompt                                     validated here. [10, 13]
+ P2                                          Reminder personalization                   Monitoring may help, but frequency         Meaningful review rises without
+                                                                                        can burden. [8]                            fatigue.
+
+
+
+
+References
+[1] Ozambela et al. Knowing what to pursue: Designing for well-being by supporting goal articulation through strengths-based reflection. Cornell Meta Design &
+Technology Lab, research-through-design summary. https://mdtl.human.cornell.edu/2024/07/15/ozambela-2025/
+[2] Jerrems, M. (2025). Digital vision boards, goal-setting and reflection in a freshman English class. Journal of Kanda University of International Studies 37, 491–504.
+https://kuis.repo.nii.ac.jp/record/2000248/files/JKIS_37_491_504.pdf
+[3] Sheldon, K. M., & Elliot, A. J. (1999). Goal striving, need satisfaction, and longitudinal well-being: The self-concordance model. Journal of Personality and Social
+Psychology 76, 482–497. https://doi.org/10.1037/0022-3514.76.3.482
+[4] Pham, L. B., & Taylor, S. E. (1999). From thought to action: Effects of process-versus outcome-based mental simulations on performance. Personality and Social
+Psychology Bulletin 25, 250–260. https://doi.org/10.1177/0146167299025002010
+[5] Oettingen, G., & Mayer, D. (2002). The motivating function of thinking about the future: Expectations versus fantasies. Journal of Personality and Social Psychology
+83, 1198–1212. https://pubmed.ncbi.nlm.nih.gov/12416922/
+[6] Wang, G., Wang, Y., & Gai, X. (2021). A meta-analysis of the effects of mental contrasting with implementation intentions on goal attainment. Frontiers in
+Psychology 12, 565202. https://doi.org/10.3389/fpsyg.2021.565202
+[7] Gollwitzer, P. M., & Sheeran, P. (2006). Implementation intentions and goal achievement: A meta-analysis of effects and processes. Advances in Experimental
+Social Psychology 38, 69–119. https://doi.org/10.1016/S0065-2601(06)38002-1
+[8] Harkin, B., et al. (2016). Does monitoring goal progress promote goal attainment? Psychological Bulletin 142, 198–229. https://doi.org/10.1037/bul0000025
+[9] Wrosch, C., et al. (2003). Adaptive self-regulation of unattainable goals. Personality and Social Psychology Bulletin 29, 1494–1508.
+https://doi.org/10.1177/0146167203256921
+[10] Markus, H., & Nurius, P. (1986). Possible selves. American Psychologist 41, 954–969. https://doi.org/10.1037/0003-066X.41.9.954
+[11] Hershfield, H. E. (2011). Future self-continuity: How conceptions of the future self transform intertemporal choice. Annals of the New York Academy of Sciences
+1235, 30–43. https://doi.org/10.1111/j.1749-6632.2011.06201.x
+[12] Schacter, D. L., Benoit, R. G., & Szpunar, K. K. (2017). Episodic future thinking: Mechanisms and functions. Current Opinion in Behavioral Sciences 17, 41–50.
+https://pmc.ncbi.nlm.nih.gov/articles/PMC5675579/
+[13] Riediger, M., & Freund, A. M. (2004). Interference and facilitation among personal goals. Journal of Personality and Social Psychology 87, 151–168.
+https://doi.org/10.1037/0022-3514.87.1.151
+[14] McAdams, D. P., & McLean, K. C. (2013). Narrative identity. Current Directions in Psychological Science 22, 233–238. https://doi.org/10.1177/0963721413475622
+[15] McComb, C. A., et al. (2023). A meta-analysis of social media exposure to upward comparison targets on self-evaluations and emotions. Media Psychology.
+https://doi.org/10.1080/15213269.2023.2180647
+
+
+
+
+                                                                                                Vision Board Psychology and Behavioral Design Research
+

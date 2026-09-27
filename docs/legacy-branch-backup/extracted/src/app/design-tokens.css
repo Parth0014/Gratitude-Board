@@ -1,0 +1,42 @@
+:root {
+  /* Gratitude Studio foundations: calm chrome, expressive user-owned canvas. */
+  --g-ink: #201a1b;
+  --g-ink-soft: #58494d;
+  --g-rose: #ea436b;
+  --g-rose-action: #c52c55;
+  --g-rose-hover: #a91f45;
+  --g-rose-ink: #b5224b;
+  --g-rose-soft: #ffd9dd;
+  --g-rose-wash: #fff1f4;
+  --g-paper: #fffbff;
+  --g-surface: #fff8f7;
+  --g-canvas: #fff;
+  --g-workspace: #f6f1f4;
+  --g-line: #eadde1;
+  --g-line-strong: #c397a3;
+  --g-field-line: #a78f96;
+  --g-surface-variant: #f3dddf;
+  --g-plum: #400012;
+  --g-sage-wash: #e9f0e4;
+  --g-sage-ink: #3e6655;
+  --g-honey-wash: #fff2df;
+  --g-danger: #b9342a;
+
+  --g-space-1: 0.25rem;
+  --g-space-2: 0.5rem;
+  --g-space-3: 0.75rem;
+  --g-space-4: 1rem;
+  --g-space-6: 1.5rem;
+  --g-space-8: 2rem;
+  --g-space-12: 3rem;
+
+  --g-radius-control: 0.625rem;
+  --g-radius-card: 1rem;
+  --g-radius-panel: 1.25rem;
+  --g-radius-pill: 999px;
+  --g-shadow-card: 0 1px 2px #4000120d, 0 12px 32px #4000120a;
+  --g-shadow-panel: 0 18px 48px #4000121a;
+  --g-focus: 0 0 0 3px #ea436b4d;
+  --g-motion-fast: 160ms ease;
+  --g-motion-standard: 220ms ease;
+}

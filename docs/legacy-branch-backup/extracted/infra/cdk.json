@@ -1,0 +1,4 @@
+{
+  "app": "npx --no-install tsx bin/app.ts",
+  "context": { "stage": "dev" }
+}

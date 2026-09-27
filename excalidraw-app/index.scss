@@ -1,5 +1,332 @@
 @import "../packages/excalidraw/css/variables.module.scss";
 
+.gratitude-studio {
+  --gratitude-rose: #ea436b;
+  --gratitude-ink: #33272b;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: var(--gratitude-ink);
+  background: #f5f0ed;
+  font-family: Inter, Assistant, sans-serif;
+}
+
+.gratitude-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 64px;
+  flex: none;
+  padding: 0 24px;
+  background: #fffaf8;
+  border-bottom: 1px solid #eadfe0;
+}
+
+.gratitude-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: Georgia, serif;
+  font-size: 21px;
+  white-space: nowrap;
+}
+
+.gratitude-brand__mark {
+  color: var(--gratitude-rose);
+  font-size: 26px;
+}
+.gratitude-board-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gratitude-export {
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 22px;
+  color: white;
+  background: var(--gratitude-rose);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gratitude-export:hover {
+  background: #ce3159;
+}
+.gratitude-export:focus-visible {
+  outline: 3px solid #a9274d;
+  outline-offset: 2px;
+}
+.gratitude-workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.gratitude-editor {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.gratitude-editor .excalidraw-app {
+  height: 100%;
+}
+.gratitude-studio .excalidraw {
+  --color-primary: #ea436b;
+  --color-primary-darker: #a9274d;
+}
+
+/* Keep the engine toolbar and move the complete tool set into a floating dock. */
+.gratitude-studio .excalidraw .shapes-section {
+  position: fixed;
+  z-index: 5;
+  inset: auto auto 20px 50%;
+  width: max-content;
+  transform: translateX(-50%);
+}
+.gratitude-studio .excalidraw .App-toolbar {
+  border: 1px solid #eadfe0;
+  border-radius: 16px;
+  background: rgba(255, 250, 248, 0.97);
+  box-shadow: 0 8px 28px rgba(73, 45, 52, 0.14);
+  backdrop-filter: blur(14px);
+}
+.gratitude-studio .excalidraw .App-toolbar .ToolIcon {
+  border-radius: 10px;
+}
+.gratitude-studio .excalidraw .App-toolbar .ToolIcon--checked {
+  color: #a9274d;
+  background: #fbe9ed;
+}
+
+/* A consistent Gratitude icon language for every primary native tool. */
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  button[data-testid^="toolbar-"]
+  .ToolIcon__icon {
+  position: relative;
+  color: currentColor;
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  button[data-testid^="toolbar-"]
+  .ToolIcon__icon
+  svg {
+  visibility: hidden;
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  button[data-testid^="toolbar-"]
+  .ToolIcon__icon::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: currentColor;
+  font-family: Inter, "Segoe UI Symbol", sans-serif;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1;
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-hand"]
+  .ToolIcon__icon::after {
+  content: "\270b";
+  font-size: 17px;
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-selection"]
+  .ToolIcon__icon::after {
+  content: "\2196";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-rectangle"]
+  .ToolIcon__icon::after {
+  content: "\25a2";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-diamond"]
+  .ToolIcon__icon::after {
+  content: "\25c7";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-ellipse"]
+  .ToolIcon__icon::after {
+  content: "\25cb";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-arrow"]
+  .ToolIcon__icon::after {
+  content: "\2197";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-line"]
+  .ToolIcon__icon::after {
+  content: "\ff0f";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-freedraw"]
+  .ToolIcon__icon::after {
+  content: "\3030";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-text"]
+  .ToolIcon__icon::after {
+  content: "T";
+  font-family: Georgia, serif;
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-stickynote"]
+  .ToolIcon__icon::after {
+  content: "\25a4";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-eraser"]
+  .ToolIcon__icon::after {
+  content: "\25e9";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  .App-toolbar__extra-tools-trigger
+  .ToolIcon__icon::after {
+  content: "\ff0b";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-image"]
+  .ToolIcon__icon::after {
+  content: "\25a7";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-frame"]
+  .ToolIcon__icon::after {
+  content: "\25a3";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-embeddable"]
+  .ToolIcon__icon::after {
+  content: "\2197";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-autoshape"]
+  .ToolIcon__icon::after {
+  content: "\2727";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-laser"]
+  .ToolIcon__icon::after {
+  content: "\2301";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-bucketfill"]
+  .ToolIcon__icon::after {
+  content: "\25d2";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-lasso"]
+  .ToolIcon__icon::after {
+  content: "\2318";
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar
+  [data-testid="toolbar-magicframe"]
+  .ToolIcon__icon::after {
+  content: "\2726";
+}
+
+.gratitude-studio
+  .excalidraw
+  .App-toolbar__extra-tools-dropdown
+  .dropdown-menu-item__icon {
+  color: #a9274d;
+}
+.gratitude-studio
+  .excalidraw
+  .App-toolbar__extra-tools-dropdown
+  .dropdown-menu-item__icon
+  svg {
+  stroke: currentColor;
+}
+
+.gratitude-studio .excalidraw .selected-shape-actions-container {
+  position: fixed;
+  z-index: 5;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 700px) {
+  .gratitude-header {
+    height: 56px;
+    padding: 0 12px;
+  }
+  .gratitude-brand {
+    font-size: 0;
+    gap: 0;
+  }
+  .gratitude-brand__mark {
+    font-size: 25px;
+  }
+  .gratitude-export {
+    padding: 9px 13px;
+  }
+  .gratitude-studio .excalidraw .shapes-section {
+    bottom: 8px;
+    max-width: calc(100vw - 16px);
+  }
+  .gratitude-studio .excalidraw .App-toolbar {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .gratitude-studio .excalidraw .selected-shape-actions-container {
+    top: 70px;
+    right: 8px;
+    transform: none;
+  }
+}
+
 .excalidraw {
   --color-primary-contrast-offset: #625ee0; // to offset Chubb illusion
 

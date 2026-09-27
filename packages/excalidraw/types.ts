@@ -925,6 +925,14 @@ export interface ExcalidrawProps {
     isMobile: boolean,
     appState: UIAppState,
   ) => JSX.Element | null;
+  /** Place existing editor controls in a host layout, preserving their actions. */
+  renderEditorUI?: (slots: {
+    tools: React.ReactNode;
+    properties: React.ReactNode;
+    menu: React.ReactNode;
+    history: React.ReactNode;
+    zoom: React.ReactNode;
+  }) => React.ReactNode;
   renderTopRightUI?: (
     isMobile: boolean,
     appState: UIAppState,
