@@ -1,5 +1,7 @@
 import { chromium } from "playwright";
 
+/* eslint-disable no-console */
+
 const browser = await chromium.launch({ headless: true });
 
 for (const viewport of [
@@ -21,14 +23,44 @@ for (const viewport of [
     waitUntil: "networkidle",
   });
   await page.getByRole("heading", { name: "Gratitude Studio" }).waitFor();
-  await page.getByRole("button", { name: /photos/i }).first().waitFor();
+  await page
+    .getByRole("button", { name: /photos/i })
+    .first()
+    .waitFor();
+
+  const bodyWidth = await page.locator("body").evaluate((node) => node.scrollWidth);
+  const starterVisible = await page
+    .getByRole("region", { name: "Start your board" })
+    .isVisible();
+  const assetPanelHeight = await page
+    .locator(".gratitude-assets")
+    .evaluate((node) => node.getBoundingClientRect().height);
+
+  if (bodyWidth > viewport.width) {
+    throw new Error(
+      `${viewport.name} page overflows by ${bodyWidth - viewport.width}px`,
+    );
+  }
+  if (errors.length) {
+    throw new Error(`${viewport.name} console errors: ${errors.join(" | ")}`);
+  }
+  if (!starterVisible) {
+    throw new Error(`${viewport.name} empty-board starter is not visible`);
+  }
+  if (viewport.name === "mobile" && assetPanelHeight > 100) {
+    throw new Error(
+      `mobile asset dock should start collapsed; height was ${assetPanelHeight}px`,
+    );
+  }
 
   console.log(
     JSON.stringify({
       viewport: viewport.name,
       title: await page.title(),
-      bodyWidth: await page.locator("body").evaluate((node) => node.scrollWidth),
+      bodyWidth,
       viewportWidth: viewport.width,
+      starterVisible,
+      assetPanelHeight,
       consoleErrors: errors,
     }),
   );

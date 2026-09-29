@@ -41,6 +41,7 @@ const providers = new Map<string, AssetProvider>([
   [kenneyProvider.id, kenneyProvider],
   [patternMonsterProvider.id, patternMonsterProvider],
 ]);
+const resolvedAssets = new Map<string, GratitudeAsset>();
 
 const isSafeAssetUrl = (
   value: string,
@@ -67,9 +68,8 @@ const normalizePage = (
   page: AssetPage,
   provider: AssetProvider,
   ownerWindow: Window & typeof globalThis,
-): AssetPage => ({
-  nextCursor: typeof page.nextCursor === "string" ? page.nextCursor : undefined,
-  items: page.items
+): AssetPage => {
+  const normalized = page.items
     .map(normalizeGratitudeAsset)
     .filter((asset): asset is GratitudeAsset => !!asset)
     .filter(
@@ -78,8 +78,20 @@ const normalizePage = (
         ["A", "B", "C"].includes(asset.license.tier) &&
         isSafeAssetUrl(asset.previewUrl, asset.provider, ownerWindow) &&
         isSafeAssetUrl(asset.assetUrl, asset.provider, ownerWindow),
-    ),
-});
+    );
+  normalized.forEach((asset) => {
+    resolvedAssets.set(
+      `${asset.provider}:${asset.externalId || asset.id}`,
+      asset,
+    );
+    resolvedAssets.set(`${asset.provider}:${asset.id}`, asset);
+  });
+  return {
+    nextCursor:
+      typeof page.nextCursor === "string" ? page.nextCursor : undefined,
+    items: normalized,
+  };
+};
 
 const searchProvider = async (
   provider: AssetProvider,
@@ -113,10 +125,25 @@ export const searchAssetsWithStatus = async (
   ownerWindow: Window & typeof globalThis,
 ): Promise<AssetSearchResult> => {
   const activeProviders = getAssetProviders();
+  let cursors: Record<string, string> = {};
+  if (query.cursor) {
+    try {
+      const parsed = JSON.parse(query.cursor);
+      if (parsed && typeof parsed === "object") {
+        cursors = parsed as Record<string, string>;
+      }
+    } catch {
+      cursors = {};
+    }
+  }
   const results = await Promise.allSettled(
     activeProviders.map(async (provider) => ({
       provider: provider.id,
-      page: await searchProvider(provider, query, ownerWindow),
+      page: await searchProvider(
+        provider,
+        { ...query, cursor: cursors[provider.id] },
+        ownerWindow,
+      ),
     })),
   );
   const failures = results.flatMap((result, index) =>
@@ -144,7 +171,38 @@ export const searchAssetsWithStatus = async (
         })
       : [],
   );
-  return { items: rankAssets(items, query.search), failures };
+  const filtered = items.filter((asset) => {
+    if (query.license === "no-credit" && asset.license.attributionRequired) {
+      return false;
+    }
+    if (
+      query.license === "credit-required" &&
+      !asset.license.attributionRequired
+    ) {
+      return false;
+    }
+    if (query.orientation && asset.width && asset.height) {
+      const ratio = asset.width / asset.height;
+      const orientation =
+        ratio > 1.12 ? "landscape" : ratio < 0.88 ? "portrait" : "square";
+      return orientation === query.orientation;
+    }
+    return true;
+  });
+  const nextCursors = Object.fromEntries(
+    results.flatMap((result) =>
+      result.status === "fulfilled" && result.value.page.nextCursor
+        ? [[result.value.provider, result.value.page.nextCursor]]
+        : [],
+    ),
+  );
+  return {
+    items: rankAssets(filtered, query.search),
+    failures,
+    nextCursor: Object.keys(nextCursors).length
+      ? JSON.stringify(nextCursors)
+      : undefined,
+  };
 };
 
 export const searchAssets = async (
@@ -158,6 +216,10 @@ export const resolveAsset = async (
   assetId: string,
   ownerWindow: Window & typeof globalThis,
 ) => {
+  const remembered = resolvedAssets.get(`${providerId}:${assetId}`);
+  if (remembered) {
+    return remembered;
+  }
   const provider = providers.get(providerId);
   if (!provider) {
     throw new Error(`Unknown asset provider: ${providerId}`);

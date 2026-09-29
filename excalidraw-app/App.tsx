@@ -138,7 +138,8 @@ import {
   getBoardTextureImage,
   PAGE_WIDTH,
   PAGE_HEIGHT,
-} from "./boardPage";
+} from "./vision/engine/boardPage";
+import { inspectBoardScene } from "./vision/engine/sceneGuard";
 
 import type { VisionSelection } from "./vision/contracts";
 
@@ -354,6 +355,7 @@ const ExcalidrawWrapper = () => {
   const [visionSelection, setVisionSelection] = useState<VisionSelection>(
     EMPTY_VISION_SELECTION,
   );
+  const [hasBoardContent, setHasBoardContent] = useState(false);
   const [footerTarget, setFooterTarget] = useState<HTMLDivElement | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
   const hasFittedPageRef = useRef(false);
@@ -1105,132 +1107,67 @@ const ExcalidrawWrapper = () => {
       repair();
       return true;
     };
-    if (
-      excalidrawAPI &&
-      !appState.isLoading &&
-      appState.boxSelectionMode !== "overlap"
-    ) {
-      if (
-        repairScene(() =>
-          excalidrawAPI.updateScene({
-            appState: { boxSelectionMode: "overlap" },
-            captureUpdate: CaptureUpdateAction.NEVER,
-          }),
-        )
-      ) {
-        return;
-      }
-    }
     const allowBoardLayerReplacement = allowBoardLayerReplacementRef.current;
     allowBoardLayerReplacementRef.current = false;
     const previousBoardScene = lastGoodBoardSceneRef.current;
-    const previousBoard = getBoardPage(previousBoardScene);
-    if (excalidrawAPI && previousBoard && !allowBoardLayerReplacement) {
-      const previousProtectedIds = [
-        previousBoard.id,
-        getBoardBackground(previousBoardScene)?.id,
-        getBoardBackgroundImage(previousBoardScene)?.id,
-        getBoardTextureImage(previousBoardScene)?.id,
-      ].filter((id): id is string => !!id);
-      const deletedBoardLayer = previousProtectedIds.some(
-        (id) =>
-          !elements.some((element) => element.id === id && !element.isDeleted),
-      );
-      if (deletedBoardLayer) {
-        const restoredBoardScene = previousBoardScene.map((element) =>
-          previousProtectedIds.includes(element.id) && !element.locked
-            ? newElementWith(element, { locked: true })
-            : element,
-        );
-        if (
-          repairScene(() =>
+    const boardInspection = inspectBoardScene({
+      elements,
+      appState,
+      previousElements: previousBoardScene,
+      allowBoardLayerReplacement,
+    });
+    const boardRepair = boardInspection.repair;
+    if (excalidrawAPI && boardRepair) {
+      const repaired = repairScene(() => {
+        switch (boardRepair.type) {
+          case "set-overlap-selection":
             excalidrawAPI.updateScene({
-              elements: restoredBoardScene,
+              appState: { boxSelectionMode: "overlap" },
+              captureUpdate: CaptureUpdateAction.NEVER,
+            });
+            break;
+          case "restore-protected-layers":
+          case "create-board-layers":
+            excalidrawAPI.updateScene({
+              elements: boardRepair.elements,
               appState: { selectedElementIds: {} },
               captureUpdate: CaptureUpdateAction.NEVER,
-            }),
-          )
-        ) {
+            });
+            break;
+          case "protect-board-layers":
+            excalidrawAPI.updateScene({
+              elements: boardRepair.elements,
+              appState: boardRepair.selectedElementIds
+                ? { selectedElementIds: boardRepair.selectedElementIds }
+                : undefined,
+              captureUpdate: CaptureUpdateAction.NEVER,
+            });
+            break;
+        }
+      });
+      if (repaired) {
+        if (boardRepair.type === "restore-protected-layers") {
           excalidrawAPI.setToast({
             message: "Use Board setup to change the board background.",
           });
-          return;
         }
-      }
-    }
-    if (
-      excalidrawAPI &&
-      !appState.isLoading &&
-      (!getBoardPage(elements) || !getBoardBackground(elements))
-    ) {
-      if (
-        repairScene(() =>
-          excalidrawAPI.updateScene({
-            elements: ensureBoardPage(elements),
-            appState: { selectedElementIds: {} },
-            captureUpdate: CaptureUpdateAction.NEVER,
-          }),
-        )
-      ) {
         return;
       }
     }
-    if (!hasFittedPageRef.current && getBoardPage(elements)) {
+    if (!hasFittedPageRef.current && boardInspection.page) {
       hasFittedPageRef.current = true;
       editorRootRef.current?.ownerDocument.defaultView?.requestAnimationFrame(
         fitBoardPage,
       );
     }
-    const page = getBoardPage(elements);
-    const background = getBoardBackground(elements);
-    const backgroundImage = getBoardBackgroundImage(elements);
-    const textureImage = getBoardTextureImage(elements);
-    const protectedIds = new Set(
-      [page?.id, background?.id, backgroundImage?.id, textureImage?.id].filter(
-        (id): id is string => !!id,
+    const page = boardInspection.page;
+    const background = boardInspection.background;
+    setHasBoardContent(
+      elements.some(
+        (element) =>
+          !element.isDeleted && !boardInspection.protectedIds.has(element.id),
       ),
     );
-    const unlockedBoardLayer = elements.some(
-      (element) => protectedIds.has(element.id) && !element.locked,
-    );
-    const selectedBoardLayer =
-      appState.openDialog?.name !== "imageExport" &&
-      [...protectedIds].some((id) => appState.selectedElementIds[id]);
-    if (excalidrawAPI && (unlockedBoardLayer || selectedBoardLayer)) {
-      if (
-        repairScene(() =>
-          excalidrawAPI.updateScene({
-            elements: unlockedBoardLayer
-              ? elements.map((element) =>
-                  protectedIds.has(element.id) && !element.locked
-                    ? (() => {
-                        const previous = previousBoardScene.find(
-                          (candidate) =>
-                            candidate.id === element.id && candidate.locked,
-                        );
-                        return (
-                          previous || newElementWith(element, { locked: true })
-                        );
-                      })()
-                    : element,
-                )
-              : elements,
-            appState: selectedBoardLayer
-              ? {
-                  selectedElementIds: Object.fromEntries(
-                    Object.entries(appState.selectedElementIds).filter(
-                      ([id]) => !protectedIds.has(id),
-                    ),
-                  ),
-                }
-              : undefined,
-            captureUpdate: CaptureUpdateAction.NEVER,
-          }),
-        )
-      ) {
-        return;
-      }
-    }
     if (sceneRepairAttemptsRef.current > 8) {
       return;
     }
@@ -1434,7 +1371,11 @@ const ExcalidrawWrapper = () => {
       const downloaded = await fetchAsset(asset, ownerWindow);
       const image =
         asset.mimeType === "image/svg+xml"
-          ? await svgToPng(downloaded, ownerDocument)
+          ? await svgToPng(
+              downloaded,
+              ownerDocument,
+              asset.customization?.color,
+            )
           : downloaded;
       await canvasAdapter?.createImage(
         image,
@@ -1471,6 +1412,28 @@ const ExcalidrawWrapper = () => {
       name={excalidrawAPI?.getName() || "My vision board"}
       theme={editorTheme}
       onPlaceAsset={placeAsset}
+      onReplaceAsset={async (asset, ownerDocument) => {
+        const ownerWindow = ownerDocument.defaultView;
+        if (!excalidrawAPI || !ownerWindow) {
+          return;
+        }
+        try {
+          const downloaded = await fetchAsset(asset, ownerWindow);
+          const image =
+            asset.mimeType === "image/svg+xml"
+              ? await svgToPng(
+                  downloaded,
+                  ownerDocument,
+                  asset.customization?.color,
+                )
+              : downloaded;
+          await canvasAdapter?.replaceSelectedImage(image, ownerWindow, asset);
+        } catch {
+          excalidrawAPI.setToast({
+            message: "That photo could not replace the selection. Try again.",
+          });
+        }
+      }}
       onUploadAsset={async (file: File, ownerDocument: Document) => {
         const ownerWindow = ownerDocument.defaultView;
         if (!excalidrawAPI || !ownerWindow) {
@@ -1540,6 +1503,7 @@ const ExcalidrawWrapper = () => {
           selection={visionSelection}
         />
       }
+      hasBoardContent={hasBoardContent}
     >
       <div
         ref={editorRootRef}

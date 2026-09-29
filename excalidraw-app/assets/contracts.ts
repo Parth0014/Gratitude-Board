@@ -34,6 +34,9 @@ export interface GratitudeAsset {
     crop?: boolean;
     filters?: boolean;
   };
+  customization?: {
+    color?: string;
+  };
 }
 
 export const GRATITUDE_ASSET_DRAG_TYPE = "application/x-gratitude-asset";
@@ -76,6 +79,8 @@ export const isGratitudeAsset = (value: unknown): value is GratitudeAsset =>
 export interface AssetQuery {
   search?: string;
   type?: GratitudeAsset["type"];
+  orientation?: "landscape" | "portrait" | "square";
+  license?: "no-credit" | "credit-required";
   cursor?: string;
   limit?: number;
 }

@@ -1,8 +1,8 @@
 import type { ExcalidrawElement } from "@excalidraw/element/types";
 
 import { normalizeGratitudeAsset } from "../assets/contracts";
-import { getBoardBackground, getBoardPage } from "../boardPage";
 
+import { getBoardBackground, getBoardPage } from "./engine/boardPage";
 import { VISION_FONTS } from "./fonts";
 
 import type { VisionBoardDocument, VisionElement } from "./model";
@@ -151,11 +151,33 @@ export const createVisionBoardDocument = (
           element.type === "diamond"
         ? "shape"
         : "decoration";
+    const visionId =
+      typeof gratitudeVision?.id === "string"
+        ? gratitudeVision.id
+        : prior?.id || element.id;
+    const compound = elements.find((item) => item.id === visionId);
+    if (compound) {
+      const right = Math.max(
+        compound.x + compound.width,
+        element.x + element.width,
+      );
+      const bottom = Math.max(
+        compound.y + compound.height,
+        element.y + element.height,
+      );
+      compound.x = Math.min(compound.x, element.x);
+      compound.y = Math.min(compound.y, element.y);
+      compound.width = right - compound.x;
+      compound.height = bottom - compound.y;
+      compound.excalidrawIds.push(element.id);
+      compound.zIndex = Math.max(compound.zIndex, zIndex);
+      if (sourceAsset) {
+        compound.metadata.sourceAssetId = sourceAsset.id;
+      }
+      return;
+    }
     elements.push({
-      id:
-        typeof gratitudeVision?.id === "string"
-          ? gratitudeVision.id
-          : prior?.id || element.id,
+      id: visionId,
       type,
       x: element.x,
       y: element.y,
@@ -199,7 +221,12 @@ export const createVisionBoardDocument = (
       freeform: !layoutSlots.length,
     },
     fontManifest: VISION_FONTS.filter((font) => fontIds.has(font.value)).map(
-      (font) => ({ family: font.family, source: font.source }),
+      (font) => ({
+        family: font.family,
+        source: font.source,
+        license: font.license,
+        licenseUrl: font.licenseUrl,
+      }),
     ),
     reelConfig: {
       aspectRatio: "9:16",

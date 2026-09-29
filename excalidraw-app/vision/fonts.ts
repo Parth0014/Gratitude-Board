@@ -12,6 +12,8 @@ export interface VisionFontDefinition {
   category: "editorial" | "handwritten" | "playful" | "minimal";
   value: number;
   source: "bundled" | "fontsource";
+  license: "OFL-1.1" | "system";
+  licenseUrl?: string;
   slug?: string;
 }
 
@@ -36,6 +38,8 @@ const remote: Array<Omit<VisionFontDefinition, "source">> = [
   category: category as VisionFontDefinition["category"],
   value: value as number,
   slug: id as string,
+  license: "OFL-1.1" as const,
+  licenseUrl: "https://openfontlicense.org/",
 }));
 
 export const VISION_FONTS: VisionFontDefinition[] = [
@@ -45,6 +49,7 @@ export const VISION_FONTS: VisionFontDefinition[] = [
     category: "minimal",
     value: FONT_FAMILY.Nunito,
     source: "bundled",
+    license: "OFL-1.1",
   },
   {
     id: "lilita-one",
@@ -52,6 +57,7 @@ export const VISION_FONTS: VisionFontDefinition[] = [
     category: "playful",
     value: FONT_FAMILY["Lilita One"],
     source: "bundled",
+    license: "OFL-1.1",
   },
   {
     id: "helvetica",
@@ -59,6 +65,7 @@ export const VISION_FONTS: VisionFontDefinition[] = [
     category: "minimal",
     value: FONT_FAMILY.Helvetica,
     source: "bundled",
+    license: "system",
   },
   {
     id: "virgil",
@@ -66,6 +73,7 @@ export const VISION_FONTS: VisionFontDefinition[] = [
     category: "handwritten",
     value: FONT_FAMILY.Virgil,
     source: "bundled",
+    license: "OFL-1.1",
   },
   {
     id: "assistant",
@@ -73,6 +81,7 @@ export const VISION_FONTS: VisionFontDefinition[] = [
     category: "minimal",
     value: FONT_FAMILY.Assistant,
     source: "bundled",
+    license: "OFL-1.1",
   },
   {
     id: "comic-shanns",
@@ -80,6 +89,7 @@ export const VISION_FONTS: VisionFontDefinition[] = [
     category: "handwritten",
     value: FONT_FAMILY["Comic Shanns"],
     source: "bundled",
+    license: "OFL-1.1",
   },
   ...remote.map((font) => ({ ...font, source: "fontsource" as const })),
 ];

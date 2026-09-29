@@ -43,7 +43,12 @@ export interface VisionBoardDocument {
   elements: VisionElement[];
   assets: Record<string, import("../assets/contracts").GratitudeAsset>;
   layout: { id?: string; slotIds: string[]; freeform: boolean };
-  fontManifest: Array<{ family: string; source: "bundled" | "fontsource" }>;
+  fontManifest: Array<{
+    family: string;
+    source: "bundled" | "fontsource";
+    license: "OFL-1.1" | "system";
+    licenseUrl?: string;
+  }>;
   reelConfig: {
     aspectRatio: "9:16";
     defaultDurationMs: number;

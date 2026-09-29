@@ -3,15 +3,27 @@ import React, { useEffect, useRef, useState } from "react";
 import { searchAssetsWithStatus } from "../assets/registry";
 
 import { GRATITUDE_ASSET_DRAG_TYPE } from "../assets/contracts";
+import {
+  addRecent,
+  EMPTY_ASSET_LIBRARY,
+  readAssetLibrary,
+  toggleFavorite,
+  writeAssetLibrary,
+} from "../assets/libraryState";
 
 import { VISION_LAYOUTS } from "../vision/layouts";
+import { VISION_TEMPLATES } from "../vision/templates";
 import { VISION_TEXT_PRESETS } from "../vision/typography";
 
 import type { GratitudeAsset } from "../assets/contracts";
 import type { VisionLayout } from "../vision/layouts";
+import type { VisionTemplate } from "../vision/templates";
 
 type AssetKind =
   | "all"
+  | "template"
+  | "favorite"
+  | "recent"
   | "photo"
   | "sticker"
   | "illustration"
@@ -21,6 +33,9 @@ type AssetKind =
   | "layout";
 const LABELS: Record<AssetKind, string> = {
   all: "All assets",
+  template: "Templates",
+  favorite: "Favorites",
+  recent: "Recent",
   photo: "Photos",
   sticker: "Stickers",
   illustration: "Doodles",
@@ -29,6 +44,16 @@ const LABELS: Record<AssetKind, string> = {
   text: "Text",
   layout: "Layouts",
 };
+
+const getAssetType = (kind: AssetKind): GratitudeAsset["type"] | undefined =>
+  kind === "all" ||
+  kind === "template" ||
+  kind === "favorite" ||
+  kind === "recent" ||
+  kind === "text" ||
+  kind === "layout"
+    ? undefined
+    : kind;
 
 const ToolIcon = ({ name }: { name: AssetKind | "upload" }) => {
   const common = {
@@ -110,33 +135,181 @@ const ToolIcon = ({ name }: { name: AssetKind | "upload" }) => {
 
 export const AssetPanel = ({
   onPlace,
+  onReplace,
+  canReplace,
   onUpload,
   onApplyLayout,
+  onApplyTemplate,
   onAddText,
 }: {
   onPlace: (asset: GratitudeAsset, ownerDocument: Document) => Promise<void>;
+  onReplace: (asset: GratitudeAsset, ownerDocument: Document) => Promise<void>;
+  canReplace: boolean;
   onUpload: (file: File, ownerDocument: Document) => Promise<void>;
   onApplyLayout: (layout: VisionLayout) => void;
+  onApplyTemplate: (template: VisionTemplate) => void;
   onAddText: (preset: typeof VISION_TEXT_PRESETS[number]) => void;
 }) => {
   const rootRef = useRef<HTMLElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const detailsCloseRef = useRef<HTMLButtonElement>(null);
+  const scrollPositions = useRef<Partial<Record<AssetKind, number>>>({});
   const [query, setQuery] = useState("");
+  const [queries, setQueries] = useState<Partial<Record<AssetKind, string>>>(
+    {},
+  );
   const [kind, setKind] = useState<AssetKind>("photo");
   const [assets, setAssets] = useState<GratitudeAsset[]>([]);
+  const [nextCursor, setNextCursor] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [providerNotice, setProviderNotice] = useState("");
+  const [orientation, setOrientation] = useState<
+    "any" | "landscape" | "portrait" | "square"
+  >("any");
+  const [license, setLicense] = useState<
+    "any" | "no-credit" | "credit-required"
+  >("any");
   const [details, setDetails] = useState<GratitudeAsset | null>(null);
+  const [assetColor, setAssetColor] = useState("#c94f7c");
   const [panelOpen, setPanelOpen] = useState(true);
+  const [library, setLibrary] = useState(EMPTY_ASSET_LIBRARY);
+  const [online, setOnline] = useState(true);
+
+  useEffect(() => {
+    const ownerWindow = rootRef.current?.ownerDocument.defaultView;
+    setLibrary(readAssetLibrary(ownerWindow?.localStorage));
+    setOnline(ownerWindow?.navigator.onLine ?? true);
+    if (ownerWindow?.matchMedia("(max-width: 700px)").matches) {
+      setPanelOpen(false);
+    }
+  }, []);
 
   useEffect(() => {
     const ownerWindow = rootRef.current?.ownerDocument.defaultView;
     if (!ownerWindow) {
       return;
     }
-    if (kind === "layout" || kind === "text") {
+    const update = () => setOnline(ownerWindow.navigator.onLine);
+    ownerWindow.addEventListener("online", update);
+    ownerWindow.addEventListener("offline", update);
+    return () => {
+      ownerWindow.removeEventListener("online", update);
+      ownerWindow.removeEventListener("offline", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    const ownerWindow = rootRef.current?.ownerDocument.defaultView;
+    const panel = rootRef.current?.querySelector<HTMLElement>(
+      ".gratitude-assets__panel",
+    );
+    if (!ownerWindow || !panel) {
+      return;
+    }
+    ownerWindow.requestAnimationFrame(() => {
+      panel.scrollTop = scrollPositions.current[kind] || 0;
+    });
+  }, [kind]);
+
+  useEffect(() => {
+    if (!details) {
+      return;
+    }
+    detailsCloseRef.current?.focus();
+    const ownerDocument = rootRef.current?.ownerDocument;
+    const handleDialogKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setDetails(null);
+        return;
+      }
+      if (event.key === "Tab") {
+        const controls = Array.from(
+          rootRef.current?.querySelectorAll<HTMLElement>(
+            ".gratitude-asset-details section button:not(:disabled), .gratitude-asset-details section a[href]",
+          ) || [],
+        );
+        if (!controls.length) {
+          return;
+        }
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && ownerDocument?.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && ownerDocument?.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    ownerDocument?.addEventListener("keydown", handleDialogKey);
+    return () => ownerDocument?.removeEventListener("keydown", handleDialogKey);
+  }, [details]);
+
+  const chooseKind = (nextKind: AssetKind) => {
+    const panel = rootRef.current?.querySelector<HTMLElement>(
+      ".gratitude-assets__panel",
+    );
+    scrollPositions.current[kind] = panel?.scrollTop || 0;
+    setQueries((current) => ({ ...current, [kind]: query }));
+    setKind(nextKind);
+    setQuery(queries[nextKind] || "");
+    setPanelOpen(true);
+  };
+
+  const updateLibrary = (
+    update: (current: typeof library) => typeof library,
+  ) => {
+    setLibrary((current) => {
+      const next = update(current);
+      writeAssetLibrary(
+        rootRef.current?.ownerDocument.defaultView?.localStorage,
+        next,
+      );
+      return next;
+    });
+  };
+
+  const place = async (asset: GratitudeAsset) => {
+    const ownerDocument = rootRef.current?.ownerDocument;
+    if (!ownerDocument) {
+      return;
+    }
+    const customized = asset.editable.colors
+      ? { ...asset, customization: { color: assetColor } }
+      : asset;
+    await onPlace(customized, ownerDocument);
+    updateLibrary((current) => addRecent(current, asset));
+  };
+
+  const replace = async (asset: GratitudeAsset) => {
+    const ownerDocument = rootRef.current?.ownerDocument;
+    if (!ownerDocument) {
+      return;
+    }
+    const customized = asset.editable.colors
+      ? { ...asset, customization: { color: assetColor } }
+      : asset;
+    await onReplace(customized, ownerDocument);
+    updateLibrary((current) => addRecent(current, asset));
+  };
+
+  useEffect(() => {
+    const ownerWindow = rootRef.current?.ownerDocument.defaultView;
+    if (!ownerWindow) {
+      return;
+    }
+    if (
+      kind === "layout" ||
+      kind === "text" ||
+      kind === "template" ||
+      kind === "favorite" ||
+      kind === "recent"
+    ) {
       setAssets([]);
+      setNextCursor(undefined);
       setBusy(false);
       setError("");
       setProviderNotice("");
@@ -149,12 +322,19 @@ export const AssetPanel = ({
         setError("");
         setProviderNotice("");
         void searchAssetsWithStatus(
-          { search: query, type: kind === "all" ? undefined : kind, limit: 20 },
+          {
+            search: query,
+            type: getAssetType(kind),
+            orientation: orientation === "any" ? undefined : orientation,
+            license: license === "any" ? undefined : license,
+            limit: 20,
+          },
           ownerWindow,
         ).then(
           (result) => {
             if (active) {
               setAssets(result.items);
+              setNextCursor(result.nextCursor);
               setProviderNotice(
                 result.failures.length
                   ? "Some library sources are temporarily unavailable."
@@ -166,6 +346,7 @@ export const AssetPanel = ({
           (reason) => {
             if (active) {
               setAssets([]);
+              setNextCursor(undefined);
               setError(
                 reason instanceof Error
                   ? reason.message
@@ -182,7 +363,50 @@ export const AssetPanel = ({
       active = false;
       ownerWindow.clearTimeout(timer);
     };
-  }, [query, kind]);
+  }, [query, kind, orientation, license]);
+
+  const loadMore = async () => {
+    const ownerWindow = rootRef.current?.ownerDocument.defaultView;
+    if (!ownerWindow || !nextCursor || loadingMore) {
+      return;
+    }
+    setLoadingMore(true);
+    try {
+      const result = await searchAssetsWithStatus(
+        {
+          search: query,
+          type: getAssetType(kind),
+          orientation: orientation === "any" ? undefined : orientation,
+          license: license === "any" ? undefined : license,
+          cursor: nextCursor,
+          limit: 20,
+        },
+        ownerWindow,
+      );
+      setAssets((current) => {
+        const known = new Set(current.map(({ id }) => id));
+        return [
+          ...current,
+          ...result.items.filter((asset) => !known.has(asset.id)),
+        ];
+      });
+      setNextCursor(result.nextCursor);
+      if (result.failures.length) {
+        setProviderNotice(
+          "Some library sources were unavailable while loading more.",
+        );
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const visibleAssets =
+    kind === "favorite"
+      ? library.favorites
+      : kind === "recent"
+      ? library.recents
+      : assets;
 
   return (
     <aside
@@ -194,6 +418,9 @@ export const AssetPanel = ({
         {(
           [
             "all",
+            "template",
+            "favorite",
+            "recent",
             "photo",
             "sticker",
             "illustration",
@@ -208,11 +435,7 @@ export const AssetPanel = ({
             type="button"
             aria-label={LABELS[option]}
             aria-pressed={kind === option}
-            onClick={() => {
-              setKind(option);
-              setQuery("");
-              setPanelOpen(true);
-            }}
+            onClick={() => chooseKind(option)}
           >
             <ToolIcon name={option} />
             <span>{option === "all" ? "All" : LABELS[option]}</span>
@@ -260,7 +483,9 @@ export const AssetPanel = ({
               : "Explore photos and stickers for your board."}
           </p>
         </div>
-        {kind !== "layout" && kind !== "text" && (
+        {!["layout", "text", "template", "favorite", "recent"].includes(
+          kind,
+        ) && (
           <label className="gratitude-assets__search">
             <span className="visually-hidden">Search assets</span>
             <svg
@@ -276,7 +501,11 @@ export const AssetPanel = ({
             <input
               type="search"
               value={query}
-              onChange={(event) => setQuery(event.currentTarget.value)}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+                setQuery(value);
+                setQueries((current) => ({ ...current, [kind]: value }));
+              }}
               placeholder={
                 kind === "photo"
                   ? "Search photos and ideas"
@@ -284,6 +513,39 @@ export const AssetPanel = ({
               }
             />
           </label>
+        )}
+        {(kind === "photo" || kind === "all") && (
+          <div className="gratitude-assets__filters" aria-label="Photo filters">
+            <label>
+              <span>Orientation</span>
+              <select
+                value={orientation}
+                onChange={(event) =>
+                  setOrientation(
+                    event.currentTarget.value as typeof orientation,
+                  )
+                }
+              >
+                <option value="any">Any</option>
+                <option value="landscape">Landscape</option>
+                <option value="portrait">Portrait</option>
+                <option value="square">Square</option>
+              </select>
+            </label>
+            <label>
+              <span>License</span>
+              <select
+                value={license}
+                onChange={(event) =>
+                  setLicense(event.currentTarget.value as typeof license)
+                }
+              >
+                <option value="any">Any safe license</option>
+                <option value="no-credit">No credit needed</option>
+                <option value="credit-required">Credit required</option>
+              </select>
+            </label>
+          </div>
         )}
         <input
           ref={uploadRef}
@@ -300,7 +562,9 @@ export const AssetPanel = ({
             event.currentTarget.value = "";
           }}
         />
-        {kind !== "layout" && kind !== "text" && (
+        {!["layout", "text", "template", "favorite", "recent"].includes(
+          kind,
+        ) && (
           <button
             className="gratitude-assets__upload"
             type="button"
@@ -339,14 +603,52 @@ export const AssetPanel = ({
             {providerNotice}
           </p>
         )}
+        {!online && (
+          <p className="gratitude-assets__message" role="status">
+            You are offline. Cached library results remain available; uncached
+            external assets will return when you reconnect.
+          </p>
+        )}
+        {visibleAssets.some((asset) => asset.editable.colors) && (
+          <label className="gratitude-assets__recolor">
+            <span>Asset color</span>
+            <input
+              type="color"
+              value={assetColor}
+              onChange={(event) => setAssetColor(event.currentTarget.value)}
+            />
+            <small>Applied when you add a recolorable vector</small>
+          </label>
+        )}
         <div
           className={`gratitude-assets__grid${
-            kind === "layout" || kind === "text"
+            kind === "layout" || kind === "text" || kind === "template"
               ? " gratitude-assets__layouts"
               : ""
           }`}
         >
-          {kind === "layout"
+          {kind === "template"
+            ? VISION_TEMPLATES.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className="gratitude-template-card"
+                  style={
+                    {
+                      "--template-accent": template.accent,
+                    } as React.CSSProperties
+                  }
+                  onClick={() => onApplyTemplate(template)}
+                >
+                  <span className="gratitude-template-card__category">
+                    {template.category}
+                  </span>
+                  <strong>{template.title}</strong>
+                  <span>{template.description}</span>
+                  <small>{template.prompt}</small>
+                </button>
+              ))
+            : kind === "layout"
             ? VISION_LAYOUTS.map((layout) => (
                 <button
                   key={layout.id}
@@ -392,7 +694,7 @@ export const AssetPanel = ({
                   </small>
                 </button>
               ))
-            : assets.map((asset) => (
+            : visibleAssets.map((asset) => (
                 <div
                   key={asset.id}
                   className={`gratitude-asset-card ${
@@ -410,15 +712,39 @@ export const AssetPanel = ({
                         JSON.stringify(asset),
                       );
                     }}
-                    onClick={() => {
-                      const ownerDocument = rootRef.current?.ownerDocument;
-                      if (ownerDocument) {
-                        void onPlace(asset, ownerDocument);
-                      }
-                    }}
+                    onClick={() => void place(asset)}
                   >
                     <img src={asset.previewUrl} alt="" loading="lazy" />
                     {asset.type !== "photo" && <span>{asset.title}</span>}
+                  </button>
+                  <button
+                    type="button"
+                    className="gratitude-asset-card__favorite"
+                    aria-label={`${
+                      library.favorites.some(
+                        (favorite) => favorite.id === asset.id,
+                      )
+                        ? "Remove"
+                        : "Add"
+                    } ${asset.title} ${
+                      library.favorites.some(
+                        (favorite) => favorite.id === asset.id,
+                      )
+                        ? "from"
+                        : "to"
+                    } favorites`}
+                    aria-pressed={library.favorites.some(
+                      (favorite) => favorite.id === asset.id,
+                    )}
+                    onClick={() =>
+                      updateLibrary((current) => toggleFavorite(current, asset))
+                    }
+                  >
+                    {library.favorites.some(
+                      (favorite) => favorite.id === asset.id,
+                    )
+                      ? "♥"
+                      : "♡"}
                   </button>
                   <button
                     type="button"
@@ -433,14 +759,34 @@ export const AssetPanel = ({
                       Credit
                     </span>
                   )}
+                  {canReplace && asset.type === "photo" && (
+                    <button
+                      type="button"
+                      className="gratitude-asset-card__replace"
+                      onClick={() => void replace(asset)}
+                    >
+                      Replace
+                    </button>
+                  )}
                 </div>
               ))}
         </div>
+        {nextCursor && !busy && (
+          <button
+            type="button"
+            className="gratitude-assets__load-more"
+            disabled={loadingMore}
+            onClick={() => void loadMore()}
+          >
+            {loadingMore ? "Loading more…" : "Load more"}
+          </button>
+        )}
         {kind !== "layout" &&
           kind !== "text" &&
+          kind !== "template" &&
           !busy &&
           !error &&
-          !assets.length && (
+          !visibleAssets.length && (
             <p className="gratitude-assets__message">
               {kind === "photo" && !query
                 ? "Search a theme or choose an idea above to find photos."
@@ -475,6 +821,7 @@ export const AssetPanel = ({
             />
             <section>
               <button
+                ref={detailsCloseRef}
                 type="button"
                 className="gratitude-asset-details__close"
                 aria-label="Close"
@@ -515,15 +862,24 @@ export const AssetPanel = ({
                 type="button"
                 className="gratitude-asset-details__add"
                 onClick={() => {
-                  const ownerDocument = rootRef.current?.ownerDocument;
-                  if (ownerDocument) {
-                    void onPlace(details, ownerDocument);
-                  }
+                  void place(details);
                   setDetails(null);
                 }}
               >
                 Add to board
               </button>
+              {canReplace && details.type === "photo" && (
+                <button
+                  type="button"
+                  className="gratitude-asset-details__add"
+                  onClick={() => {
+                    void replace(details);
+                    setDetails(null);
+                  }}
+                >
+                  Replace selected photo
+                </button>
+              )}
             </section>
           </div>
         )}

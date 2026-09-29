@@ -1,5 +1,6 @@
 import type { GratitudeAsset } from "../assets/contracts";
 import type { VisionLayout } from "./layouts";
+import type { VisionTemplate } from "./templates";
 
 export type VisionTheme = "light" | "dark";
 export type VisionFontFamily =
@@ -59,14 +60,28 @@ export type VisionImageFrame =
   | "rounded"
   | "circle"
   | "polaroid"
-  | "film";
+  | "film"
+  | "arch"
+  | "heart"
+  | "blob"
+  | "organic"
+  | "torn";
 
 export interface VisionImageEdits {
   filter: VisionImageFilter;
   frame: VisionImageFrame;
   brightness: number;
+  exposure: number;
   contrast: number;
   saturation: number;
+  highlights: number;
+  shadows: number;
+  fade: number;
+  grain: number;
+  borderWidth: number;
+  borderColor: string;
+  shadow: number;
+  glow: number;
   warmth: number;
   blur: number;
   flipX: boolean;
@@ -108,23 +123,40 @@ export interface CanvasAdapter {
     sourceAsset?: GratitudeAsset,
     position?: VisionPoint,
   ): Promise<string>;
+  replaceSelectedImage(
+    blob: Blob,
+    ownerWindow: Window & typeof globalThis,
+    sourceAsset?: GratitudeAsset,
+  ): Promise<string | null>;
   getSelection(): VisionSelection;
   updateSelection(patch: VisionSelectionPatch): void;
   updateImageEdits(
     patch: Partial<VisionImageEdits>,
     ownerDocument: Document,
   ): Promise<void>;
+  resetImageEdits(ownerDocument: Document): Promise<void>;
+  previewOriginalImage(show: boolean): void;
   startImageCrop(): void;
   setImageFit(mode: "fit" | "fill"): void;
   rotateSelection(degrees: number): void;
   select(ids: string[]): void;
   delete(ids: string[]): void;
+  duplicateSelection(): void;
+  arrangeSelection(position: "front" | "back"): void;
   activateTool(tool: "image" | "note" | "text"): void;
   createTextPreset(preset: VisionTextPreset): void;
   applyLayout(layout: VisionLayout): void;
+  applyTemplate(template: VisionTemplate): void;
   fitBoard(): void;
   exportImage(): void;
   exportSelection(): void;
+  downloadSelectedPrint(ownerDocument: Document, scale?: number): Promise<void>;
+  downloadHighResolution(
+    ownerDocument: Document,
+    scale?: number,
+  ): Promise<void>;
+  printBoard(ownerDocument: Document): Promise<void>;
+  downloadReelVideo(ownerDocument: Document): Promise<void>;
   downloadAttributions(ownerDocument: Document): void;
   downloadReelPlan(ownerDocument: Document): void;
   downloadReel(ownerDocument: Document): void;

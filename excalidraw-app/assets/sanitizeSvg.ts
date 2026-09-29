@@ -112,12 +112,32 @@ export const sanitizeSvg = (
 export const svgToPng = async (
   blob: Blob,
   ownerDocument: Document,
+  color?: string,
 ): Promise<Blob> => {
   const ownerWindow = ownerDocument.defaultView;
   if (!ownerWindow) {
     throw new Error("No browser window");
   }
-  const clean = sanitizeSvg(await blob.text(), ownerDocument);
+  let clean = sanitizeSvg(await blob.text(), ownerDocument);
+  if (color && /^#[0-9a-f]{6}$/i.test(color)) {
+    const parsed = new ownerWindow.DOMParser().parseFromString(
+      clean,
+      "image/svg+xml",
+    );
+    parsed.documentElement.querySelectorAll("*").forEach((element) => {
+      const fill = element.getAttribute("fill");
+      const stroke = element.getAttribute("stroke");
+      if (fill && fill !== "none" && fill !== "transparent") {
+        element.setAttribute("fill", color);
+      }
+      if (stroke && stroke !== "none" && stroke !== "transparent") {
+        element.setAttribute("stroke", color);
+      }
+    });
+    clean = new ownerWindow.XMLSerializer().serializeToString(
+      parsed.documentElement,
+    );
+  }
   const svgBlob = new ownerWindow.Blob([clean], { type: "image/svg+xml" });
   const url = ownerWindow.URL.createObjectURL(svgBlob);
   try {

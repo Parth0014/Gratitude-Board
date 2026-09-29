@@ -40,11 +40,8 @@ import type { MaybePromise } from "@excalidraw/common/utility-types";
 
 import { appJotaiStore, atom } from "../app-jotai";
 import { SAVE_TO_LOCAL_STORAGE_TIMEOUT, STORAGE_KEYS } from "../app_constants";
-import {
-  createVisionBoardDocument,
-  readVisionBoardDocument,
-  VISION_DOCUMENT_STORAGE_KEY,
-} from "../vision/document";
+import { createVisionBoardDocument } from "../vision/document";
+import { VisionDocumentRepository } from "../vision/repository";
 
 import { FileManager } from "./FileManager";
 import { FileStatusStore } from "./fileStatusStore";
@@ -102,13 +99,12 @@ const saveDataStateToLocalStorage = (
       JSON.stringify(_appState),
     );
     if (visionStorage) {
-      const previous = readVisionBoardDocument(
-        visionStorage.storage.getItem(VISION_DOCUMENT_STORAGE_KEY),
-      );
-      visionStorage.storage.setItem(
-        VISION_DOCUMENT_STORAGE_KEY,
-        JSON.stringify(
-          createVisionBoardDocument(elements, visionStorage.title, previous),
+      const repository = new VisionDocumentRepository(visionStorage.storage);
+      repository.save(
+        createVisionBoardDocument(
+          elements,
+          visionStorage.title,
+          repository.load(),
         ),
       );
     }

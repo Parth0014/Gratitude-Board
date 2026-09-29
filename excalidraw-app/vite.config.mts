@@ -380,6 +380,20 @@ self.addEventListener("activate", (event) => {
             // via a static import from the main bundle, defeating lazy
             // loading. So we exclude it by name instead.
             "**/CodeMirrorEditor-*.js",
+            // Mermaid and its graph/layout engines are optional editor tools.
+            // Cache them after first use instead of adding ~1.6 MB to every
+            // Gratitude Studio service-worker installation.
+            "**/mermaid-to-excalidraw-*.js",
+            "**/cytoscape.esm-*.js",
+            "**/cose-bilkent-*.js",
+            "**/*Diagram-*.js",
+            "**/diagram-*.js",
+            "**/chunk-*.js",
+            "**/dagre-*.js",
+            "**/graph-*.js",
+            "**/layout-*.js",
+            "**/treemap-*.js",
+            "**/katex-*.js",
           ],
           runtimeCaching: [
             {
@@ -426,6 +440,19 @@ self.addEventListener("activate", (event) => {
                 expiration: {
                   maxEntries: 50,
                   maxAgeSeconds: 60 * 60 * 24 * 90, // <== 90 days
+                },
+              },
+            },
+            {
+              urlPattern: new RegExp(
+                "(mermaid-to-excalidraw|cytoscape|cose-bilkent|.+Diagram|diagram-|chunk-|dagre-|graph-|layout-|treemap-|katex-).+\\.js",
+              ),
+              handler: "CacheFirst",
+              options: {
+                cacheName: "optional-editor-tools",
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 30,
                 },
               },
             },

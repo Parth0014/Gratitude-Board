@@ -1,6 +1,8 @@
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
-import { ROUNDNESS, getLineHeight } from "@excalidraw/common";
+import { exportToCanvas as exportSceneToCanvas } from "@excalidraw/excalidraw/scene/export";
+import { ROUNDNESS, arrayToMap, getLineHeight } from "@excalidraw/common";
 import {
+  duplicateElements,
   newElementWith,
   newElement,
   newImageElement,
@@ -13,10 +15,14 @@ import type {
   DataURL,
   ExcalidrawImperativeAPI,
 } from "@excalidraw/excalidraw/types";
-import type { FileId } from "@excalidraw/element/types";
+import type {
+  ExcalidrawFrameElement,
+  FileId,
+  NonDeleted,
+} from "@excalidraw/element/types";
 import type { Radians } from "@excalidraw/math";
 
-import { getBoardPage } from "../boardPage";
+import { getBoardBackground, getBoardPage } from "./engine/boardPage";
 
 import { registerVisionFonts, VISION_FONTS } from "./fonts";
 
@@ -30,6 +36,7 @@ import type {
 } from "./contracts";
 import type { VisionLayout } from "./layouts";
 import type { VisionTextPreset } from "./typography";
+import type { VisionTemplate } from "./templates";
 
 registerVisionFonts();
 const FONT_VALUES = Object.fromEntries(
@@ -45,8 +52,17 @@ const DEFAULT_IMAGE_EDITS: VisionImageEdits = {
   filter: "original",
   frame: "none",
   brightness: 100,
+  exposure: 0,
   contrast: 100,
   saturation: 100,
+  highlights: 0,
+  shadows: 0,
+  fade: 0,
+  grain: 0,
+  borderWidth: 0,
+  borderColor: "#ffffff",
+  shadow: 0,
+  glow: 0,
   warmth: 0,
   blur: 0,
   flipX: false,
@@ -72,8 +88,14 @@ const filterCss = (edits: VisionImageEdits) => {
   }[edits.filter];
   return [
     presets,
-    `brightness(${edits.brightness}%)`,
-    `contrast(${edits.contrast}%)`,
+    `brightness(${Math.max(
+      10,
+      edits.brightness + edits.exposure + edits.shadows * 0.12,
+    )}%)`,
+    `contrast(${Math.max(
+      10,
+      edits.contrast + edits.highlights * 0.18 - edits.fade * 0.45,
+    )}%)`,
     `saturate(${edits.saturation}%)`,
     edits.warmth
       ? `sepia(${Math.abs(edits.warmth) / 250}) hue-rotate(${
@@ -84,6 +106,157 @@ const filterCss = (edits: VisionImageEdits) => {
   ]
     .filter(Boolean)
     .join(" ");
+};
+
+const clipImageFrame = (
+  context: CanvasRenderingContext2D,
+  frame: VisionImageEdits["frame"],
+  width: number,
+  height: number,
+) => {
+  if (!["arch", "heart", "blob", "organic", "torn"].includes(frame)) {
+    return;
+  }
+  context.beginPath();
+  if (frame === "arch") {
+    context.moveTo(0, height);
+    context.lineTo(0, height * 0.42);
+    context.bezierCurveTo(
+      0,
+      -height * 0.1,
+      width,
+      -height * 0.1,
+      width,
+      height * 0.42,
+    );
+    context.lineTo(width, height);
+  } else if (frame === "heart") {
+    context.moveTo(width / 2, height);
+    context.bezierCurveTo(
+      -width * 0.12,
+      height * 0.58,
+      0,
+      height * 0.12,
+      width * 0.25,
+      height * 0.12,
+    );
+    context.bezierCurveTo(
+      width * 0.4,
+      height * 0.12,
+      width * 0.5,
+      height * 0.27,
+      width / 2,
+      height * 0.34,
+    );
+    context.bezierCurveTo(
+      width * 0.5,
+      height * 0.27,
+      width * 0.6,
+      height * 0.12,
+      width * 0.75,
+      height * 0.12,
+    );
+    context.bezierCurveTo(
+      width,
+      height * 0.12,
+      width * 1.12,
+      height * 0.58,
+      width / 2,
+      height,
+    );
+  } else if (frame === "blob") {
+    context.moveTo(width * 0.5, 0);
+    context.bezierCurveTo(
+      width * 0.86,
+      0,
+      width,
+      height * 0.22,
+      width * 0.94,
+      height * 0.55,
+    );
+    context.bezierCurveTo(
+      width * 0.88,
+      height * 0.9,
+      width * 0.63,
+      height,
+      width * 0.34,
+      height * 0.94,
+    );
+    context.bezierCurveTo(
+      0,
+      height * 0.88,
+      -width * 0.06,
+      height * 0.48,
+      width * 0.08,
+      height * 0.2,
+    );
+    context.bezierCurveTo(
+      width * 0.2,
+      -height * 0.02,
+      width * 0.34,
+      0,
+      width * 0.5,
+      0,
+    );
+  } else if (frame === "organic") {
+    context.moveTo(width * 0.18, height * 0.08);
+    context.bezierCurveTo(
+      width * 0.48,
+      -height * 0.04,
+      width * 0.9,
+      height * 0.02,
+      width * 0.96,
+      height * 0.34,
+    );
+    context.bezierCurveTo(
+      width * 1.03,
+      height * 0.68,
+      width * 0.77,
+      height * 0.98,
+      width * 0.43,
+      height,
+    );
+    context.bezierCurveTo(
+      width * 0.1,
+      height * 1.02,
+      -width * 0.06,
+      height * 0.72,
+      width * 0.04,
+      height * 0.42,
+    );
+    context.bezierCurveTo(
+      width * 0.08,
+      height * 0.25,
+      width * 0.05,
+      height * 0.14,
+      width * 0.18,
+      height * 0.08,
+    );
+  } else {
+    const points = 18;
+    for (let index = 0; index <= points; index += 1) {
+      const x = (width * index) / points;
+      const y = index % 2 ? height * 0.018 : 0;
+      index ? context.lineTo(x, y) : context.moveTo(x, y);
+    }
+    for (let index = 0; index <= points; index += 1) {
+      context.lineTo(
+        index % 2 ? width * 0.982 : width,
+        (height * index) / points,
+      );
+    }
+    for (let index = points; index >= 0; index -= 1) {
+      context.lineTo(
+        (width * index) / points,
+        index % 2 ? height * 0.982 : height,
+      );
+    }
+    for (let index = points; index >= 0; index -= 1) {
+      context.lineTo(index % 2 ? width * 0.018 : 0, (height * index) / points);
+    }
+  }
+  context.closePath();
+  context.clip();
 };
 
 const getSelectionKind = (type: string): VisionSelectionKind => {
@@ -108,6 +281,193 @@ const getSelectionKind = (type: string): VisionSelectionKind => {
 export const createCanvasAdapter = (
   api: ExcalidrawImperativeAPI,
 ): CanvasAdapter => {
+  const prepareImageFile = async (
+    blob: Blob,
+    ownerWindow: Window & typeof globalThis,
+  ) => {
+    if (!["image/png", "image/jpeg", "image/webp"].includes(blob.type)) {
+      throw new Error("Unsupported image type");
+    }
+    const dataURL = await new Promise<DataURL>((resolve, reject) => {
+      const reader = new ownerWindow.FileReader();
+      reader.onload = () => resolve(reader.result as DataURL);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+    const bitmap = await ownerWindow.createImageBitmap(blob);
+    const imageFile = {
+      fileId: ownerWindow.crypto.randomUUID() as FileId,
+      dataURL,
+      naturalWidth: bitmap.width,
+      naturalHeight: bitmap.height,
+    };
+    bitmap.close();
+    api.addFiles([
+      {
+        id: imageFile.fileId,
+        dataURL,
+        mimeType: blob.type as BinaryFileData["mimeType"],
+        created: Date.now(),
+      },
+    ]);
+    return imageFile;
+  };
+
+  const renderBoard = async (ownerDocument: Document, scale = 2) => {
+    const page = getBoardPage(api.getSceneElements());
+    if (!page || page.type !== "frame" || page.isDeleted) {
+      throw new Error("Board is unavailable");
+    }
+    const elements = api
+      .getSceneElements()
+      .filter((element) => !element.isDeleted);
+    const files = api.getFiles();
+    const missingImages = elements.filter(
+      (element) =>
+        element.type === "image" &&
+        (!element.fileId || !files[element.fileId]?.dataURL),
+    ).length;
+    if (missingImages) {
+      throw new Error(
+        `${missingImages} board image${
+          missingImages === 1 ? " is" : "s are"
+        } unavailable. Reconnect or replace the missing asset before exporting.`,
+      );
+    }
+    await ownerDocument.fonts.ready;
+    const missingFont = elements.find((element) => {
+      if (element.type !== "text") {
+        return false;
+      }
+      const family = VISION_FONTS.find(
+        (font) => font.value === element.fontFamily,
+      )?.family;
+      return family
+        ? !ownerDocument.fonts.check(`16px "${family}"`, element.text)
+        : false;
+    });
+    if (missingFont) {
+      throw new Error(
+        "A board font is unavailable. Reconnect and reopen the export when the font has loaded.",
+      );
+    }
+    const canvas = await exportSceneToCanvas(
+      elements,
+      { ...api.getAppState(), exportScale: scale },
+      files,
+      {
+        exportBackground: true,
+        exportPadding: 0,
+        viewBackgroundColor: "#ffffff",
+        exportingFrame: page as NonDeleted<ExcalidrawFrameElement>,
+      },
+      (width, height) => {
+        const canvas = ownerDocument.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(width * scale));
+        canvas.height = Math.max(1, Math.round(height * scale));
+        return { canvas, scale };
+      },
+    );
+    const credits = Array.from(
+      new Map(
+        elements.flatMap((element) => {
+          const asset = element.customData?.gratitudeAsset as
+            | import("../assets/contracts").GratitudeAsset
+            | undefined;
+          return asset?.license.attributionRequired
+            ? [[asset.id, asset] as const]
+            : [];
+        }),
+      ).values(),
+    );
+    if (!credits.length) {
+      return canvas;
+    }
+    const footerHeight = Math.max(48, Math.round(34 * scale));
+    const output = ownerDocument.createElement("canvas");
+    output.width = canvas.width;
+    output.height = canvas.height + footerHeight;
+    const outputContext = output.getContext("2d");
+    if (!outputContext) {
+      throw new Error("Attribution export is unavailable");
+    }
+    outputContext.drawImage(canvas, 0, 0);
+    outputContext.fillStyle = "#fffafc";
+    outputContext.fillRect(0, canvas.height, output.width, footerHeight);
+    outputContext.fillStyle = "#594b53";
+    outputContext.font = `${Math.max(11, Math.round(11 * scale))}px sans-serif`;
+    outputContext.textBaseline = "middle";
+    const credit = credits
+      .map(
+        (asset) =>
+          `${asset.title}${
+            asset.license.author ? ` by ${asset.license.author}` : ""
+          } (${asset.license.label})`,
+      )
+      .join(" • ");
+    outputContext.fillText(
+      `Asset credits: ${credit}`,
+      Math.round(12 * scale),
+      canvas.height + footerHeight / 2,
+      output.width - Math.round(24 * scale),
+    );
+    return output;
+  };
+
+  const downloadBlob = (
+    ownerDocument: Document,
+    blob: Blob,
+    filename: string,
+  ) => {
+    const ownerWindow = ownerDocument.defaultView;
+    if (!ownerWindow) {
+      return;
+    }
+    const url = ownerWindow.URL.createObjectURL(blob);
+    const anchor = ownerDocument.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    ownerWindow.setTimeout(() => ownerWindow.URL.revokeObjectURL(url), 0);
+  };
+
+  const renderSelection = async (ownerDocument: Document, scale = 3) => {
+    const selectedIds = api.getAppState().selectedElementIds;
+    const elements = api
+      .getSceneElements()
+      .filter((element) => !element.isDeleted && selectedIds[element.id]);
+    if (!elements.length) {
+      throw new Error("Select a board item before exporting a print piece");
+    }
+    const files = api.getFiles();
+    const missing = elements.some(
+      (element) =>
+        element.type === "image" &&
+        (!element.fileId || !files[element.fileId]?.dataURL),
+    );
+    if (missing) {
+      throw new Error("The selected item contains an unavailable image");
+    }
+    await ownerDocument.fonts.ready;
+    return exportSceneToCanvas(
+      elements,
+      { ...api.getAppState(), exportScale: scale },
+      files,
+      {
+        exportBackground: false,
+        exportPadding: 24,
+        viewBackgroundColor: "transparent",
+        exportingFrame: null,
+      },
+      (width, height) => {
+        const canvas = ownerDocument.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(width * scale));
+        canvas.height = Math.max(1, Math.round(height * scale));
+        return { canvas, scale };
+      },
+    );
+  };
+
   const getSelection = (): VisionSelection => {
     const selectedIds = api.getAppState().selectedElementIds;
     const selected = api
@@ -212,27 +572,10 @@ export const createCanvasAdapter = (
 
   return {
     async createImage(blob, ownerWindow, sourceAsset, position) {
-      if (!["image/png", "image/jpeg", "image/webp"].includes(blob.type)) {
-        throw new Error("Unsupported image type");
-      }
-      const dataURL = await new Promise<DataURL>((resolve, reject) => {
-        const reader = new ownerWindow.FileReader();
-        reader.onload = () => resolve(reader.result as DataURL);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(blob);
-      });
-      const bitmap = await ownerWindow.createImageBitmap(blob);
-      const naturalWidth = bitmap.width;
-      const naturalHeight = bitmap.height;
-      const fileId = ownerWindow.crypto.randomUUID() as FileId;
-      api.addFiles([
-        {
-          id: fileId,
-          dataURL,
-          mimeType: blob.type as BinaryFileData["mimeType"],
-          created: Date.now(),
-        },
-      ]);
+      const { fileId, naturalWidth, naturalHeight } = await prepareImageFile(
+        blob,
+        ownerWindow,
+      );
       const state = api.getAppState();
       const scene = api.getSceneElements();
       const page = getBoardPage(scene);
@@ -244,14 +587,13 @@ export const createCanvasAdapter = (
       );
       const size = Math.min(280, (page?.width || state.width) * 0.35);
       let width =
-        bitmap.width >= bitmap.height
+        naturalWidth >= naturalHeight
           ? size
-          : (size * bitmap.width) / bitmap.height;
+          : (size * naturalWidth) / naturalHeight;
       let height =
-        bitmap.height >= bitmap.width
+        naturalHeight >= naturalWidth
           ? size
-          : (size * bitmap.height) / bitmap.width;
-      bitmap.close();
+          : (size * naturalHeight) / naturalWidth;
       if (selectedSlot) {
         width = selectedSlot.width;
         height = selectedSlot.height;
@@ -337,6 +679,42 @@ export const createCanvasAdapter = (
       api.setActiveTool({ type: "selection" });
       return image.id;
     },
+    async replaceSelectedImage(blob, ownerWindow, sourceAsset) {
+      const selectedIds = api.getAppState().selectedElementIds;
+      const selected = api
+        .getSceneElements()
+        .find((element) => selectedIds[element.id] && element.type === "image");
+      if (!selected || selected.type !== "image") {
+        return null;
+      }
+      const { fileId, naturalWidth, naturalHeight } = await prepareImageFile(
+        blob,
+        ownerWindow,
+      );
+      const replacement = newElementWith(selected, {
+        fileId,
+        status: "saved",
+        customData: {
+          ...selected.customData,
+          gratitudeImageNaturalSize: {
+            width: naturalWidth,
+            height: naturalHeight,
+          },
+          gratitudeImageEdits: undefined,
+          ...(sourceAsset ? { gratitudeAsset: sourceAsset } : {}),
+        },
+      });
+      api.updateScene({
+        elements: api
+          .getSceneElements()
+          .map((element) =>
+            element.id === replacement.id ? replacement : element,
+          ),
+        appState: { selectedElementIds: { [replacement.id]: true } },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+      return replacement.id;
+    },
     getSelection,
     updateSelection,
     async updateImageEdits(patch, ownerDocument) {
@@ -375,8 +753,66 @@ export const createCanvasAdapter = (
       if (!context) {
         throw new Error("Photo editing is unavailable");
       }
-      context.filter = filterCss(edits);
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const processed = ownerDocument.createElement("canvas");
+      processed.width = canvas.width;
+      processed.height = canvas.height;
+      const processedContext = processed.getContext("2d");
+      if (!processedContext) {
+        throw new Error("Photo effects are unavailable");
+      }
+      processedContext.filter = filterCss(edits);
+      processedContext.save();
+      clipImageFrame(
+        processedContext,
+        edits.frame,
+        processed.width,
+        processed.height,
+      );
+      processedContext.drawImage(
+        image,
+        0,
+        0,
+        processed.width,
+        processed.height,
+      );
+      processedContext.restore();
+      if (edits.grain > 0) {
+        const imageData = processedContext.getImageData(
+          0,
+          0,
+          processed.width,
+          processed.height,
+        );
+        const amount = edits.grain * 0.45;
+        for (let index = 0; index < imageData.data.length; index += 4) {
+          const noise =
+            ((((index * 1103515245 + 12345) >>> 16) & 255) / 255 - 0.5) *
+            amount;
+          imageData.data[index] += noise;
+          imageData.data[index + 1] += noise;
+          imageData.data[index + 2] += noise;
+        }
+        processedContext.putImageData(imageData, 0, 0);
+      }
+      const effects = [];
+      if (edits.shadow > 0) {
+        effects.push(
+          `drop-shadow(8px 10px ${Math.max(
+            1,
+            edits.shadow,
+          )}px rgba(38, 28, 44, 0.45))`,
+        );
+      }
+      if (edits.glow > 0) {
+        effects.push(
+          `drop-shadow(0 0 ${Math.max(
+            1,
+            edits.glow,
+          )}px rgba(255, 222, 235, 0.95))`,
+        );
+      }
+      context.filter = effects.join(" ") || "none";
+      context.drawImage(processed, 0, 0);
       const blob = await new Promise<Blob>((resolve, reject) =>
         canvas.toBlob(
           (value) =>
@@ -406,7 +842,9 @@ export const createCanvasAdapter = (
           return element;
         }
         const frame = edits.frame;
-        const shouldSquare = frame === "circle";
+        const shouldSquare = ["circle", "heart", "blob", "organic"].includes(
+          frame,
+        );
         const size = Math.min(element.width, element.height);
         return newElementWith(element, {
           fileId,
@@ -422,17 +860,50 @@ export const createCanvasAdapter = (
               ? "#fffdf8"
               : frame === "film"
               ? "#231f24"
+              : edits.borderWidth > 0
+              ? edits.borderColor
               : "transparent",
-          strokeWidth: frame === "polaroid" ? 16 : frame === "film" ? 10 : 1,
+          strokeWidth:
+            frame === "polaroid"
+              ? 16
+              : frame === "film"
+              ? 10
+              : Math.max(1, edits.borderWidth),
           customData: {
             ...element.customData,
-            gratitudeImageEdits: { ...edits, originalFileId },
+            gratitudeImageEdits: {
+              ...edits,
+              originalFileId,
+              derivativeFileId: fileId,
+            },
           },
         });
       });
       api.updateScene({
         elements,
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+    },
+    async resetImageEdits(ownerDocument) {
+      await this.updateImageEdits(DEFAULT_IMAGE_EDITS, ownerDocument);
+    },
+    previewOriginalImage(show) {
+      const selectedIds = api.getAppState().selectedElementIds;
+      api.updateScene({
+        elements: api.getSceneElements().map((element) => {
+          if (!selectedIds[element.id] || element.type !== "image") {
+            return element;
+          }
+          const edits = element.customData?.gratitudeImageEdits as
+            | (Partial<VisionImageEdits> & {
+                originalFileId?: FileId;
+                derivativeFileId?: FileId;
+              })
+            | undefined;
+          const fileId = show ? edits?.originalFileId : edits?.derivativeFileId;
+          return fileId ? newElementWith(element, { fileId }) : element;
+        }),
+        captureUpdate: CaptureUpdateAction.NEVER,
       });
     },
     startImageCrop() {
@@ -525,6 +996,66 @@ export const createCanvasAdapter = (
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,
       });
     },
+    duplicateSelection() {
+      const appState = api.getAppState();
+      const scene = api.getSceneElements();
+      const selected = scene.filter(
+        (element) => appState.selectedElementIds[element.id],
+      );
+      if (!selected.length) {
+        return;
+      }
+      const duplication = duplicateElements({
+        type: "in-place",
+        elements: scene,
+        idsOfElementsToDuplicate: arrayToMap(selected),
+        appState,
+        randomizeSeed: true,
+        overrides: ({ origElement, origIdToDuplicateId }) => ({
+          x: origElement.x + 18,
+          y: origElement.y + 18,
+          frameId:
+            (origElement.frameId &&
+              origIdToDuplicateId.get(origElement.frameId)) ||
+            origElement.frameId,
+        }),
+      });
+      api.updateScene({
+        elements: duplication.elementsWithDuplicates,
+        appState: {
+          selectedElementIds: Object.fromEntries(
+            duplication.duplicatedElements.map(({ id }) => [id, true]),
+          ),
+        },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+    },
+    arrangeSelection(position) {
+      const selectedIds = api.getAppState().selectedElementIds;
+      const scene = api.getSceneElements();
+      const selected = scene.filter((element) => selectedIds[element.id]);
+      if (!selected.length) {
+        return;
+      }
+      const page = getBoardPage(scene);
+      const background = getBoardBackground(scene);
+      const protectedIds = new Set(
+        [page?.id, background?.id].filter((id): id is string => Boolean(id)),
+      );
+      const boardLayers = scene.filter((element) =>
+        protectedIds.has(element.id),
+      );
+      const remaining = scene.filter(
+        (element) => !protectedIds.has(element.id) && !selectedIds[element.id],
+      );
+      api.updateScene({
+        elements:
+          position === "front"
+            ? [...boardLayers, ...remaining, ...selected]
+            : [...boardLayers, ...selected, ...remaining],
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+    },
     activateTool(tool) {
       api.setActiveTool({ type: tool === "note" ? "stickynote" : tool });
     },
@@ -608,6 +1139,83 @@ export const createCanvasAdapter = (
       });
       api.setActiveTool({ type: "selection" });
     },
+    applyTemplate(template: VisionTemplate) {
+      const scene = api.getSceneElements();
+      const page = getBoardPage(scene);
+      if (!page) {
+        return;
+      }
+      const background = getBoardBackground(scene);
+      const withoutOldSlots = scene.filter(
+        (element) => element.customData?.gratitudeLayoutSlot !== true,
+      );
+      const themedScene = withoutOldSlots.map((element) =>
+        element.id === background?.id
+          ? newElementWith(element, {
+              backgroundColor: template.backgroundColor,
+            })
+          : element,
+      );
+      const slots = template.layout.slots.map((slot) =>
+        newElement({
+          type: "rectangle",
+          x: page.x + page.width * slot.x,
+          y: page.y + page.height * slot.y,
+          width: page.width * slot.width,
+          height: page.height * slot.height,
+          angle: (((slot.rotation || 0) * Math.PI) / 180) as Radians,
+          frameId: page.id,
+          strokeColor: template.accent,
+          backgroundColor: "#ffffff88",
+          fillStyle: "solid",
+          strokeStyle: "dashed",
+          strokeWidth: 2,
+          roughness: 0,
+          roundness:
+            slot.frame === "rounded" || slot.frame === "circle"
+              ? { type: ROUNDNESS.PROPORTIONAL_RADIUS }
+              : null,
+          customData: {
+            gratitudeLayoutSlot: true,
+            gratitudeLayoutId: template.layout.id,
+            gratitudeSlotId: slot.id,
+            gratitudeSlotFrame: slot.frame || "none",
+            gratitudeTemplateId: template.id,
+          },
+        }),
+      );
+      const fontFamily = FONT_VALUES["lilita-one"];
+      const heading = newTextElement({
+        x: page.x + page.width * 0.08,
+        y: page.y + page.height * 0.025,
+        text: template.heading,
+        fontSize: 34,
+        fontFamily,
+        lineHeight: getLineHeight(fontFamily),
+        textAlign: "left",
+        verticalAlign: "middle",
+        strokeColor: template.accent,
+        backgroundColor: "transparent",
+        fillStyle: "solid",
+        strokeWidth: 1,
+        roughness: 0,
+        frameId: page.id,
+        customData: {
+          gratitudeVision: {
+            version: 1,
+            id: `${template.id}:heading`,
+            type: "text",
+          },
+          gratitudeTemplateId: template.id,
+        },
+      });
+      api.updateScene({
+        elements: [...themedScene, ...slots, heading],
+        appState: { selectedElementIds: { [heading.id]: true } },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+      api.setActiveTool({ type: "selection" });
+    },
     fitBoard() {
       const page = getBoardPage(api.getSceneElements());
       if (!page) {
@@ -639,6 +1247,120 @@ export const createCanvasAdapter = (
         return;
       }
       api.updateScene({ appState: { openDialog: { name: "imageExport" } } });
+    },
+    async downloadSelectedPrint(ownerDocument, scale = 3) {
+      const canvas = await renderSelection(ownerDocument, scale);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (value) =>
+            value
+              ? resolve(value)
+              : reject(new Error("Print-piece export failed")),
+          "image/png",
+        ),
+      );
+      downloadBlob(ownerDocument, blob, "gratitude-print-piece.png");
+    },
+    async downloadHighResolution(ownerDocument, scale = 3) {
+      const canvas = await renderBoard(ownerDocument, scale);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (value) =>
+            value ? resolve(value) : reject(new Error("PNG export failed")),
+          "image/png",
+        ),
+      );
+      downloadBlob(ownerDocument, blob, "gratitude-board-high-resolution.png");
+    },
+    async printBoard(ownerDocument) {
+      const ownerWindow = ownerDocument.defaultView;
+      if (!ownerWindow) {
+        return;
+      }
+      const printWindow = ownerWindow.open("", "gratitude-board-print");
+      if (!printWindow) {
+        throw new Error("Allow pop-ups to open the print layout");
+      }
+      const canvas = await renderBoard(ownerDocument, 2);
+      const image = canvas.toDataURL("image/png");
+      printWindow.document.open();
+      printWindow.document.write(
+        `<!doctype html><html><head><title>Gratitude board print</title><style>@page{size:auto;margin:10mm}html,body{margin:0}body{display:grid;place-items:center;min-height:100vh}img{display:block;max-width:100%;max-height:100vh;object-fit:contain}@media print{body{min-height:0}}</style></head><body><img src="${image}" alt="Vision board"></body></html>`,
+      );
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.addEventListener("load", () => printWindow.print(), {
+        once: true,
+      });
+    },
+    async downloadReelVideo(ownerDocument) {
+      const ownerWindow = ownerDocument.defaultView;
+      if (!ownerWindow || typeof ownerWindow.MediaRecorder === "undefined") {
+        throw new Error("WebM video export is unavailable in this browser");
+      }
+      const board = await renderBoard(ownerDocument, 1.5);
+      const reel = ownerDocument.createElement("canvas");
+      reel.width = 540;
+      reel.height = 960;
+      const context = reel.getContext("2d");
+      if (!context) {
+        throw new Error("Video canvas is unavailable");
+      }
+      const stream = reel.captureStream(30);
+      const mimeType = ownerWindow.MediaRecorder.isTypeSupported("video/webm")
+        ? "video/webm"
+        : "";
+      const recorder = new ownerWindow.MediaRecorder(stream, {
+        ...(mimeType ? { mimeType } : {}),
+        videoBitsPerSecond: 5_000_000,
+      });
+      const chunks: Blob[] = [];
+      recorder.addEventListener("dataavailable", (event) => {
+        if (event.data.size) {
+          chunks.push(event.data);
+        }
+      });
+      const stopped = new Promise<void>((resolve) =>
+        recorder.addEventListener("stop", () => resolve(), { once: true }),
+      );
+      recorder.start(250);
+      const started = ownerWindow.performance.now();
+      const duration = 4500;
+      await new Promise<void>((resolve) => {
+        const draw = (time: number) => {
+          const progress = Math.min(1, (time - started) / duration);
+          context.fillStyle = "#f7eaf0";
+          context.fillRect(0, 0, reel.width, reel.height);
+          const baseScale = Math.min(
+            (reel.width * 0.9) / board.width,
+            (reel.height * 0.9) / board.height,
+          );
+          const zoom = baseScale * (1 + progress * 0.035);
+          const width = board.width * zoom;
+          const height = board.height * zoom;
+          context.drawImage(
+            board,
+            (reel.width - width) / 2,
+            (reel.height - height) / 2,
+            width,
+            height,
+          );
+          if (progress < 1) {
+            ownerWindow.requestAnimationFrame(draw);
+          } else {
+            resolve();
+          }
+        };
+        ownerWindow.requestAnimationFrame(draw);
+      });
+      recorder.stop();
+      await stopped;
+      stream.getTracks().forEach((track) => track.stop());
+      downloadBlob(
+        ownerDocument,
+        new ownerWindow.Blob(chunks, { type: "video/webm" }),
+        "gratitude-reel.webm",
+      );
     },
     downloadAttributions(ownerDocument) {
       const ownerWindow = ownerDocument.defaultView;
