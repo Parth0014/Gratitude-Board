@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { builtinProvider } from "./providers/builtin";
+import {
+  curatedLocalProvider,
+  CURATED_LOCAL_ASSET_COUNT,
+} from "./providers/curatedLocal";
 import { iconifyProvider } from "./providers/iconify";
 import { pexelsProvider } from "./providers/pexels";
 import { openverseProvider } from "./providers/openverse";
@@ -12,6 +16,44 @@ describe("asset providers", () => {
     const results = await builtinProvider.search({ search: "love" }, window);
     expect(results.items.map((item) => item.id)).toEqual(["gratitude:heart"]);
     expect(results.items[0].license.attributionRequired).toBe(false);
+  });
+
+  it("ships a complete curated collection inside the app bundle", async () => {
+    expect(CURATED_LOCAL_ASSET_COUNT).toBeGreaterThanOrEqual(40);
+    const [photos, stickers, illustrations, frames, patterns] =
+      await Promise.all([
+        curatedLocalProvider.search({ type: "photo" }, window),
+        curatedLocalProvider.search({ type: "sticker" }, window),
+        curatedLocalProvider.search({ type: "illustration" }, window),
+        curatedLocalProvider.search({ type: "shape" }, window),
+        curatedLocalProvider.search({ type: "pattern" }, window),
+      ]);
+    expect(
+      [photos, stickers, illustrations, frames, patterns].every(
+        ({ items }) => items.length >= 8,
+      ),
+    ).toBe(true);
+    expect(
+      [...photos.items, ...stickers.items, ...patterns.items].every(
+        (asset) =>
+          asset.assetUrl.startsWith("data:image/svg+xml,") &&
+          !asset.license.attributionRequired,
+      ),
+    ).toBe(true);
+    const completePack = [
+      ...photos.items,
+      ...stickers.items,
+      ...illustrations.items,
+      ...frames.items,
+      ...patterns.items,
+    ];
+    expect(new Set(completePack.map(({ id }) => id)).size).toBe(
+      CURATED_LOCAL_ASSET_COUNT,
+    );
+    completePack.forEach((asset) => {
+      const source = decodeURIComponent(asset.assetUrl.split(",", 2)[1]);
+      expect(() => sanitizeSvg(source, window.document)).not.toThrow();
+    });
   });
 
   it("accepts only the approved Iconify collection", async () => {
@@ -121,6 +163,30 @@ describe("asset providers", () => {
 });
 
 describe("asset registry", () => {
+  it("uses only bundled providers while offline", async () => {
+    const online = vi.spyOn(window.navigator, "onLine", "get");
+    online.mockReturnValue(false);
+    const fetch = vi.spyOn(window, "fetch");
+
+    const result = await searchAssetsWithStatus(
+      { search: "travel", limit: 20 },
+      window,
+    );
+
+    expect(result.items.length).toBeGreaterThan(0);
+    expect(
+      result.items.every((asset) =>
+        ["builtin", "creative-builtin", "curated-local"].includes(
+          asset.provider,
+        ),
+      ),
+    ).toBe(true);
+    expect(result.failures).toEqual([]);
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockRestore();
+    online.mockRestore();
+  });
+
   it("combines local and remote providers into one normalized result", async () => {
     const fetch = vi
       .spyOn(window, "fetch")

@@ -1,118 +1,47 @@
-import Trans from "@excalidraw/excalidraw/components/Trans";
-import { t } from "@excalidraw/excalidraw/i18n";
 import * as Sentry from "@sentry/browser";
 import React from "react";
 
 interface TopErrorBoundaryState {
   hasError: boolean;
-  sentryEventId: string;
-  localStorage: string;
 }
 
 export class TopErrorBoundary extends React.Component<
-  any,
+  React.PropsWithChildren,
   TopErrorBoundaryState
 > {
-  state: TopErrorBoundaryState = {
-    hasError: false,
-    sentryEventId: "",
-    localStorage: "",
-  };
+  state: TopErrorBoundaryState = { hasError: false };
 
-  render() {
-    return this.state.hasError ? this.errorSplash() : this.props.children;
+  static getDerivedStateFromError(): TopErrorBoundaryState {
+    return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
-    const _localStorage: any = {};
-    for (const [key, value] of Object.entries({ ...localStorage })) {
-      try {
-        _localStorage[key] = JSON.parse(value);
-      } catch (error: any) {
-        _localStorage[key] = value;
-      }
-    }
-
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     Sentry.withScope((scope) => {
-      scope.setExtras(errorInfo);
-      const eventId = Sentry.captureException(error);
-
-      this.setState((state) => ({
-        hasError: true,
-        sentryEventId: eventId,
-        localStorage: JSON.stringify(_localStorage),
-      }));
+      scope.setExtra("componentStack", errorInfo.componentStack);
+      Sentry.captureException(error);
     });
   }
 
-  private selectTextArea(event: React.MouseEvent<HTMLTextAreaElement>) {
-    if (event.target !== document.activeElement) {
-      event.preventDefault();
-      (event.target as HTMLTextAreaElement).select();
+  render() {
+    if (!this.state.hasError) {
+      return this.props.children;
     }
-  }
-
-  private errorSplash() {
     return (
-      <div className="ErrorSplash excalidraw">
-        <div className="ErrorSplash-messageContainer">
-          <div className="ErrorSplash-paragraph bigger align-center">
-            <Trans
-              i18nKey="errorSplash.headingMain"
-              button={(el) => (
-                <button onClick={() => window.location.reload()}>{el}</button>
-              )}
-            />
-          </div>
-          <div className="ErrorSplash-paragraph align-center">
-            <Trans
-              i18nKey="errorSplash.clearCanvasMessage"
-              button={(el) => (
-                <button
-                  onClick={() => {
-                    try {
-                      localStorage.clear();
-                      window.location.reload();
-                    } catch (error: any) {
-                      console.error(error);
-                    }
-                  }}
-                >
-                  {el}
-                </button>
-              )}
-            />
-            <br />
-            <div className="smaller">
-              <span role="img" aria-label="warning">
-                ⚠️
-              </span>
-              {t("errorSplash.clearCanvasCaveat")}
-              <span role="img" aria-hidden="true">
-                ⚠️
-              </span>
-            </div>
-          </div>
-          <div>
-            <div className="ErrorSplash-paragraph">
-              {t("errorSplash.trackedToSentry", {
-                eventId: this.state.sentryEventId,
-              })}
-            </div>
-            <div className="ErrorSplash-paragraph">
-              <div className="ErrorSplash-details">
-                <label>{t("errorSplash.sceneContent")}</label>
-                <textarea
-                  rows={5}
-                  onPointerDown={this.selectTextArea}
-                  readOnly={true}
-                  value={this.state.localStorage}
-                />
-              </div>
-            </div>
-          </div>
+      <main className="gratitude-error" role="alert">
+        <div className="gratitude-error__mark" aria-hidden="true">
+          {"\u2665"}
         </div>
-      </div>
+        <h1>Something went wrong</h1>
+        <p>Your board is still saved locally. Reload the studio to continue.</p>
+        <button
+          type="button"
+          onClick={(event) =>
+            event.currentTarget.ownerDocument.defaultView?.location.reload()
+          }
+        >
+          Reload studio
+        </button>
+      </main>
     );
   }
 }

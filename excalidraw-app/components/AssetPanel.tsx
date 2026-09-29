@@ -44,6 +44,7 @@ const LABELS: Record<AssetKind, string> = {
   text: "Text",
   layout: "Layouts",
 };
+const ELEMENT_KINDS = ["sticker", "illustration", "shape", "pattern"] as const;
 
 const getAssetType = (kind: AssetKind): GratitudeAsset["type"] | undefined =>
   kind === "all" ||
@@ -338,9 +339,7 @@ export const AssetPanel = ({
               setNextCursor(result.nextCursor);
               setProviderNotice(
                 result.failures.length
-                  ? `Unavailable sources: ${result.failures
-                      .map((failure) => failure.provider)
-                      .join(", ")}.`
+                  ? "The local collection is ready. Some optional sources are unavailable."
                   : "",
               );
               setBusy(false);
@@ -396,9 +395,7 @@ export const AssetPanel = ({
       setNextCursor(result.nextCursor);
       if (result.failures.length) {
         setProviderNotice(
-          `Unavailable sources: ${result.failures
-            .map((failure) => failure.provider)
-            .join(", ")}.`,
+          "The local collection is ready. Some optional sources are unavailable.",
         );
       }
     } catch (reason) {
@@ -426,33 +423,24 @@ export const AssetPanel = ({
       aria-label="Assets"
     >
       <nav className="gratitude-assets__rail" aria-label="Asset tools">
-        {(
-          [
-            "all",
-            "template",
-            "favorite",
-            "recent",
-            "photo",
-            "sticker",
-            "illustration",
-            "shape",
-            "pattern",
-            "text",
-            "layout",
-          ] as const
-        ).map((option) => (
-          <button
-            key={option}
-            type="button"
-            aria-label={LABELS[option]}
-            aria-pressed={kind === option}
-            onClick={() => chooseKind(option)}
-          >
-            <ToolIcon name={option} />
-            <span>{option === "all" ? "All" : LABELS[option]}</span>
-          </button>
-        ))}
-        <div className="gratitude-assets__rail-divider" />
+        {(["photo", "sticker", "text", "layout", "template"] as const).map(
+          (option) => (
+            <button
+              key={option}
+              type="button"
+              aria-label={option === "sticker" ? "Elements" : LABELS[option]}
+              aria-pressed={
+                option === "sticker"
+                  ? ELEMENT_KINDS.includes(kind as typeof ELEMENT_KINDS[number])
+                  : kind === option
+              }
+              onClick={() => chooseKind(option)}
+            >
+              <ToolIcon name={option} />
+              <span>{option === "sticker" ? "Elements" : LABELS[option]}</span>
+            </button>
+          ),
+        )}
         <button
           type="button"
           aria-label="Upload a photo"
@@ -472,28 +460,38 @@ export const AssetPanel = ({
           >
             ×
           </button>
-          <span className="gratitude-assets__eyebrow">
-            YOUR CREATIVE LIBRARY
-          </span>
           <h2>{LABELS[kind]}</h2>
-          <p>
-            {kind === "photo"
-              ? "Find the moments that tell your story."
-              : kind === "sticker"
-              ? "Add a little personality to your board."
-              : kind === "illustration"
-              ? "Tell your story with expressive artwork."
-              : kind === "shape"
-              ? "Frame the moments that matter."
-              : kind === "pattern"
-              ? "Give your board texture and rhythm."
-              : kind === "layout"
-              ? "Start with a composition, then fill each space."
-              : kind === "text"
-              ? "Add expressive titles, reflections and captions."
-              : "Explore photos and stickers for your board."}
-          </p>
         </div>
+        <div className="gratitude-assets__view-tabs" aria-label="Library view">
+          <button
+            type="button"
+            className={kind === "favorite" ? "is-active" : ""}
+            onClick={() => chooseKind("favorite")}
+          >
+            Favorites
+          </button>
+          <button
+            type="button"
+            className={kind === "recent" ? "is-active" : ""}
+            onClick={() => chooseKind("recent")}
+          >
+            Recent
+          </button>
+        </div>
+        {ELEMENT_KINDS.includes(kind as typeof ELEMENT_KINDS[number]) && (
+          <div className="gratitude-assets__element-tabs" aria-label="Elements">
+            {ELEMENT_KINDS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={kind === option ? "is-active" : ""}
+                onClick={() => chooseKind(option)}
+              >
+                {LABELS[option]}
+              </button>
+            ))}
+          </div>
+        )}
         {!["layout", "text", "template", "favorite", "recent"].includes(
           kind,
         ) && (
@@ -622,8 +620,8 @@ export const AssetPanel = ({
         )}
         {!online && (
           <p className="gratitude-assets__message" role="status">
-            You are offline. Cached library results remain available; uncached
-            external assets will return when you reconnect.
+            Offline mode. The complete built-in collection remains available;
+            optional online sources will return when you reconnect.
           </p>
         )}
         {visibleAssets.some((asset) => asset.editable.colors) && (
@@ -636,6 +634,13 @@ export const AssetPanel = ({
             />
             <small>Applied when you add a recolorable vector</small>
           </label>
+        )}
+        {busy && !visibleAssets.length && (
+          <div className="gratitude-assets__skeleton" aria-hidden="true">
+            {Array.from({ length: 6 }, (_, index) => (
+              <span key={index} />
+            ))}
+          </div>
         )}
         <div
           className={`gratitude-assets__grid${

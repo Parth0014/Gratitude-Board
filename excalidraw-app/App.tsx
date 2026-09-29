@@ -1289,6 +1289,8 @@ const ExcalidrawWrapper = () => {
       lastInspectorKey.current = inspectorKey;
       if (inspectorKey) {
         setBoardSettingsOpen(false);
+        setRightOpen(selected.length > 0);
+      } else if (!boardSettingsOpen) {
         setRightOpen(false);
       }
     }
@@ -1591,6 +1593,8 @@ const ExcalidrawWrapper = () => {
           selection={visionSelection}
         />
       }
+      selectionKind={visionSelection.kind}
+      selectionCount={visionSelection.count}
       hasBoardContent={hasBoardContent}
     >
       <div
@@ -1651,26 +1655,26 @@ const ExcalidrawWrapper = () => {
                     {slots.zoom}
                     <button
                       type="button"
-                      role="switch"
                       className={`gratitude-snap-toggle${
                         keepInsideBoard ? " is-active" : ""
                       }`}
-                      aria-label="Keep inside board"
-                      aria-checked={keepInsideBoard}
+                      aria-label={`Keep items inside board: ${
+                        keepInsideBoard ? "on" : "off"
+                      }`}
+                      aria-pressed={keepInsideBoard}
                       title="Keep every movable item inside the board"
                       onClick={() => setKeepInsideBoard((enabled) => !enabled)}
                     >
-                      <span>Keep inside board</span>
-                      <span
-                        className="gratitude-snap-toggle__track"
-                        aria-hidden="true"
-                      />
-                      <span
-                        className="gratitude-snap-toggle__state"
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
                         aria-hidden="true"
                       >
-                        {keepInsideBoard ? "On" : "Off"}
-                      </span>
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <path d="M8 4v4H4m12-4v4h4M8 20v-4H4m12 4v-4h4" />
+                      </svg>
                     </button>
                     <button
                       type="button"

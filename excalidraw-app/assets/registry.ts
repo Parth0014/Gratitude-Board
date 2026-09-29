@@ -7,6 +7,7 @@ import {
 import { normalizeGratitudeAsset } from "./contracts";
 import { builtinProvider } from "./providers/builtin";
 import { creativeBuiltinProvider } from "./providers/creativeBuiltin";
+import { curatedLocalProvider } from "./providers/curatedLocal";
 import { iconifyProvider } from "./providers/iconify";
 import { notoEmojiProvider } from "./providers/notoEmoji";
 import { openverseProvider } from "./providers/openverse";
@@ -30,6 +31,7 @@ import type {
 const providers = new Map<string, AssetProvider>([
   [builtinProvider.id, builtinProvider],
   [creativeBuiltinProvider.id, creativeBuiltinProvider],
+  [curatedLocalProvider.id, curatedLocalProvider],
   [iconifyProvider.id, iconifyProvider],
   [notoEmojiProvider.id, notoEmojiProvider],
   [openverseProvider.id, openverseProvider],
@@ -42,6 +44,11 @@ const providers = new Map<string, AssetProvider>([
   [patternMonsterProvider.id, patternMonsterProvider],
 ]);
 const resolvedAssets = new Map<string, GratitudeAsset>();
+const LOCAL_PROVIDER_IDS = new Set([
+  builtinProvider.id,
+  creativeBuiltinProvider.id,
+  curatedLocalProvider.id,
+]);
 
 const isSafeAssetUrl = (
   value: string,
@@ -49,7 +56,7 @@ const isSafeAssetUrl = (
   ownerWindow: Window & typeof globalThis,
 ) => {
   if (
-    ["builtin", "creative-builtin"].includes(provider) &&
+    LOCAL_PROVIDER_IDS.has(provider) &&
     value.startsWith("data:image/svg+xml,")
   ) {
     return true;
@@ -125,6 +132,11 @@ export const searchAssetsWithStatus = async (
   ownerWindow: Window & typeof globalThis,
 ): Promise<AssetSearchResult> => {
   let activeProviders = getAssetProviders();
+  if (!ownerWindow.navigator.onLine) {
+    activeProviders = activeProviders.filter((provider) =>
+      LOCAL_PROVIDER_IDS.has(provider.id),
+    );
+  }
   let cursors: Record<string, string> = {};
   if (query.cursor) {
     try {

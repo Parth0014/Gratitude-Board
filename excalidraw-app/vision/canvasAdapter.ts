@@ -1198,11 +1198,12 @@ export const createCanvasAdapter = (
           height: page.height * slot.height,
           angle: (((slot.rotation || 0) * Math.PI) / 180) as Radians,
           frameId: page.id,
-          strokeColor: "#c34d76",
-          backgroundColor: "#f9eef2",
+          strokeColor: "#b4325a",
+          backgroundColor: "transparent",
           fillStyle: "solid",
           strokeStyle: "dashed",
-          strokeWidth: 2,
+          strokeWidth: 1,
+          opacity: 40,
           roughness: 0,
           roundness:
             slot.frame === "rounded" || slot.frame === "circle"
@@ -1252,10 +1253,11 @@ export const createCanvasAdapter = (
           angle: (((slot.rotation || 0) * Math.PI) / 180) as Radians,
           frameId: page.id,
           strokeColor: template.accent,
-          backgroundColor: "#ffffff88",
+          backgroundColor: "transparent",
           fillStyle: "solid",
           strokeStyle: "dashed",
-          strokeWidth: 2,
+          strokeWidth: 1,
+          opacity: 40,
           roughness: 0,
           roundness:
             slot.frame === "rounded" || slot.frame === "circle"

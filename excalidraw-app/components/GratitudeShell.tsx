@@ -251,6 +251,8 @@ export const GratitudeShell = ({
   onRightToggle,
   footerRef,
   selectionToolbar,
+  selectionKind,
+  selectionCount,
   hasBoardContent,
   children,
 }: {
@@ -274,6 +276,8 @@ export const GratitudeShell = ({
   onRightToggle: () => void;
   footerRef: (element: HTMLDivElement | null) => void;
   selectionToolbar: React.ReactNode;
+  selectionKind: string;
+  selectionCount: number;
   hasBoardContent: boolean;
   children: React.ReactNode;
 }) => (
@@ -369,12 +373,6 @@ export const GratitudeShell = ({
             </div>
           </section>
         )}
-        <div
-          className="gratitude-selection-toolbar"
-          aria-label="Selected item styles"
-        >
-          {selectionToolbar}
-        </div>
         {children}
         <div
           className={`gratitude-editor-footer excalidraw theme--${theme}`}
@@ -385,8 +383,13 @@ export const GratitudeShell = ({
         <aside className="gratitude-inspector" aria-label="Element properties">
           <div className="gratitude-inspector__header">
             <div>
-              <span>EDIT YOUR BOARD</span>
-              <h2>Board setup</h2>
+              <h2>
+                {boardSettingsOpen
+                  ? "Board setup"
+                  : selectionCount > 1
+                  ? `${selectionCount} items`
+                  : `Edit ${selectionKind}`}
+              </h2>
             </div>
             <button
               type="button"
@@ -399,7 +402,7 @@ export const GratitudeShell = ({
           <div
             className={`gratitude-inspector__content excalidraw theme--${theme}`}
           >
-            {boardSettingsOpen && boardSettings}
+            {boardSettingsOpen ? boardSettings : selectionToolbar}
           </div>
         </aside>
       )}
