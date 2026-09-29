@@ -557,7 +557,9 @@ const ExcalidrawWrapper = () => {
     }
     const scaleX = width / page.width;
     const scaleY = height / page.height;
+    const background = getBoardBackground(elements);
     const backgroundImage = getBoardBackgroundImage(elements);
+    const textureImage = getBoardTextureImage(elements);
     const texture = (page.customData?.gratitudeTexture ||
       "none") as BoardTexture;
     excalidrawAPI.updateScene({
@@ -582,14 +584,29 @@ const ExcalidrawWrapper = () => {
             height: imageHeight,
           });
         }
+        if (element.id === background?.id || element.id === textureImage?.id) {
+          return newElementWith(element, {
+            x: page.x,
+            y: page.y,
+            width,
+            height,
+          });
+        }
         // Scale positions per-axis but sizes uniformly so photos, circles and
         // stickers are never stretched; text keeps its size (its box is
         // derived from the font, so resizing it directly corrupts it).
         const uniform = Math.min(scaleX, scaleY);
-        const nextWidth =
-          element.type === "text" ? element.width : element.width * uniform;
-        const nextHeight =
-          element.type === "text" ? element.height : element.height * uniform;
+        const scalesWithBoard =
+          element.type === "image" ||
+          element.type === "rectangle" ||
+          element.type === "ellipse" ||
+          element.type === "diamond";
+        const nextWidth = scalesWithBoard
+          ? element.width * uniform
+          : element.width;
+        const nextHeight = scalesWithBoard
+          ? element.height * uniform
+          : element.height;
         const centerX =
           page.x + (element.x + element.width / 2 - page.x) * scaleX;
         const centerY =
@@ -1212,6 +1229,9 @@ const ExcalidrawWrapper = () => {
         return;
       }
     }
+    if (!boardRepair) {
+      sceneRepairAttemptsRef.current = 0;
+    }
     if (!hasFittedPageRef.current && boardInspection.page) {
       hasFittedPageRef.current = true;
       editorRootRef.current?.ownerDocument.defaultView?.requestAnimationFrame(
@@ -1501,6 +1521,13 @@ const ExcalidrawWrapper = () => {
           return;
         }
         try {
+          if (
+            !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
+            file.size <= 0 ||
+            file.size > 20_000_000
+          ) {
+            throw new Error("Unsupported upload");
+          }
           const asset: GratitudeAsset = {
             id: `upload:${ownerWindow.crypto.randomUUID()}`,
             provider: "upload",

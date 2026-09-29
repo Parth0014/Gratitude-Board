@@ -54,7 +54,7 @@ const normalize = (
 };
 export const patternMonsterProvider: AssetProvider = {
   id: "pattern-monster",
-  capabilities: { search: true, categories: true, pagination: true },
+  capabilities: { search: true, categories: true, pagination: false },
   async search(query, ownerWindow) {
     if (query.type && query.type !== "pattern") {
       return { items: [] };

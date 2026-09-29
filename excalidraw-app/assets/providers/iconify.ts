@@ -72,7 +72,7 @@ const normalize = (id: string): GratitudeAsset => {
 
 export const iconifyProvider: AssetProvider = {
   id: "iconify",
-  capabilities: { search: true, categories: false, pagination: true },
+  capabilities: { search: true, categories: false, pagination: false },
   async search(query, ownerWindow) {
     const term = query.search?.trim();
     if (!term || (query.type && query.type !== "sticker")) {

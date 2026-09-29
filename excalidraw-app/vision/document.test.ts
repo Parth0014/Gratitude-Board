@@ -79,9 +79,42 @@ describe("vision board document migration", () => {
     expect(next.title).toBe("Updated board");
   });
 
+  it("keeps semantic metadata when a compound element uses a secondary id", () => {
+    const previous = createVisionBoardDocument(scene, "My board");
+    previous.elements[0].metadata.aspirationId = "goal-1";
+    previous.elements[0].excalidrawIds.push("photo-secondary");
+
+    const next = createVisionBoardDocument(
+      [
+        { ...scene[0] },
+        { ...scene[1], id: "photo-secondary", x: 120 },
+      ] as ExcalidrawElement[],
+      "Updated board",
+      previous,
+    );
+
+    expect(next.elements[0].metadata.aspirationId).toBe("goal-1");
+  });
+
   it("ignores invalid or unsupported stored documents", () => {
     expect(readVisionBoardDocument("not json")).toBeNull();
     expect(readVisionBoardDocument('{"version":3}')).toBeNull();
+
+    const invalid = createVisionBoardDocument(scene, "My board");
+    invalid.canvas.width = -1;
+    expect(readVisionBoardDocument(JSON.stringify(invalid))).toBeNull();
+
+    invalid.canvas.width = 1200;
+    invalid.elements[0].width = -20;
+    expect(readVisionBoardDocument(JSON.stringify(invalid))).toBeNull();
+
+    invalid.elements[0].width = 200;
+    invalid.assets["pexels:123"].editable = null as never;
+    expect(readVisionBoardDocument(JSON.stringify(invalid))).toBeNull();
+
+    invalid.assets["pexels:123"].editable = { crop: true };
+    invalid.assets["pexels:123"].assetUrl = "ftp://example.com/image.jpg";
+    expect(readVisionBoardDocument(JSON.stringify(invalid))).toBeNull();
   });
 
   it("migrates a version 1 companion document", () => {

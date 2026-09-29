@@ -108,6 +108,28 @@ const filterCss = (edits: VisionImageEdits) => {
     .join(" ");
 };
 
+const coverCrop = (
+  naturalWidth: number,
+  naturalHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+) => {
+  const targetRatio = targetWidth / targetHeight;
+  const naturalRatio = naturalWidth / naturalHeight;
+  const width =
+    naturalRatio > targetRatio ? naturalHeight * targetRatio : naturalWidth;
+  const height =
+    naturalRatio > targetRatio ? naturalHeight : naturalWidth / targetRatio;
+  return {
+    x: (naturalWidth - width) / 2,
+    y: (naturalHeight - height) / 2,
+    width,
+    height,
+    naturalWidth,
+    naturalHeight,
+  };
+};
+
 const clipImageFrame = (
   context: CanvasRenderingContext2D,
   frame: VisionImageEdits["frame"],
@@ -340,6 +362,23 @@ export const createCanvasAdapter = (
         } unavailable. Reconnect or replace the missing asset before exporting.`,
       );
     }
+    await Promise.all(
+      elements.flatMap((element) => {
+        if (element.type !== "text") {
+          return [];
+        }
+        const family = VISION_FONTS.find(
+          (font) => font.value === element.fontFamily,
+        )?.family;
+        return family
+          ? [
+              ownerDocument.fonts
+                .load(`${element.fontSize}px "${family}"`, element.text)
+                .catch(() => []),
+            ]
+          : [];
+      }),
+    );
     await ownerDocument.fonts.ready;
     const missingFont = elements.find((element) => {
       if (element.type !== "text") {
@@ -354,7 +393,7 @@ export const createCanvasAdapter = (
     });
     if (missingFont) {
       throw new Error(
-        "A board font is unavailable. Reconnect and reopen the export when the font has loaded.",
+        "A board font could not be loaded. Check your connection or choose another font before exporting.",
       );
     }
     const canvas = await exportSceneToCanvas(
@@ -389,7 +428,40 @@ export const createCanvasAdapter = (
     if (!credits.length) {
       return canvas;
     }
-    const footerHeight = Math.max(48, Math.round(34 * scale));
+    const fontSize = Math.max(11, Math.round(11 * scale));
+    const lineHeight = Math.round(fontSize * 1.4);
+    const horizontalPadding = Math.round(12 * scale);
+    const measure = canvas.getContext("2d");
+    if (!measure) {
+      throw new Error("Attribution export is unavailable");
+    }
+    measure.font = `${fontSize}px sans-serif`;
+    const maxLineWidth = canvas.width - horizontalPadding * 2;
+    const creditLines = credits.flatMap((asset) => {
+      const value = `${asset.title}${
+        asset.license.author ? ` by ${asset.license.author}` : ""
+      } (${asset.license.label})`;
+      const words = value.split(/\s+/);
+      const lines: string[] = [];
+      let line = "";
+      words.forEach((word) => {
+        const candidate = line ? `${line} ${word}` : word;
+        if (line && measure.measureText(candidate).width > maxLineWidth) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = candidate;
+        }
+      });
+      if (line) {
+        lines.push(line);
+      }
+      return lines;
+    });
+    const footerHeight = Math.max(
+      48,
+      Math.round(12 * scale) * 2 + lineHeight * (creditLines.length + 1),
+    );
     const output = ownerDocument.createElement("canvas");
     output.width = canvas.width;
     output.height = canvas.height + footerHeight;
@@ -401,22 +473,16 @@ export const createCanvasAdapter = (
     outputContext.fillStyle = "#fffafc";
     outputContext.fillRect(0, canvas.height, output.width, footerHeight);
     outputContext.fillStyle = "#594b53";
-    outputContext.font = `${Math.max(11, Math.round(11 * scale))}px sans-serif`;
-    outputContext.textBaseline = "middle";
-    const credit = credits
-      .map(
-        (asset) =>
-          `${asset.title}${
-            asset.license.author ? ` by ${asset.license.author}` : ""
-          } (${asset.license.label})`,
-      )
-      .join(" • ");
-    outputContext.fillText(
-      `Asset credits: ${credit}`,
-      Math.round(12 * scale),
-      canvas.height + footerHeight / 2,
-      output.width - Math.round(24 * scale),
-    );
+    outputContext.font = `${fontSize}px sans-serif`;
+    outputContext.textBaseline = "top";
+    let lineY = canvas.height + Math.round(12 * scale);
+    outputContext.font = `600 ${fontSize}px sans-serif`;
+    outputContext.fillText("Asset credits", horizontalPadding, lineY);
+    outputContext.font = `${fontSize}px sans-serif`;
+    creditLines.forEach((line) => {
+      lineY += lineHeight;
+      outputContext.fillText(line, horizontalPadding, lineY);
+    });
     return output;
   };
 
@@ -643,6 +709,14 @@ export const createCanvasAdapter = (
         frameId: belongsToBoard ? page.id : null,
         fileId,
         status: "saved",
+        crop: selectedSlot
+          ? coverCrop(
+              naturalWidth,
+              naturalHeight,
+              selectedSlot.width,
+              selectedSlot.height,
+            )
+          : null,
         angle: selectedSlot?.angle,
         roundness:
           selectedSlot?.customData?.gratitudeSlotFrame === "rounded" ||
@@ -700,6 +774,12 @@ export const createCanvasAdapter = (
       const replacement = newElementWith(selected, {
         fileId,
         status: "saved",
+        crop: coverCrop(
+          naturalWidth,
+          naturalHeight,
+          selected.width,
+          selected.height,
+        ),
         customData: {
           ...selected.customData,
           gratitudeImageNaturalSize: {
@@ -1311,11 +1391,9 @@ export const createCanvasAdapter = (
         print();
       } else {
         printableImage.addEventListener("load", print, { once: true });
-        printableImage.addEventListener(
-          "error",
-          () => printWindow.close(),
-          { once: true },
-        );
+        printableImage.addEventListener("error", () => printWindow.close(), {
+          once: true,
+        });
       }
     },
     async downloadReelVideo(ownerDocument) {

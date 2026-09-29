@@ -164,7 +164,7 @@ export const ensureBoardPage = (elements: readonly ExcalidrawElement[]) => {
     page,
     background,
     ...elements.map((element) =>
-      element.isDeleted || element.frameId
+      element.isDeleted || element.frameId || element.type === "frame"
         ? element
         : newElementWith(element, { frameId: page.id }),
     ),

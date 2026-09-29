@@ -124,7 +124,7 @@ export const searchAssetsWithStatus = async (
   query: AssetQuery,
   ownerWindow: Window & typeof globalThis,
 ): Promise<AssetSearchResult> => {
-  const activeProviders = getAssetProviders();
+  let activeProviders = getAssetProviders();
   let cursors: Record<string, string> = {};
   if (query.cursor) {
     try {
@@ -135,6 +135,9 @@ export const searchAssetsWithStatus = async (
     } catch {
       cursors = {};
     }
+    activeProviders = activeProviders.filter((provider) =>
+      Object.prototype.hasOwnProperty.call(cursors, provider.id),
+    );
   }
   const results = await Promise.allSettled(
     activeProviders.map(async (provider) => ({

@@ -72,17 +72,30 @@ export const openverseProvider: AssetProvider = {
     );
     url.searchParams.set("query", term);
     url.searchParams.set("per_page", String(Math.min(query.limit || 20, 30)));
+    if (query.cursor && /^\d+$/.test(query.cursor)) {
+      url.searchParams.set("page", query.cursor);
+    }
     const response = await ownerWindow.fetch(url.href);
     if (!response.ok) {
       throw new Error("Openverse is temporarily unavailable");
     }
-    const body = (await response.json()) as { results?: unknown };
+    const currentPage = Number(query.cursor || 1);
+    const body = (await response.json()) as {
+      results?: unknown;
+      page_count?: unknown;
+    };
     return {
       items: Array.isArray(body.results)
         ? body.results
             .map((item) => normalize(item as OpenverseImage))
             .filter((item): item is GratitudeAsset => !!item)
         : [],
+      nextCursor:
+        Number.isSafeInteger(currentPage) &&
+        typeof body.page_count === "number" &&
+        currentPage < body.page_count
+          ? String(currentPage + 1)
+          : undefined,
     };
   },
   async resolve() {

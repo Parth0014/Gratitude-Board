@@ -121,7 +121,7 @@ export const registerVisionFonts = () => {
     };
     metadataMap[font.value] = metadata;
     registrar.register(font.family, metadata, {
-      uri: `https://cdn.jsdelivr.net/fontsource/fonts/${font.slug}@latest/latin-400-normal.woff2`,
+      uri: `https://cdn.jsdelivr.net/fontsource/fonts/${font.slug}@5.3.0/latin-400-normal.woff2`,
       descriptors: { weight: "400", style: "normal" },
     });
   });

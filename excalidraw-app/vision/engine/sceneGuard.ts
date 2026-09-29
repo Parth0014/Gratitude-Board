@@ -76,17 +76,33 @@ export const inspectBoardScene = ({
         !elements.some((element) => element.id === id && !element.isDeleted),
     );
     if (deletedProtectedLayer) {
+      const currentById = new Map(
+        elements.map((element) => [element.id, element]),
+      );
+      const previousIds = new Set(
+        previousElements.map((element) => element.id),
+      );
+      const restoredElements = previousElements.flatMap((element) => {
+        if (previousProtectedIds.has(element.id)) {
+          return [
+            element.locked
+              ? element
+              : newElementWith(element, { locked: true }),
+          ];
+        }
+        const current = currentById.get(element.id);
+        return current ? [current] : [];
+      });
+      restoredElements.push(
+        ...elements.filter((element) => !previousIds.has(element.id)),
+      );
       return {
         page,
         background,
         protectedIds,
         repair: {
           type: "restore-protected-layers",
-          elements: previousElements.map((element) =>
-            previousProtectedIds.has(element.id) && !element.locked
-              ? newElementWith(element, { locked: true })
-              : element,
-          ),
+          elements: restoredElements,
         },
       };
     }

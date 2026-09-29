@@ -20,16 +20,20 @@ export async function searchPexels(params, key) {
     Math.max(Number(params.get("per_page")) || 20, 1),
     30,
   );
+  const page = Math.min(Math.max(Number(params.get("page")) || 1, 1), 1000);
   const url = new URL(
     id
       ? `https://api.pexels.com/v1/photos/${id}`
       : featured
-        ? "https://api.pexels.com/v1/curated"
-        : "https://api.pexels.com/v1/search",
+      ? "https://api.pexels.com/v1/curated"
+      : "https://api.pexels.com/v1/search",
   );
   if (!id) {
-    if (!featured) url.searchParams.set("query", query);
+    if (!featured) {
+      url.searchParams.set("query", query);
+    }
     url.searchParams.set("per_page", String(perPage));
+    url.searchParams.set("page", String(page));
   }
   try {
     const response = await fetch(url, {

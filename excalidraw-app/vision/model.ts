@@ -24,6 +24,7 @@ export type VisionElement = VisionElementBase & {
     | "image"
     | "text"
     | "quote"
+    | "note"
     | "shape"
     | "sticker"
     | "frame"

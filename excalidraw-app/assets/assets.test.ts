@@ -40,6 +40,8 @@ describe("asset providers", () => {
     const fetch = vi.fn(async () => ({
       ok: true,
       json: async () => ({
+        page: 2,
+        next_page: "https://api.pexels.com/v1/search?page=3",
         photos: [
           {
             id: 123,
@@ -73,6 +75,7 @@ describe("asset providers", () => {
     );
     expect(results.items.map((item) => item.id)).toEqual(["pexels:123"]);
     expect(results.items[0].license.author).toBe("Alex");
+    expect(results.nextCursor).toBe("3");
     expect(fetch).toHaveBeenCalledWith(expect.stringContaining("query=garden"));
   });
 
@@ -80,6 +83,7 @@ describe("asset providers", () => {
     const fetch = vi.fn(async () => ({
       ok: true,
       json: async () => ({
+        page_count: 4,
         results: [
           {
             id: "safe",
@@ -112,6 +116,7 @@ describe("asset providers", () => {
     );
     expect(results.items.map(({ id }) => id)).toEqual(["openverse:safe"]);
     expect(results.items[0].license).toMatchObject({ tier: "A", id: "cc0" });
+    expect(results.nextCursor).toBe("2");
   });
 });
 

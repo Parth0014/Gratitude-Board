@@ -9,6 +9,64 @@ import type { VisionBoardDocument, VisionElement } from "./model";
 
 export const VISION_DOCUMENT_STORAGE_KEY = "gratitude:vision-document:v1";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value);
+
+const isVisionCanvas = (
+  value: unknown,
+): value is VisionBoardDocument["canvas"] =>
+  isRecord(value) &&
+  isFiniteNumber(value.width) &&
+  isFiniteNumber(value.height) &&
+  value.width > 0 &&
+  value.height > 0 &&
+  typeof value.backgroundColor === "string" &&
+  typeof value.texture === "string";
+
+const VISION_ELEMENT_TYPES = new Set<VisionElement["type"]>([
+  "image",
+  "text",
+  "quote",
+  "note",
+  "shape",
+  "sticker",
+  "frame",
+  "decoration",
+]);
+
+const isVisionElement = (value: unknown): value is VisionElement => {
+  if (!isRecord(value) || !isRecord(value.metadata)) {
+    return false;
+  }
+  const metadata = value.metadata;
+  return (
+    typeof value.id === "string" &&
+    typeof value.type === "string" &&
+    VISION_ELEMENT_TYPES.has(value.type as VisionElement["type"]) &&
+    isFiniteNumber(value.x) &&
+    isFiniteNumber(value.y) &&
+    isFiniteNumber(value.width) &&
+    isFiniteNumber(value.height) &&
+    (value.width as number) >= 0 &&
+    (value.height as number) >= 0 &&
+    isFiniteNumber(value.rotation) &&
+    isFiniteNumber(value.opacity) &&
+    typeof value.locked === "boolean" &&
+    isFiniteNumber(value.zIndex) &&
+    Array.isArray(value.excalidrawIds) &&
+    value.excalidrawIds.every((id) => typeof id === "string") &&
+    (metadata.aspirationId === undefined ||
+      typeof metadata.aspirationId === "string") &&
+    (metadata.reelOrder === undefined || isFiniteNumber(metadata.reelOrder)) &&
+    (metadata.sourceAssetId === undefined ||
+      typeof metadata.sourceAssetId === "string") &&
+    (metadata.createdBy === undefined || typeof metadata.createdBy === "string")
+  );
+};
+
 const isVisionBoardDocument = (
   value: unknown,
 ): value is VisionBoardDocument => {
@@ -20,12 +78,35 @@ const isVisionBoardDocument = (
     document.version === 3 &&
     typeof document.id === "string" &&
     typeof document.title === "string" &&
-    !!document.canvas &&
-    typeof document.canvas.width === "number" &&
-    typeof document.canvas.height === "number" &&
+    isVisionCanvas(document.canvas) &&
     Array.isArray(document.elements) &&
+    document.elements.every(isVisionElement) &&
     !!document.assets &&
-    typeof document.assets === "object"
+    typeof document.assets === "object" &&
+    Object.values(document.assets).every(
+      (asset) => normalizeGratitudeAsset(asset) !== null,
+    ) &&
+    !!document.layout &&
+    (document.layout.id === undefined ||
+      typeof document.layout.id === "string") &&
+    Array.isArray(document.layout.slotIds) &&
+    document.layout.slotIds.every((id) => typeof id === "string") &&
+    typeof document.layout.freeform === "boolean" &&
+    Array.isArray(document.fontManifest) &&
+    document.fontManifest.every(
+      (font) =>
+        isRecord(font) &&
+        typeof font.family === "string" &&
+        ["bundled", "fontsource"].includes(String(font.source)) &&
+        ["OFL-1.1", "system"].includes(String(font.license)) &&
+        (font.licenseUrl === undefined || typeof font.licenseUrl === "string"),
+    ) &&
+    !!document.reelConfig &&
+    document.reelConfig.aspectRatio === "9:16" &&
+    isFiniteNumber(document.reelConfig.defaultDurationMs) &&
+    document.reelConfig.defaultDurationMs > 0 &&
+    Array.isArray(document.reelConfig.elementOrder) &&
+    document.reelConfig.elementOrder.every((id) => typeof id === "string")
   );
 };
 
@@ -57,22 +138,32 @@ export const readVisionBoardDocument = (
       ) {
         return null;
       }
+      const legacyElements = legacy.elements.filter(isVisionElement);
+      const legacyAssets = Object.fromEntries(
+        Object.entries(legacy.assets).filter(
+          ([, asset]) => normalizeGratitudeAsset(asset) !== null,
+        ),
+      );
+      const legacyCanvas = (legacy as { canvas?: unknown }).canvas;
       return {
         ...legacy,
         version: 3 as const,
-        canvas: (legacy as { canvas?: VisionBoardDocument["canvas"] })
-          .canvas || {
-          width: 1200,
-          height: 960,
-          backgroundColor: "#ffffff",
-          texture: "none",
-        },
+        canvas: isVisionCanvas(legacyCanvas)
+          ? legacyCanvas
+          : {
+              width: 1200,
+              height: 960,
+              backgroundColor: "#ffffff",
+              texture: "none",
+            },
+        elements: legacyElements,
+        assets: legacyAssets,
         layout: { slotIds: [], freeform: true },
         fontManifest: [],
         reelConfig: {
           aspectRatio: "9:16",
           defaultDurationMs: 2500,
-          elementOrder: legacy.elements.map((element) => element.id),
+          elementOrder: legacyElements.map((element) => element.id),
         },
       };
     }
@@ -93,7 +184,9 @@ export const createVisionBoardDocument = (
   const previousElements =
     previous && previous.id === page?.id ? previous.elements : [];
   const priorElements = new Map(
-    previousElements.map((element) => [element.excalidrawIds[0], element]),
+    previousElements.flatMap((element) =>
+      element.excalidrawIds.map((id) => [id, element] as const),
+    ),
   );
   const assets: VisionBoardDocument["assets"] = {};
   const elements: VisionElement[] = [];
@@ -144,6 +237,8 @@ export const createVisionBoardDocument = (
         ? "image"
         : element.type === "text"
         ? "text"
+        : element.type === "stickynote"
+        ? "note"
         : element.type === "frame"
         ? "frame"
         : element.type === "rectangle" ||

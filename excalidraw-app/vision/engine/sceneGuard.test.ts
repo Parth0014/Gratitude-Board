@@ -35,17 +35,46 @@ describe("board scene guard", () => {
 
   it("restores a protected board layer deleted by editor input", () => {
     const previous = ensureBoardPage([]);
-    const pageOnly = previous.filter(
-      (element) => element.customData?.gratitudeBackground !== true,
-    );
+    const userBefore = {
+      id: "user-before",
+      type: "rectangle",
+      x: 10,
+      isDeleted: false,
+    } as unknown as ExcalidrawElement;
+    const userNow = {
+      ...userBefore,
+      x: 90,
+    } as ExcalidrawElement;
+    const newUserElement = {
+      id: "user-new",
+      type: "ellipse",
+      isDeleted: false,
+    } as unknown as ExcalidrawElement;
+    const previousWithUser = [...previous, userBefore];
+    const pageOnly = [
+      ...previous.filter(
+        (element) => element.customData?.gratitudeBackground !== true,
+      ),
+      userNow,
+      newUserElement,
+    ];
     const result = inspectBoardScene({
       elements: pageOnly,
-      previousElements: previous,
+      previousElements: previousWithUser,
       appState: appState(),
       allowBoardLayerReplacement: false,
     });
 
     expect(result.repair?.type).toBe("restore-protected-layers");
+    if (result.repair?.type === "restore-protected-layers") {
+      expect(
+        result.repair.elements.find((element) => element.id === "user-before")
+          ?.x,
+      ).toBe(90);
+      expect(
+        result.repair.elements.some((element) => element.id === "user-new"),
+      ).toBe(true);
+    }
   });
 
   it("removes protected layers from mixed user selections", () => {

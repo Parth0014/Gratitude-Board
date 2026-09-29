@@ -165,6 +165,7 @@ export const AssetPanel = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [providerNotice, setProviderNotice] = useState("");
+  const [refreshToken, setRefreshToken] = useState(0);
   const [orientation, setOrientation] = useState<
     "any" | "landscape" | "portrait" | "square"
   >("any");
@@ -337,7 +338,9 @@ export const AssetPanel = ({
               setNextCursor(result.nextCursor);
               setProviderNotice(
                 result.failures.length
-                  ? "Some library sources are temporarily unavailable."
+                  ? `Unavailable sources: ${result.failures
+                      .map((failure) => failure.provider)
+                      .join(", ")}.`
                   : "",
               );
               setBusy(false);
@@ -363,7 +366,7 @@ export const AssetPanel = ({
       active = false;
       ownerWindow.clearTimeout(timer);
     };
-  }, [query, kind, orientation, license]);
+  }, [query, kind, orientation, license, refreshToken]);
 
   const loadMore = async () => {
     const ownerWindow = rootRef.current?.ownerDocument.defaultView;
@@ -393,9 +396,17 @@ export const AssetPanel = ({
       setNextCursor(result.nextCursor);
       if (result.failures.length) {
         setProviderNotice(
-          "Some library sources were unavailable while loading more.",
+          `Unavailable sources: ${result.failures
+            .map((failure) => failure.provider)
+            .join(", ")}.`,
         );
       }
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "More assets could not be loaded.",
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -599,9 +610,15 @@ export const AssetPanel = ({
           </p>
         )}
         {providerNotice && (
-          <p className="gratitude-assets__message" role="status">
-            {providerNotice}
-          </p>
+          <div className="gratitude-assets__message" role="status">
+            <span>{providerNotice}</span>
+            <button
+              type="button"
+              onClick={() => setRefreshToken((value) => value + 1)}
+            >
+              Retry sources
+            </button>
+          </div>
         )}
         {!online && (
           <p className="gratitude-assets__message" role="status">

@@ -62,7 +62,7 @@ const normalize = (
 
 export const pexelsProvider: AssetProvider = {
   id: "pexels",
-  capabilities: { search: true, categories: false, pagination: false },
+  capabilities: { search: true, categories: false, pagination: true },
   async search(query, ownerWindow) {
     const term = query.search?.trim();
     if (query.type && query.type !== "photo") {
@@ -75,6 +75,9 @@ export const pexelsProvider: AssetProvider = {
       url.searchParams.set("featured", "1");
     }
     url.searchParams.set("per_page", String(Math.min(query.limit || 20, 30)));
+    if (query.cursor && /^\d+$/.test(query.cursor)) {
+      url.searchParams.set("page", query.cursor);
+    }
     const response = await ownerWindow.fetch(url.href);
     if (!response.ok) {
       throw new Error(
@@ -83,13 +86,21 @@ export const pexelsProvider: AssetProvider = {
           : `Pexels search failed: ${response.status}`,
       );
     }
-    const data = (await response.json()) as { photos?: unknown };
+    const data = (await response.json()) as {
+      photos?: unknown;
+      page?: unknown;
+      next_page?: unknown;
+    };
     return {
       items: Array.isArray(data.photos)
         ? data.photos
             .map((photo) => normalize(photo as PexelsPhoto, ownerWindow))
             .filter((photo): photo is GratitudeAsset => !!photo)
         : [],
+      nextCursor:
+        typeof data.next_page === "string" && typeof data.page === "number"
+          ? String(data.page + 1)
+          : undefined,
     };
   },
   async resolve(assetId, ownerWindow) {

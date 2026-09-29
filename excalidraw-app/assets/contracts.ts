@@ -41,6 +41,21 @@ export interface GratitudeAsset {
 
 export const GRATITUDE_ASSET_DRAG_TYPE = "application/x-gratitude-asset";
 
+const ASSET_TYPES = new Set<GratitudeAsset["type"]>([
+  "photo",
+  "illustration",
+  "sticker",
+  "shape",
+  "pattern",
+  "texture",
+  "font",
+  "audio",
+]);
+
+const isSafeAssetUrl = (value: string) =>
+  /^https?:\/\//i.test(value) ||
+  /^data:image\/(?:png|jpe?g|webp|gif|svg\+xml)[;,]/i.test(value);
+
 export const normalizeGratitudeAsset = (
   value: unknown,
 ): GratitudeAsset | null => {
@@ -53,12 +68,31 @@ export const normalizeGratitudeAsset = (
     typeof (value as GratitudeAsset).previewUrl !== "string" ||
     typeof (value as GratitudeAsset).assetUrl !== "string" ||
     !Array.isArray((value as GratitudeAsset).tags) ||
+    !(value as GratitudeAsset).tags.every((tag) => typeof tag === "string") ||
+    !ASSET_TYPES.has((value as GratitudeAsset).type) ||
+    typeof (value as GratitudeAsset).editable !== "object" ||
+    (value as GratitudeAsset).editable === null ||
+    typeof (value as GratitudeAsset).license?.id !== "string" ||
     typeof (value as GratitudeAsset).license?.label !== "string" ||
     typeof (value as GratitudeAsset).license?.attributionRequired !== "boolean"
   ) {
     return null;
   }
   const asset = value as GratitudeAsset;
+  if (
+    ((asset.previewUrl === "" || asset.assetUrl === "") &&
+      asset.provider !== "upload") ||
+    (asset.previewUrl !== "" && !isSafeAssetUrl(asset.previewUrl)) ||
+    (asset.assetUrl !== "" && !isSafeAssetUrl(asset.assetUrl)) ||
+    (asset.width !== undefined &&
+      (!Number.isFinite(asset.width) || asset.width <= 0)) ||
+    (asset.height !== undefined &&
+      (!Number.isFinite(asset.height) || asset.height <= 0)) ||
+    (asset.customization?.color !== undefined &&
+      !/^#[0-9a-f]{6}$/i.test(asset.customization.color))
+  ) {
+    return null;
+  }
   const tier = asset.license.tier;
   return {
     ...asset,
