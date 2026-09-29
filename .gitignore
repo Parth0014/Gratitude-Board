@@ -27,3 +27,8 @@ dev-dist
 html
 meta*.json
 .claude
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+tmp/
+output/

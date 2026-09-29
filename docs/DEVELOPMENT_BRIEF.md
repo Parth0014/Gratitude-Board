@@ -4,11 +4,11 @@ Prepared 2026-09-25 from three user-provided PDFs, 61 pages total. This brief di
 
 ## 1. Sources and coverage
 
-| Key | Source                                                                                                 | Coverage                                                                          |
-| --- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| E   | [Experience Insights Deep Dive 2026](Vision_Board_Experience_Insights_Deep_Dive_2026.pdf)           | All 32 pages; experience strategy, behavioral rationale, source atlas, priorities |
-| P   | [Psychology and Behavioral Design Research](Vision_Board_Psychology_Behavioral_Design_Research.pdf) | All 5 pages; evidence review, reflective flows, experiments, principles           |
-| T   | [Technical Architecture](Vision_Board_Web_App_Technical_Architecture.pdf)                           | All 24 pages; stack/ADRs, architecture, suggested schema/API, launch checklist    |
+| Key | Source | Coverage |
+| --- | --- | --- |
+| E | [Experience Insights Deep Dive 2026](Vision_Board_Experience_Insights_Deep_Dive_2026.pdf) | All 32 pages; experience strategy, behavioral rationale, source atlas, priorities |
+| P | [Psychology and Behavioral Design Research](Vision_Board_Psychology_Behavioral_Design_Research.pdf) | All 5 pages; evidence review, reflective flows, experiments, principles |
+| T | [Technical Architecture](Vision_Board_Web_App_Technical_Architecture.pdf) | All 24 pages; stack/ADRs, architecture, suggested schema/API, launch checklist |
 
 References such as E p.26 use the physical PDF page number. Text extractions retain page separators and source references. All pages were rendered and visually surveyed in contact sheets to cross-check diagrams, tables, and extracted structure. Original PDFs were not modified.
 
@@ -43,16 +43,16 @@ Preserve these distinctions in future product copy:
 
 ### UX consequences
 
-| Mechanism / requirement   | Product implication                                                        | Source   |
-| ------------------------- | -------------------------------------------------------------------------- | -------- |
-| Self-concordance          | Ask why an aspiration matters and whether it reflects the user's wishes    | P pp.1-2 |
-| Concrete future scenes    | Ask about an ordinary day, people, place, routine, and desired feeling     | P pp.1-2 |
-| Process + obstacles       | Offer a process cue, small first step, obstacle, and optional if-then plan | P pp.2-3 |
-| Adaptive goal adjustment  | Support pause, reframe, completion, release, and a private timeline        | P pp.2-3 |
-| Personal meaning          | Let the user explain the image; do not infer traits or hidden motives      | P pp.2-3 |
-| Agency                    | Skippable questions, visual-first escape route, editable wording           | P pp.3-4 |
-| Social comparison/privacy | Private defaults; no popularity rankings or luxury/body-ideal defaults     | P pp.2-4 |
-| Accessibility             | Complete text-only, screen-reader, and low-bandwidth alternatives          | P p.4    |
+| Mechanism / requirement | Product implication | Source |
+| --- | --- | --- |
+| Self-concordance | Ask why an aspiration matters and whether it reflects the user's wishes | P pp.1-2 |
+| Concrete future scenes | Ask about an ordinary day, people, place, routine, and desired feeling | P pp.1-2 |
+| Process + obstacles | Offer a process cue, small first step, obstacle, and optional if-then plan | P pp.2-3 |
+| Adaptive goal adjustment | Support pause, reframe, completion, release, and a private timeline | P pp.2-3 |
+| Personal meaning | Let the user explain the image; do not infer traits or hidden motives | P pp.2-3 |
+| Agency | Skippable questions, visual-first escape route, editable wording | P pp.3-4 |
+| Social comparison/privacy | Private defaults; no popularity rankings or luxury/body-ideal defaults | P pp.2-4 |
+| Accessibility | Complete text-only, screen-reader, and low-bandwidth alternatives | P p.4 |
 
 Optional desire lenses are Have, Do, Experience, Become, Feel, and Contribute. They can overlap and must not become diagnostic categories. A feared-future prompt is optional and framed as a helpful boundary, not catastrophe rehearsal. [P pp.2-3]
 
@@ -105,21 +105,21 @@ Vision Board Night is a later ritual concept: 2-8 participants, 20/30/45-minute 
 
 ### Stated baseline
 
-| Concern         | Document choice                               | Implementation implication                         |
-| --------------- | --------------------------------------------- | -------------------------------------------------- |
-| Web             | Next.js + React + TypeScript, App Router      | Client-heavy editor island at `/board/[boardId]`   |
-| UI              | Tailwind CSS + shadcn/ui                      | Product-specific panels and dialogs                |
-| Canvas          | tldraw SDK                                    | Reuse editor primitives; custom product shapes     |
-| State/contracts | Zustand / Zod                                 | Transient UI state / validated shared payloads     |
-| Identity        | Amazon Cognito                                | Authenticated principal, server-side authorization |
-| API             | API Gateway + Lambda                          | Short stateless coordination and CRUD              |
-| Database        | Aurora PostgreSQL Serverless v2               | Relational metadata, roles, compact snapshots      |
-| Media           | S3 + CloudFront                               | Direct upload and optimized CDN delivery           |
-| Jobs            | SQS + Lambda                                  | Image transforms, exports, eventual AI             |
-| Ops             | CloudWatch + Sentry + PostHog                 | Infrastructure, app errors, product events         |
-| Deployment      | Vercel frontend; AWS backend/data             | Separate deployment concerns                       |
-| IaC             | CDK or Terraform                              | Choice remains open                                |
-| Later           | SES, Stripe, managed collaboration or Fargate | Add when the corresponding requirement exists      |
+| Concern | Document choice | Implementation implication |
+| --- | --- | --- |
+| Web | Next.js + React + TypeScript, App Router | Client-heavy editor island at `/board/[boardId]` |
+| UI | Tailwind CSS + shadcn/ui | Product-specific panels and dialogs |
+| Canvas | tldraw SDK | Reuse editor primitives; custom product shapes |
+| State/contracts | Zustand / Zod | Transient UI state / validated shared payloads |
+| Identity | Amazon Cognito | Authenticated principal, server-side authorization |
+| API | API Gateway + Lambda | Short stateless coordination and CRUD |
+| Database | Aurora PostgreSQL Serverless v2 | Relational metadata, roles, compact snapshots |
+| Media | S3 + CloudFront | Direct upload and optimized CDN delivery |
+| Jobs | SQS + Lambda | Image transforms, exports, eventual AI |
+| Ops | CloudWatch + Sentry + PostHog | Infrastructure, app errors, product events |
+| Deployment | Vercel frontend; AWS backend/data | Separate deployment concerns |
+| IaC | CDK or Terraform | Choice remains open |
+| Later | SES, Stripe, managed collaboration or Fargate | Add when the corresponding requirement exists |
 
 [T pp.1, 3-7, 11, 14-17]
 
@@ -143,18 +143,18 @@ Full multiplayer is deferred. T recommends a purpose-built synchronization layer
 
 ### API surface in the document
 
-| Method      | Path                             | Purpose                                        |
-| ----------- | -------------------------------- | ---------------------------------------------- |
-| GET / POST  | `/boards`                        | Paginated summaries / create board             |
-| GET / PATCH | `/boards/{id}`                   | Open board / update metadata                   |
-| PUT         | `/boards/{id}/snapshot`          | Save compact snapshot/version                  |
-| POST        | `/boards/{id}/assets/upload-url` | Authorize direct upload                        |
-| POST        | `/assets/{id}/complete`          | Confirm upload and optionally queue processing |
-| GET         | `/boards/{id}/assets`            | Paginated asset metadata                       |
-| POST        | `/boards/{id}/exports`           | Queue export                                   |
-| GET         | `/jobs/{id}`                     | Authorized job status/result                   |
-| POST        | `/boards/{id}/members`           | Invite or set role                             |
-| DELETE      | `/boards/{id}/members/{userId}`  | Remove access                                  |
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET / POST | `/boards` | Paginated summaries / create board |
+| GET / PATCH | `/boards/{id}` | Open board / update metadata |
+| PUT | `/boards/{id}/snapshot` | Save compact snapshot/version |
+| POST | `/boards/{id}/assets/upload-url` | Authorize direct upload |
+| POST | `/assets/{id}/complete` | Confirm upload and optionally queue processing |
+| GET | `/boards/{id}/assets` | Paginated asset metadata |
+| POST | `/boards/{id}/exports` | Queue export |
+| GET | `/jobs/{id}` | Authorized job status/result |
+| POST | `/boards/{id}/members` | Invite or set role |
+| DELETE | `/boards/{id}/members/{userId}` | Remove access |
 
 [T p.23; authorization of job results is a synthesis of the security requirement.]
 
@@ -170,20 +170,20 @@ Launch requirements include server-side owner/editor/viewer checks, private medi
 
 ## 6. Cross-document gaps and proposed resolutions
 
-| Tension / missing detail                                                              | Proposed resolution, pending implementation decisions                                                                                                         |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| E makes AI part of P0 discovery; T places AI in phase 5                               | Establish one drawer and provider boundary early. Start with user assets/curated licensed content; add AI when prioritized. Keep E's complete target visible. |
-| E prioritizes narrative reels; T specifies image/PDF exports without a video pipeline | Treat a reel as a distinct rendition of shared semantic data; choose/prove rendering and music handling before promising delivery.                            |
-| P offers meaning on every object; E says avoid interruption on every save             | Make meaning available on relevant objects, optional at creation, with focused prompts for three hero items. Decorative shapes need not become goals.         |
-| T starts with a capable freeform canvas; E favors guided structured layouts           | Use tldraw beneath a guided product interface and presets. Freeform remains an option.                                                                        |
-| Private introspection vs shareable stories                                            | Separate meaning/reflection access from rendered board access; preview the exact items and fields included in an export/share.                                |
-| Immutable archive vs user deletion                                                    | Preserve historical snapshots during ordinary edits, while defining deletion/redaction and retention paths across derivatives.                                |
-| E lists "private" alongside aspiration statuses                                       | Keep visibility separate from lifecycle. Proposed canonical lifecycle: exploring/active/paused/evolving/completed/released.                                   |
-| T's goals table is too small for P and E                                              | Add stable semantic records for meanings, scenes, actions, reflections, and history; link canvas shapes by ID.                                                |
-| An asset can belong to several themes/years, but T shows one board_id                 | Design associations and reference-aware cleanup before cross-board reuse; avoid duplicating bytes by default.                                                 |
-| T phase 2 postpones direct uploads/variants while earlier sections require them       | Include the safe direct-upload path from the first cloud-backed upload; progressively add performance sophistication.                                         |
-| Single active editor still permits two browser tabs                                   | Use explicit revision preconditions/conflict behavior and recovery rather than silent overwrite.                                                              |
-| Canvas interaction vs P's accessibility requirement                                   | Provide a semantic list/details path and keyboard actions; validate the complete task flow.                                                                   |
+| Tension / missing detail | Proposed resolution, pending implementation decisions |
+| --- | --- |
+| E makes AI part of P0 discovery; T places AI in phase 5 | Establish one drawer and provider boundary early. Start with user assets/curated licensed content; add AI when prioritized. Keep E's complete target visible. |
+| E prioritizes narrative reels; T specifies image/PDF exports without a video pipeline | Treat a reel as a distinct rendition of shared semantic data; choose/prove rendering and music handling before promising delivery. |
+| P offers meaning on every object; E says avoid interruption on every save | Make meaning available on relevant objects, optional at creation, with focused prompts for three hero items. Decorative shapes need not become goals. |
+| T starts with a capable freeform canvas; E favors guided structured layouts | Use tldraw beneath a guided product interface and presets. Freeform remains an option. |
+| Private introspection vs shareable stories | Separate meaning/reflection access from rendered board access; preview the exact items and fields included in an export/share. |
+| Immutable archive vs user deletion | Preserve historical snapshots during ordinary edits, while defining deletion/redaction and retention paths across derivatives. |
+| E lists "private" alongside aspiration statuses | Keep visibility separate from lifecycle. Proposed canonical lifecycle: exploring/active/paused/evolving/completed/released. |
+| T's goals table is too small for P and E | Add stable semantic records for meanings, scenes, actions, reflections, and history; link canvas shapes by ID. |
+| An asset can belong to several themes/years, but T shows one board_id | Design associations and reference-aware cleanup before cross-board reuse; avoid duplicating bytes by default. |
+| T phase 2 postpones direct uploads/variants while earlier sections require them | Include the safe direct-upload path from the first cloud-backed upload; progressively add performance sophistication. |
+| Single active editor still permits two browser tabs | Use explicit revision preconditions/conflict behavior and recovery rather than silent overwrite. |
+| Canvas interaction vs P's accessibility requirement | Provide a semantic list/details path and keyboard actions; validate the complete task flow. |
 
 ## 7. Proposed domain extensions
 

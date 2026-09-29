@@ -1704,7 +1704,7 @@ const ExcalidrawWrapper = () => {
           </OverwriteConfirmDialog>
           <AppFooter onChange={() => excalidrawAPI?.refresh()} />
           {isCollaborating && isOffline && (
-            <div className="alertalert--warning">
+            <div className="alert alert--warning">
               {t("alerts.collabOfflineWarning")}
             </div>
           )}

@@ -1,6 +1,5 @@
 import type { GratitudeAsset } from "../assets/contracts";
 import type { VisionLayout } from "./layouts";
-import type { VisionTextPreset } from "./typography";
 
 export type VisionTheme = "light" | "dark";
 export type VisionFontFamily =
@@ -24,6 +23,17 @@ export type VisionFontFamily =
   | "kalam"
   | "fredoka"
   | "pacifico";
+
+export interface VisionTextPreset {
+  id: string;
+  label: string;
+  sample: string;
+  category: "editorial" | "handwritten" | "playful" | "minimal" | "reflection";
+  fontFamily: VisionFontFamily;
+  fontSize: number;
+  color: string;
+  align?: "left" | "center" | "right";
+}
 
 export type VisionSelectionKind =
   | "none"

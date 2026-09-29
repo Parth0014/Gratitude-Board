@@ -60,13 +60,13 @@ export const readVisionBoardDocument = (
       return {
         ...legacy,
         version: 3 as const,
-        canvas:
-          (legacy as { canvas?: VisionBoardDocument["canvas"] }).canvas || {
-                width: 1200,
-                height: 960,
-                backgroundColor: "#ffffff",
-                texture: "none",
-              },
+        canvas: (legacy as { canvas?: VisionBoardDocument["canvas"] })
+          .canvas || {
+          width: 1200,
+          height: 960,
+          backgroundColor: "#ffffff",
+          texture: "none",
+        },
         layout: { slotIds: [], freeform: true },
         fontManifest: [],
         reelConfig: {

@@ -1,15 +1,6 @@
-import type { VisionFontFamily } from "./contracts";
+import type { VisionTextPreset } from "./contracts";
 
-export interface VisionTextPreset {
-  id: string;
-  label: string;
-  sample: string;
-  category: "editorial" | "handwritten" | "playful" | "minimal" | "reflection";
-  fontFamily: VisionFontFamily;
-  fontSize: number;
-  color: string;
-  align?: "left" | "center" | "right";
-}
+export type { VisionTextPreset } from "./contracts";
 
 export const VISION_TEXT_PRESETS: VisionTextPreset[] = [
   {

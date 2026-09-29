@@ -3,7 +3,8 @@ import type { SVGProps } from "react";
 // A single 24px grid and stroke weight across the studio and editor controls.
 const paths = {
   design: "M4 4h7v16H4z M15 4h5v6h-5z M15 14h5v6h-5z",
-  elements: "M7 3l4 7H3z M15 4h6v6h-6z M4 16a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M16 14h5v7h-5z",
+  elements:
+    "M7 3l4 7H3z M15 4h6v6h-6z M4 16a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M16 14h5v7h-5z",
   text: "M4 6V4h16v2 M12 4v16 M8 20h8",
   image: "M4 3h16v18H4z M4 16l5-5 4 4 3-3 4 4 M15 7h.01",
   upload: "M12 16V3 M7 8l5-5 5 5 M4 16v5h16v-5",
@@ -44,7 +45,8 @@ const paths = {
   copy: "M8 8h13v13H8z M16 8V3H3v13h5",
   trash: "M4 6h16 M9 3h6 M6 6l1 15h10l1-15 M10 10v7 M14 10v7",
   heart: "M12 21C8 17 2 13 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 5-6 9-10 13z",
-  palette: "M12 3a9 9 0 1 0 0 18c3 0-1-5 3-5h2c6 0 5-13-5-13 M7 8h.01 M12 6h.01 M17 9h.01 M6 13h.01",
+  palette:
+    "M12 3a9 9 0 1 0 0 18c3 0-1-5 3-5h2c6 0 5-13-5-13 M7 8h.01 M12 6h.01 M17 9h.01 M6 13h.01",
   check: "M4 12l5 5L20 6",
   layerUp: "M4 15l8 5 8-5 M4 11l8 5 8-5 M8 6l4-4 4 4 M12 2v9",
   layerDown: "M4 9l8-5 8 5 M4 13l8-5 8 5 M8 18l4 4 4-4 M12 22V11",
@@ -53,8 +55,23 @@ const paths = {
 
 export type StudioIconName = keyof typeof paths;
 
-export const StudioIcon = ({ name, ...props }: SVGProps<SVGSVGElement> & { name: StudioIconName }) => (
-  <svg {...props} viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+export const StudioIcon = ({
+  name,
+  ...props
+}: SVGProps<SVGSVGElement> & { name: StudioIconName }) => (
+  <svg
+    {...props}
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.65"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
     <path d={paths[name]} />
   </svg>
 );

@@ -81,7 +81,9 @@
   color: #fff;
 }
 
-.gratitude-export-menu { position: relative; }
+.gratitude-export-menu {
+  position: relative;
+}
 .gratitude-export-menu > div[role="menu"] {
   position: absolute;
   z-index: 30;
@@ -95,9 +97,24 @@
   background: white;
   box-shadow: 0 16px 45px rgb(37 29 40 / 22%);
 }
-.gratitude-export-menu [role="menuitem"] { display: grid; gap: 2px; padding: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--studio-ink); text-align: left; cursor: pointer; }
-.gratitude-export-menu [role="menuitem"]:hover { background: #f9eef2; }
-.gratitude-export-menu [role="menuitem"] span { color: var(--studio-muted); font-size: 11px; }
+.gratitude-export-menu [role="menuitem"] {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--studio-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.gratitude-export-menu [role="menuitem"]:hover {
+  background: #f9eef2;
+}
+.gratitude-export-menu [role="menuitem"] span {
+  color: var(--studio-muted);
+  font-size: 11px;
+}
 
 .gratitude-workspace {
   display: flex;
@@ -180,8 +197,12 @@
   letter-spacing: 0.12em;
 }
 
-.gratitude-assets__heading { position: relative; }
-.gratitude-assets__sheet-close { display: none; }
+.gratitude-assets__heading {
+  position: relative;
+}
+.gratitude-assets__sheet-close {
+  display: none;
+}
 
 .gratitude-assets__heading h2 {
   margin: 4px 0 4px;
@@ -447,8 +468,21 @@
   cursor: pointer;
 }
 
-.gratitude-asset-details section a { margin-right: 14px; color: var(--studio-accent); }
-.gratitude-asset-details__add { width: 100%; margin-top: 16px; padding: 11px; border: 0; border-radius: 9px; background: var(--studio-accent); color: white; font-weight: 700; cursor: pointer; }
+.gratitude-asset-details section a {
+  margin-right: 14px;
+  color: var(--studio-accent);
+}
+.gratitude-asset-details__add {
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--studio-accent);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
 
 .gratitude-assets__layouts {
   grid-template-columns: 1fr;
@@ -506,8 +540,16 @@
   cursor: pointer;
 }
 
-.gratitude-text-card span { font-size: 18px; font-weight: 700; line-height: 1.05; }
-.gratitude-text-card small { color: var(--studio-muted); font-size: 10px; text-transform: capitalize; }
+.gratitude-text-card span {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+.gratitude-text-card small {
+  color: var(--studio-muted);
+  font-size: 10px;
+  text-transform: capitalize;
+}
 
 .gratitude-assets__grid .gratitude-layout-card {
   border: 1px solid var(--studio-line);
@@ -696,10 +738,21 @@
 }
 
 @media (max-width: 700px) {
-  .gratitude-header { height: 56px; padding: 0 12px; }
-  .gratitude-brand span { display: none; }
-  .gratitude-header__actions { gap: 6px; }
-  .gratitude-board-setup, .gratitude-export { padding: 8px 10px; font-size: 12px; }
+  .gratitude-header {
+    height: 56px;
+    padding: 0 12px;
+  }
+  .gratitude-brand span {
+    display: none;
+  }
+  .gratitude-header__actions {
+    gap: 6px;
+  }
+  .gratitude-board-setup,
+  .gratitude-export {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
 
   .gratitude-assets {
     position: fixed;
@@ -731,7 +784,9 @@
     height: 54px;
   }
 
-  .gratitude-assets__rail-divider { display: none; }
+  .gratitude-assets__rail-divider {
+    display: none;
+  }
 
   .gratitude-assets__panel {
     flex: 1;
@@ -740,8 +795,12 @@
     padding: 18px 12px;
   }
 
-  .gratitude-assets.is-collapsed { height: calc(62px + env(safe-area-inset-bottom)); }
-  .gratitude-assets.is-collapsed .gratitude-assets__panel { display: none; }
+  .gratitude-assets.is-collapsed {
+    height: calc(62px + env(safe-area-inset-bottom));
+  }
+  .gratitude-assets.is-collapsed .gratitude-assets__panel {
+    display: none;
+  }
   .gratitude-assets__sheet-close {
     position: absolute;
     top: -8px;
@@ -757,9 +816,19 @@
     font-size: 20px;
   }
 
-  .gratitude-editor { width: 100%; padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
-  .gratitude-editor-footer { bottom: calc(70px + env(safe-area-inset-bottom)); }
-  .gratitude-selection-toolbar { right: 8px; bottom: calc(78px + env(safe-area-inset-bottom)); left: 8px; overflow-x: auto; }
+  .gratitude-editor {
+    width: 100%;
+    padding-bottom: calc(62px + env(safe-area-inset-bottom));
+  }
+  .gratitude-editor-footer {
+    bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+  .gratitude-selection-toolbar {
+    right: 8px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    left: 8px;
+    overflow-x: auto;
+  }
 
   .gratitude-board-name,
   .gratitude-inspector {
