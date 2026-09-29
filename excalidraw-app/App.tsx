@@ -4,7 +4,6 @@ import {
   reconcileElements,
   ExcalidrawAPIProvider,
   useExcalidrawAPI,
-  WelcomeScreen,
 } from "@excalidraw/excalidraw";
 import { ErrorDialog } from "@excalidraw/excalidraw/components/ErrorDialog";
 import { OverwriteConfirmDialog } from "@excalidraw/excalidraw/components/OverwriteConfirm/OverwriteConfirm";
@@ -118,7 +117,6 @@ import DebugCanvas, {
 import "./index.scss";
 
 import { GratitudeShell } from "./components/GratitudeShell";
-import { GratitudeWelcomeScreen } from "./components/GratitudeWelcomeScreen";
 
 import { BoardSettings } from "./components/BoardSettings";
 import { fetchAsset } from "./assets/registry";
@@ -129,6 +127,7 @@ import {
 import { svgToPng } from "./assets/sanitizeSvg";
 import { createCanvasAdapter } from "./vision/canvasAdapter";
 import { EMPTY_VISION_SELECTION } from "./vision/contracts";
+import { VisionDocumentRepository } from "./vision/repository";
 
 import {
   ensureBoardPage,
@@ -344,7 +343,8 @@ const ExcalidrawWrapper = () => {
   const excalidrawAPI = useExcalidrawAPI();
   const [rightOpen, setRightOpen] = useState(false);
   const [boardSettingsOpen, setBoardSettingsOpen] = useState(false);
-  const [snapToBoard, setSnapToBoard] = useState(true);
+  const [keepInsideBoard, setKeepInsideBoard] = useState(true);
+  const [boardTitle, setBoardTitle] = useState("My vision board");
   const [boardState, setBoardState] = useState({
     width: PAGE_WIDTH,
     height: PAGE_HEIGHT,
@@ -371,8 +371,35 @@ const ExcalidrawWrapper = () => {
     canvasAdapter?.fitBoard();
   }, [canvasAdapter]);
 
-  const snapSelectionToBoard = useCallback(() => {
-    if (!excalidrawAPI || !snapToBoard) {
+  useEffect(() => {
+    const storage =
+      editorRootRef.current?.ownerDocument.defaultView?.localStorage;
+    if (!storage) {
+      return;
+    }
+    const saved = new VisionDocumentRepository(storage).load();
+    if (saved?.title.trim()) {
+      setBoardTitle(saved.title);
+    }
+  }, []);
+
+  const changeBoardTitle = (title: string) => {
+    const next = title.slice(0, 80);
+    setBoardTitle(next);
+    const storage =
+      editorRootRef.current?.ownerDocument.defaultView?.localStorage;
+    if (!storage) {
+      return;
+    }
+    const repository = new VisionDocumentRepository(storage);
+    const saved = repository.load();
+    if (saved) {
+      repository.save({ ...saved, title: next || "My vision board" });
+    }
+  };
+
+  const keepSelectionInsideBoard = useCallback(() => {
+    if (!excalidrawAPI || !keepInsideBoard) {
       return;
     }
     const elements = excalidrawAPI.getSceneElements();
@@ -437,10 +464,10 @@ const ExcalidrawWrapper = () => {
               })
             : element,
         ),
-        captureUpdate: CaptureUpdateAction.NEVER,
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
       });
     }
-  }, [excalidrawAPI, snapToBoard]);
+  }, [excalidrawAPI, keepInsideBoard]);
 
   useEffect(() => {
     const ownerWindow = editorRootRef.current?.ownerDocument.defaultView;
@@ -448,15 +475,34 @@ const ExcalidrawWrapper = () => {
       return;
     }
     let pendingSnap: number | undefined;
+    let positionsBeforeDrag = new Map<string, { x: number; y: number }>();
+    const unsubscribePointerDown = excalidrawAPI.onPointerDown(() => {
+      const selectedIds = excalidrawAPI.getAppState().selectedElementIds;
+      positionsBeforeDrag = new Map(
+        excalidrawAPI
+          .getSceneElements()
+          .filter((element) => selectedIds[element.id])
+          .map((element) => [element.id, { x: element.x, y: element.y }]),
+      );
+    });
     const unsubscribePointerUp = excalidrawAPI.onPointerUp(() => {
+      const moved = excalidrawAPI.getSceneElements().some((element) => {
+        const before = positionsBeforeDrag.get(element.id);
+        return before && (before.x !== element.x || before.y !== element.y);
+      });
+      positionsBeforeDrag.clear();
+      if (!moved) {
+        return;
+      }
       ownerWindow.clearTimeout(pendingSnap);
-      pendingSnap = ownerWindow.setTimeout(snapSelectionToBoard, 0);
+      pendingSnap = ownerWindow.setTimeout(keepSelectionInsideBoard, 0);
     });
     return () => {
+      unsubscribePointerDown();
       unsubscribePointerUp();
       ownerWindow.clearTimeout(pendingSnap);
     };
-  }, [excalidrawAPI, snapSelectionToBoard]);
+  }, [excalidrawAPI, keepSelectionInsideBoard]);
 
   useEffect(() => {
     const root = editorRootRef.current;
@@ -536,11 +582,23 @@ const ExcalidrawWrapper = () => {
             height: imageHeight,
           });
         }
+        // Scale positions per-axis but sizes uniformly so photos, circles and
+        // stickers are never stretched; text keeps its size (its box is
+        // derived from the font, so resizing it directly corrupts it).
+        const uniform = Math.min(scaleX, scaleY);
+        const nextWidth =
+          element.type === "text" ? element.width : element.width * uniform;
+        const nextHeight =
+          element.type === "text" ? element.height : element.height * uniform;
+        const centerX =
+          page.x + (element.x + element.width / 2 - page.x) * scaleX;
+        const centerY =
+          page.y + (element.y + element.height / 2 - page.y) * scaleY;
         return newElementWith(element, {
-          x: page.x + (element.x - page.x) * scaleX,
-          y: page.y + (element.y - page.y) * scaleY,
-          width: element.width * scaleX,
-          height: element.height * scaleY,
+          x: centerX - nextWidth / 2,
+          y: centerY - nextHeight / 2,
+          width: nextWidth,
+          height: nextHeight,
         });
       }),
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
@@ -1227,7 +1285,7 @@ const ExcalidrawWrapper = () => {
         if (ownerWindow) {
           visionStorage = {
             storage: ownerWindow.localStorage,
-            title: excalidrawAPI?.getName() || "My vision board",
+            title: boardTitle || "My vision board",
           };
         }
       } catch {
@@ -1381,7 +1439,9 @@ const ExcalidrawWrapper = () => {
         image,
         ownerWindow,
         asset,
-        position ? { ...position, constrainToBoard: snapToBoard } : undefined,
+        position
+          ? { ...position, constrainToBoard: keepInsideBoard }
+          : undefined,
       );
     } catch {
       excalidrawAPI.setToast({
@@ -1409,7 +1469,8 @@ const ExcalidrawWrapper = () => {
   return (
     <GratitudeShell
       adapter={canvasAdapter}
-      name={excalidrawAPI?.getName() || "My vision board"}
+      name={boardTitle}
+      onNameChange={changeBoardTitle}
       theme={editorTheme}
       onPlaceAsset={placeAsset}
       onReplaceAsset={async (asset, ownerDocument) => {
@@ -1552,8 +1613,8 @@ const ExcalidrawWrapper = () => {
         }}
       >
         <Excalidraw
-          name="My vision board"
-          snapToBoard={snapToBoard}
+          name={boardTitle || "My vision board"}
+          snapToBoard={keepInsideBoard}
           renderEditorUI={(slots) => (
             <>
               {footerTarget &&
@@ -1565,14 +1626,14 @@ const ExcalidrawWrapper = () => {
                       type="button"
                       role="switch"
                       className={`gratitude-snap-toggle${
-                        snapToBoard ? " is-active" : ""
+                        keepInsideBoard ? " is-active" : ""
                       }`}
-                      aria-label="Snap to edges"
-                      aria-checked={snapToBoard}
+                      aria-label="Keep inside board"
+                      aria-checked={keepInsideBoard}
                       title="Keep every movable item inside the board"
-                      onClick={() => setSnapToBoard((enabled) => !enabled)}
+                      onClick={() => setKeepInsideBoard((enabled) => !enabled)}
                     >
-                      <span>Snap to edges</span>
+                      <span>Keep inside board</span>
                       <span
                         className="gratitude-snap-toggle__track"
                         aria-hidden="true"
@@ -1581,7 +1642,7 @@ const ExcalidrawWrapper = () => {
                         className="gratitude-snap-toggle__state"
                         aria-hidden="true"
                       >
-                        {snapToBoard ? "On" : "Off"}
+                        {keepInsideBoard ? "On" : "Off"}
                       </span>
                     </button>
                     <button
@@ -1626,7 +1687,7 @@ const ExcalidrawWrapper = () => {
               "changeArrowType",
             ],
             canvasActions: {
-              toggleTheme: true,
+              toggleTheme: false,
               export: false,
             },
             tools: {
@@ -1656,11 +1717,6 @@ const ExcalidrawWrapper = () => {
             }
           }}
         >
-          <WelcomeScreen>
-            <WelcomeScreen.Center>
-              <GratitudeWelcomeScreen adapter={canvasAdapter} />
-            </WelcomeScreen.Center>
-          </WelcomeScreen>
           <AppMainMenu theme={appTheme} />
           <OverwriteConfirmDialog>
             <OverwriteConfirmDialog.Actions.ExportToImage />

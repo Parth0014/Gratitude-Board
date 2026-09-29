@@ -124,7 +124,7 @@ const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
                     ? "Preparing image…"
                     : "High-resolution PNG"}
                 </strong>
-                <span>3× board image for sharing and large screens</span>
+                <span>Sharp board image for sharing and large screens</span>
               </button>
               <button
                 type="button"
@@ -147,23 +147,6 @@ const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
                 disabled={!adapter || busy !== null}
                 onClick={(event) =>
                   void runExport(
-                    "board",
-                    (ownerDocument) =>
-                      adapter?.downloadHighResolution(ownerDocument, 2),
-                    event.currentTarget.ownerDocument,
-                  )
-                }
-              >
-                <strong>
-                  {busy === "board" ? "Preparing board…" : "Board PNG"}
-                </strong>
-                <span>2× share image with required asset credits</span>
-              </button>
-              <button
-                type="button"
-                disabled={!adapter || busy !== null}
-                onClick={(event) =>
-                  void runExport(
                     "selection",
                     (ownerDocument) =>
                       adapter?.downloadSelectedPrint(ownerDocument, 3),
@@ -180,10 +163,15 @@ const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
               </button>
               <button
                 type="button"
-                onClick={(event) => {
-                  adapter?.downloadReel(event.currentTarget.ownerDocument);
-                  setOpen(false);
-                }}
+                disabled={!adapter || busy !== null}
+                onClick={(event) =>
+                  void runExport(
+                    "reel-web",
+                    async (ownerDocument) =>
+                      void (await adapter?.downloadReel(ownerDocument)),
+                    event.currentTarget.ownerDocument,
+                  )
+                }
               >
                 <strong>Animated web reel</strong>
                 <span>Self-contained vertical story for a browser</span>
@@ -207,22 +195,30 @@ const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
               </button>
               <button
                 type="button"
-                onClick={(event) => {
-                  adapter?.downloadReelPlan(event.currentTarget.ownerDocument);
-                  setOpen(false);
-                }}
+                disabled={!adapter || busy !== null}
+                onClick={(event) =>
+                  void runExport(
+                    "reel-plan",
+                    async (ownerDocument) =>
+                      void (await adapter?.downloadReelPlan(ownerDocument)),
+                    event.currentTarget.ownerDocument,
+                  )
+                }
               >
                 <strong>Reel plan</strong>
                 <span>9:16 sequence manifest for video rendering</span>
               </button>
               <button
                 type="button"
-                onClick={(event) => {
-                  adapter?.downloadAttributions(
+                disabled={!adapter || busy !== null}
+                onClick={(event) =>
+                  void runExport(
+                    "credits",
+                    async (ownerDocument) =>
+                      void (await adapter?.downloadAttributions(ownerDocument)),
                     event.currentTarget.ownerDocument,
-                  );
-                  setOpen(false);
-                }}
+                  )
+                }
               >
                 <strong>Asset credits</strong>
                 <span>Required creator and license details</span>
@@ -243,6 +239,7 @@ const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
 export const GratitudeShell = ({
   adapter,
   name,
+  onNameChange,
   theme,
   onPlaceAsset,
   onReplaceAsset,
@@ -259,6 +256,7 @@ export const GratitudeShell = ({
 }: {
   adapter: CanvasAdapter | null;
   name: string;
+  onNameChange: (name: string) => void;
   theme: VisionTheme;
   onPlaceAsset: (
     asset: GratitudeAsset,
@@ -294,18 +292,25 @@ export const GratitudeShell = ({
           />
           <path
             d="m16 11.8 1.2 2.9 2.9 1.2-2.9 1.2-1.2 2.9-1.2-2.9-2.9-1.2 2.9-1.2 1.2-2.9Z"
-            fill="var(--gratitude-header)"
+            fill="var(--studio-surface)"
           />
         </svg>
         <span>Gratitude Studio</span>
       </div>
-      <div
-        className="gratitude-board-name"
-        title={name}
-        aria-label={`Board: ${name}`}
-      >
-        {name || "My vision board"}
-      </div>
+      <label className="gratitude-board-name" title="Rename board">
+        <span className="sr-only">Board name</span>
+        <input
+          value={name}
+          maxLength={80}
+          aria-label="Board name"
+          onChange={(event) => onNameChange(event.currentTarget.value)}
+          onBlur={() => {
+            if (!name.trim()) {
+              onNameChange("My vision board");
+            }
+          }}
+        />
+      </label>
       <div className="gratitude-header__actions">
         <button
           className="gratitude-board-setup"

@@ -313,11 +313,17 @@ export const createCanvasAdapter = (
     return imageFile;
   };
 
-  const renderBoard = async (ownerDocument: Document, scale = 2) => {
+  const renderBoard = async (ownerDocument: Document, requestedScale = 2) => {
     const page = getBoardPage(api.getSceneElements());
     if (!page || page.type !== "frame" || page.isDeleted) {
       throw new Error("Board is unavailable");
     }
+    // Browsers silently fail or return blank canvases above ~16.7MP (iOS Safari).
+    const MAX_EXPORT_PIXELS = 16_000_000;
+    const scale = Math.min(
+      requestedScale,
+      Math.sqrt(MAX_EXPORT_PIXELS / (page.width * page.height)),
+    );
     const elements = api
       .getSceneElements()
       .filter((element) => !element.isDeleted);
@@ -428,7 +434,7 @@ export const createCanvasAdapter = (
     anchor.href = url;
     anchor.download = filename;
     anchor.click();
-    ownerWindow.setTimeout(() => ownerWindow.URL.revokeObjectURL(url), 0);
+    ownerWindow.setTimeout(() => ownerWindow.URL.revokeObjectURL(url), 30_000);
   };
 
   const renderSelection = async (ownerDocument: Document, scale = 3) => {
@@ -1281,7 +1287,13 @@ export const createCanvasAdapter = (
       if (!printWindow) {
         throw new Error("Allow pop-ups to open the print layout");
       }
-      const canvas = await renderBoard(ownerDocument, 2);
+      let canvas: HTMLCanvasElement;
+      try {
+        canvas = await renderBoard(ownerDocument, 2);
+      } catch (error) {
+        printWindow.close();
+        throw error;
+      }
       const image = canvas.toDataURL("image/png");
       printWindow.document.open();
       printWindow.document.write(
@@ -1289,9 +1301,22 @@ export const createCanvasAdapter = (
       );
       printWindow.document.close();
       printWindow.focus();
-      printWindow.addEventListener("load", () => printWindow.print(), {
-        once: true,
-      });
+      const printableImage = printWindow.document.querySelector("img");
+      if (!printableImage) {
+        printWindow.close();
+        throw new Error("The print preview could not be created");
+      }
+      const print = () => printWindow.print();
+      if (printableImage.complete) {
+        print();
+      } else {
+        printableImage.addEventListener("load", print, { once: true });
+        printableImage.addEventListener(
+          "error",
+          () => printWindow.close(),
+          { once: true },
+        );
+      }
     },
     async downloadReelVideo(ownerDocument) {
       const ownerWindow = ownerDocument.defaultView;
