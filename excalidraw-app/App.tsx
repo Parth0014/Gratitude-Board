@@ -1,50 +1,41 @@
 import {
   Excalidraw,
-  LiveCollaborationTrigger,
-  TTDDialogTrigger,
   CaptureUpdateAction,
   reconcileElements,
-  useEditorInterface,
   ExcalidrawAPIProvider,
   useExcalidrawAPI,
+  WelcomeScreen,
 } from "@excalidraw/excalidraw";
-import { trackEvent } from "@excalidraw/excalidraw/analytics";
-import { getDefaultAppState } from "@excalidraw/excalidraw/appState";
-import {
-  CommandPalette,
-  DEFAULT_CATEGORIES,
-} from "@excalidraw/excalidraw/components/CommandPalette/CommandPalette";
 import { ErrorDialog } from "@excalidraw/excalidraw/components/ErrorDialog";
 import { OverwriteConfirmDialog } from "@excalidraw/excalidraw/components/OverwriteConfirm/OverwriteConfirm";
 import { openConfirmModal } from "@excalidraw/excalidraw/components/OverwriteConfirm/OverwriteConfirmState";
-import { ShareableLinkDialog } from "@excalidraw/excalidraw/components/ShareableLinkDialog";
 import Trans from "@excalidraw/excalidraw/components/Trans";
 import {
   APP_NAME,
   EVENT,
-  VERSION_TIMEOUT,
   debounce,
-  getVersion,
-  getFrame,
   isTestEnv,
   preventUnload,
   resolvablePromise,
-  isRunningInIframe,
   isDevEnv,
 } from "@excalidraw/common";
 import polyfill from "@excalidraw/excalidraw/polyfill";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { loadFromBlob } from "@excalidraw/excalidraw/data/blob";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { usersIcon, share } from "@excalidraw/excalidraw/components/icons";
 import { isElementLink } from "@excalidraw/element";
 import {
   bumpElementVersions,
   restoreAppState,
   restoreElements,
 } from "@excalidraw/excalidraw/data/restore";
-import { newElementWith } from "@excalidraw/element";
+import {
+  getCommonBounds,
+  newElementWith,
+  newImageElement,
+} from "@excalidraw/element";
 import { isInitializedImageElement } from "@excalidraw/element";
 import clsx from "clsx";
 import {
@@ -56,21 +47,21 @@ import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconc
 import type { RestoredDataState } from "@excalidraw/excalidraw/data/restore";
 import type {
   FileId,
-  NonDeletedExcalidrawElement,
+  ExcalidrawElement,
   OrderedExcalidrawElement,
 } from "@excalidraw/element/types";
 import type {
   AppState,
   ExcalidrawImperativeAPI,
   BinaryFiles,
+  BinaryFileData,
+  DataURL,
   ExcalidrawInitialDataState,
-  UIAppState,
   ExcalidrawProps,
 } from "@excalidraw/excalidraw/types";
 import type { ResolutionType } from "@excalidraw/common/utility-types";
 import type { ResolvablePromise } from "@excalidraw/common/utils";
 
-import CustomStats from "./CustomStats";
 import {
   Provider,
   useAtom,
@@ -83,18 +74,18 @@ import {
   STORAGE_KEYS,
   SYNC_BROWSER_TABS_TIMEOUT,
 } from "./app_constants";
-import Collab, {
+import {
   collabAPIAtom,
   isCollaboratingAtom,
   isOfflineAtom,
   userToFollowAtom,
 } from "./collab/Collab";
 import { AppFooter } from "./components/AppFooter";
+import { GratitudeSelectionToolbar } from "./components/GratitudeSelectionToolbar";
 import { AppMainMenu } from "./components/AppMainMenu";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
 
 import {
-  exportToBackend,
   getCollaborationLinkData,
   importFromBackend,
   isCollaborationLink,
@@ -115,8 +106,6 @@ import {
   localStorageQuotaExceededAtom,
 } from "./data/LocalData";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
-import { ShareDialog, shareDialogStateAtom } from "./share/ShareDialog";
-import CollabError, { collabErrorIndicatorAtom } from "./collab/CollabError";
 import { useHandleAppTheme } from "./useHandleAppTheme";
 import { getPreferredLanguage } from "./app-language/language-detector";
 import { useAppLangCode } from "./app-language/language-state";
@@ -125,51 +114,42 @@ import DebugCanvas, {
   isVisualDebuggerEnabled,
   loadSavedDebugState,
 } from "./components/DebugCanvas";
-import { useSimulatedCollaborators } from "./debugCollaborators";
-import { AIComponents } from "./components/AI";
-import { ExcalidrawPlusIframeExport } from "./ExcalidrawPlusIframeExport";
 
 import "./index.scss";
 
 import { GratitudeShell } from "./components/GratitudeShell";
+import { GratitudeWelcomeScreen } from "./components/GratitudeWelcomeScreen";
+
+import { BoardSettings } from "./components/BoardSettings";
+import { fetchAsset } from "./assets/registry";
+import {
+  GRATITUDE_ASSET_DRAG_TYPE,
+  isGratitudeAsset,
+} from "./assets/contracts";
+import { svgToPng } from "./assets/sanitizeSvg";
+import { createCanvasAdapter } from "./vision/canvasAdapter";
+import { EMPTY_VISION_SELECTION } from "./vision/contracts";
+
+import {
+  ensureBoardPage,
+  getBoardBackground,
+  getBoardBackgroundImage,
+  getBoardPage,
+  getBoardTextureImage,
+  PAGE_WIDTH,
+  PAGE_HEIGHT,
+} from "./boardPage";
+
+import type { VisionSelection } from "./vision/contracts";
+
+import type { BoardTexture } from "./components/BoardSettings";
+import type { GratitudeAsset } from "./assets/contracts";
 
 import type { CollabAPI } from "./collab/Collab";
 
 polyfill();
 
 window.EXCALIDRAW_THROTTLE_RENDER = true;
-
-declare global {
-  interface BeforeInstallPromptEventChoiceResult {
-    outcome: "accepted" | "dismissed";
-  }
-
-  interface BeforeInstallPromptEvent extends Event {
-    prompt(): Promise<void>;
-    userChoice: Promise<BeforeInstallPromptEventChoiceResult>;
-  }
-
-  interface WindowEventMap {
-    beforeinstallprompt: BeforeInstallPromptEvent;
-  }
-}
-
-let pwaEvent: BeforeInstallPromptEvent | null = null;
-
-// Adding a listener outside of the component as it may (?) need to be
-// subscribed early to catch the event.
-//
-// Also note that it will fire only if certain heuristics are met (user has
-// used the app for some time, etc.)
-window.addEventListener(
-  "beforeinstallprompt",
-  (event: BeforeInstallPromptEvent) => {
-    // prevent Chrome <= 67 from automatically showing the prompt
-    event.preventDefault();
-    // cache for later use
-    pwaEvent = event;
-  },
-);
 
 let isSelfEmbedding = false;
 
@@ -228,7 +208,10 @@ const initializeScene = async (opts: {
       repairBindings: true,
       deleteInvisibleElements: true,
     }),
-    appState: restoreAppState(localDataState?.appState, null),
+    appState: restoreAppState(
+      localDataState?.appState || { viewBackgroundColor: "#f8edf2" },
+      null,
+    ),
   };
 
   let roomLinkData = getCollaborationLinkData(window.location.href);
@@ -358,15 +341,399 @@ const initializeScene = async (opts: {
 
 const ExcalidrawWrapper = () => {
   const excalidrawAPI = useExcalidrawAPI();
+  const [rightOpen, setRightOpen] = useState(false);
+  const [boardSettingsOpen, setBoardSettingsOpen] = useState(false);
+  const [snapToBoard, setSnapToBoard] = useState(true);
+  const [boardState, setBoardState] = useState({
+    width: PAGE_WIDTH,
+    height: PAGE_HEIGHT,
+    color: "#ffffff",
+    texture: "none" as BoardTexture,
+    hasImage: false,
+  });
+  const [visionSelection, setVisionSelection] = useState<VisionSelection>(
+    EMPTY_VISION_SELECTION,
+  );
+  const [footerTarget, setFooterTarget] = useState<HTMLDivElement | null>(null);
+  const editorRootRef = useRef<HTMLDivElement>(null);
+  const hasFittedPageRef = useRef(false);
+  const lastGoodBoardSceneRef = useRef<readonly OrderedExcalidrawElement[]>([]);
+  const allowBoardLayerReplacementRef = useRef(false);
+  const sceneRepairAttemptsRef = useRef(0);
+  const lastInspectorKey = useRef("");
+  const canvasAdapter = useMemo(
+    () => (excalidrawAPI ? createCanvasAdapter(excalidrawAPI) : null),
+    [excalidrawAPI],
+  );
+  const fitBoardPage = useCallback(() => {
+    canvasAdapter?.fitBoard();
+  }, [canvasAdapter]);
+
+  const snapSelectionToBoard = useCallback(() => {
+    if (!excalidrawAPI || !snapToBoard) {
+      return;
+    }
+    const elements = excalidrawAPI.getSceneElements();
+    const page = getBoardPage(elements);
+    if (!page) {
+      return;
+    }
+    const selectedIds = excalidrawAPI.getAppState().selectedElementIds;
+    const protectedIds = new Set(
+      [
+        page.id,
+        getBoardBackground(elements)?.id,
+        getBoardBackgroundImage(elements)?.id,
+        getBoardTextureImage(elements)?.id,
+      ].filter((id): id is string => !!id),
+    );
+    const targets = elements.filter(
+      (element) =>
+        !element.isDeleted &&
+        !protectedIds.has(element.id) &&
+        element.type !== "frame" &&
+        selectedIds[element.id] &&
+        !element.locked,
+    );
+    if (!targets.length) {
+      return;
+    }
+    const [left, top, right, bottom] = getCommonBounds(targets);
+    const threshold = 12 / excalidrawAPI.getAppState().zoom.value;
+    const snapOffset = (
+      min: number,
+      max: number,
+      boardMin: number,
+      boardMax: number,
+    ) => {
+      if (max - min > boardMax - boardMin) {
+        return 0;
+      }
+      if (min < boardMin || Math.abs(min - boardMin) <= threshold) {
+        return boardMin - min;
+      }
+      if (max > boardMax || Math.abs(max - boardMax) <= threshold) {
+        return boardMax - max;
+      }
+      return 0;
+    };
+    const offsetX = snapOffset(left, right, page.x, page.x + page.width);
+    const offsetY = snapOffset(top, bottom, page.y, page.y + page.height);
+    const targetIds = new Set(targets.map((element) => element.id));
+    if (
+      offsetX ||
+      offsetY ||
+      targets.some((element) => element.frameId !== page.id)
+    ) {
+      excalidrawAPI.updateScene({
+        elements: elements.map((element) =>
+          targetIds.has(element.id)
+            ? newElementWith(element, {
+                x: element.x + offsetX,
+                y: element.y + offsetY,
+                frameId: page.id,
+              })
+            : element,
+        ),
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+    }
+  }, [excalidrawAPI, snapToBoard]);
+
+  useEffect(() => {
+    const ownerWindow = editorRootRef.current?.ownerDocument.defaultView;
+    if (!ownerWindow || !excalidrawAPI) {
+      return;
+    }
+    let pendingSnap: number | undefined;
+    const unsubscribePointerUp = excalidrawAPI.onPointerUp(() => {
+      ownerWindow.clearTimeout(pendingSnap);
+      pendingSnap = ownerWindow.setTimeout(snapSelectionToBoard, 0);
+    });
+    return () => {
+      unsubscribePointerUp();
+      ownerWindow.clearTimeout(pendingSnap);
+    };
+  }, [excalidrawAPI, snapSelectionToBoard]);
+
+  useEffect(() => {
+    const root = editorRootRef.current;
+    const ownerWindow = root?.ownerDocument.defaultView;
+    if (!root || !ownerWindow?.ResizeObserver || !excalidrawAPI) {
+      return;
+    }
+    let pendingFit: number | undefined;
+    let pointerIsDown = false;
+    let fitAfterPointerUp = false;
+    const scheduleFit = () => {
+      ownerWindow.clearTimeout(pendingFit);
+      pendingFit = ownerWindow.setTimeout(fitBoardPage, 100);
+    };
+    const unsubscribePointerDown = excalidrawAPI.onPointerDown(() => {
+      pointerIsDown = true;
+      ownerWindow.clearTimeout(pendingFit);
+    });
+    const unsubscribePointerUp = excalidrawAPI.onPointerUp(() => {
+      pointerIsDown = false;
+      if (fitAfterPointerUp) {
+        fitAfterPointerUp = false;
+        scheduleFit();
+      }
+    });
+    const observer = new ownerWindow.ResizeObserver(() => {
+      if (hasFittedPageRef.current) {
+        if (pointerIsDown) {
+          fitAfterPointerUp = true;
+        } else {
+          scheduleFit();
+        }
+      }
+    });
+    observer.observe(root);
+    return () => {
+      observer.disconnect();
+      unsubscribePointerDown();
+      unsubscribePointerUp();
+      ownerWindow.clearTimeout(pendingFit);
+    };
+  }, [excalidrawAPI, fitBoardPage]);
+
+  const changeBoardSize = (width: number, height: number) => {
+    if (!excalidrawAPI) {
+      return;
+    }
+    const elements = excalidrawAPI.getSceneElements();
+    const page = getBoardPage(elements);
+    if (!page || (page.width === width && page.height === height)) {
+      return;
+    }
+    const scaleX = width / page.width;
+    const scaleY = height / page.height;
+    const backgroundImage = getBoardBackgroundImage(elements);
+    const texture = (page.customData?.gratitudeTexture ||
+      "none") as BoardTexture;
+    excalidrawAPI.updateScene({
+      elements: elements.map((element) => {
+        if (element.id === page.id) {
+          return newElementWith(element, { width, height });
+        }
+        if (element.frameId !== page.id) {
+          return element;
+        }
+        if (element.id === backgroundImage?.id) {
+          const cover = Math.max(
+            width / element.width,
+            height / element.height,
+          );
+          const imageWidth = element.width * cover;
+          const imageHeight = element.height * cover;
+          return newElementWith(element, {
+            x: page.x + (width - imageWidth) / 2,
+            y: page.y + (height - imageHeight) / 2,
+            width: imageWidth,
+            height: imageHeight,
+          });
+        }
+        return newElementWith(element, {
+          x: page.x + (element.x - page.x) * scaleX,
+          y: page.y + (element.y - page.y) * scaleY,
+          width: element.width * scaleX,
+          height: element.height * scaleY,
+        });
+      }),
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    editorRootRef.current?.ownerDocument.defaultView?.requestAnimationFrame(
+      () => {
+        fitBoardPage();
+        if (texture !== "none") {
+          changeBoardTexture(texture);
+        }
+      },
+    );
+  };
+
+  const changeBoardColor = (color: string) => {
+    if (!excalidrawAPI) {
+      return;
+    }
+    const elements = excalidrawAPI.getSceneElements();
+    const background = getBoardBackground(elements);
+    if (!background) {
+      return;
+    }
+    excalidrawAPI.updateScene({
+      elements: elements.map((element) =>
+        element.id === background.id
+          ? newElementWith(element, { backgroundColor: color })
+          : element,
+      ),
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+  };
+
+  const setBackgroundImage = async (
+    blob: Blob | null,
+    kind: "photo" | "texture",
+    textureName: BoardTexture = "none",
+  ) => {
+    if (!excalidrawAPI) {
+      return;
+    }
+    const elements = excalidrawAPI.getSceneElements();
+    const page = getBoardPage(elements);
+    const background = getBoardBackground(elements);
+    const previous =
+      kind === "photo"
+        ? getBoardBackgroundImage(elements)
+        : getBoardTextureImage(elements);
+    if (!page || !background) {
+      return;
+    }
+    let image = null;
+    if (blob) {
+      const ownerWindow = editorRootRef.current?.ownerDocument.defaultView;
+      if (!ownerWindow) {
+        return;
+      }
+      const dataURL = await new Promise<DataURL>((resolve, reject) => {
+        const reader = new ownerWindow.FileReader();
+        reader.onload = () => resolve(reader.result as DataURL);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+      const bitmap = await ownerWindow.createImageBitmap(blob);
+      const ratio =
+        kind === "photo"
+          ? Math.max(page.width / bitmap.width, page.height / bitmap.height)
+          : 1;
+      const imageWidth = kind === "photo" ? bitmap.width * ratio : page.width;
+      const imageHeight =
+        kind === "photo" ? bitmap.height * ratio : page.height;
+      bitmap.close();
+      const fileId = ownerWindow.crypto.randomUUID() as FileId;
+      excalidrawAPI.addFiles([
+        {
+          id: fileId,
+          dataURL,
+          mimeType: blob.type as BinaryFileData["mimeType"],
+          created: Date.now(),
+        },
+      ]);
+      image = newImageElement({
+        type: "image",
+        x: page.x + (page.width - imageWidth) / 2,
+        y: page.y + (page.height - imageHeight) / 2,
+        width: imageWidth,
+        height: imageHeight,
+        frameId: page.id,
+        fileId,
+        status: "saved",
+        locked: true,
+        customData:
+          kind === "photo"
+            ? { gratitudeBackgroundImage: true }
+            : { gratitudeTextureImage: true },
+      });
+    }
+    const remaining: ExcalidrawElement[] = elements.filter(
+      (element) => element.id !== previous?.id,
+    );
+    const insertAt =
+      kind === "photo"
+        ? remaining.findIndex((element) => element.id === background.id) + 1
+        : Math.max(
+            remaining.findIndex((element) => element.id === background.id),
+            remaining.findIndex(
+              (element) =>
+                element.id === getBoardBackgroundImage(remaining)?.id,
+            ),
+          ) + 1;
+    if (image) {
+      remaining.splice(insertAt, 0, image);
+    }
+    if (previous) {
+      allowBoardLayerReplacementRef.current = true;
+    }
+    excalidrawAPI.updateScene({
+      elements: remaining.map((element) =>
+        element.id === page.id
+          ? newElementWith(element, {
+              customData: {
+                ...element.customData,
+                gratitudeTexture:
+                  kind === "texture"
+                    ? textureName
+                    : element.customData?.gratitudeTexture,
+              },
+            })
+          : element,
+      ),
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+  };
+
+  const changeBoardTexture = (texture: BoardTexture) => {
+    if (texture === "none") {
+      void setBackgroundImage(null, "texture", texture);
+      return;
+    }
+    const ownerDocument = editorRootRef.current?.ownerDocument;
+    const page =
+      excalidrawAPI && getBoardPage(excalidrawAPI.getSceneElements());
+    if (!ownerDocument || !page) {
+      return;
+    }
+    const canvas = ownerDocument.createElement("canvas");
+    canvas.width = Math.round(page.width);
+    canvas.height = Math.round(page.height);
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return;
+    }
+    context.strokeStyle = "rgba(96, 75, 71, 0.16)";
+    context.fillStyle = "rgba(96, 75, 71, 0.16)";
+    if (texture === "grid") {
+      for (let x = 0; x < canvas.width; x += 32) {
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x, canvas.height);
+        context.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 32) {
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(canvas.width, y);
+        context.stroke();
+      }
+    } else if (texture === "dots") {
+      for (let x = 16; x < canvas.width; x += 32) {
+        for (let y = 16; y < canvas.height; y += 32) {
+          context.beginPath();
+          context.arc(x, y, 1.5, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+    } else {
+      for (let y = 0; y < canvas.height; y += 4) {
+        context.globalAlpha = y % 12 === 0 ? 0.5 : 0.2;
+        context.fillRect(0, y, canvas.width, 1);
+      }
+      context.globalAlpha = 1;
+    }
+    canvas.toBlob((blob) => {
+      if (blob) {
+        void setBackgroundImage(blob, "texture", texture);
+      }
+    }, "image/png");
+  };
 
   const [errorMessage, setErrorMessage] = useState("");
-  const isCollabDisabled = isRunningInIframe();
+  const isCollabDisabled = true;
 
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
 
   const [langCode, setLangCode] = useAppLangCode();
-
-  const editorInterface = useEditorInterface();
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -381,20 +748,10 @@ const ExcalidrawWrapper = () => {
 
   const debugCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    trackEvent("load", "frame", getFrame());
-    // Delayed so that the app has a time to load the latest SW
-    setTimeout(() => {
-      trackEvent("load", "version", getVersion());
-    }, VERSION_TIMEOUT);
-  }, []);
-
-  const [, setShareDialogState] = useAtom(shareDialogStateAtom);
   const [collabAPI] = useAtom(collabAPIAtom);
   const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
     return isCollaborationLink(window.location.href);
   });
-  const collabError = useAtomValue(collabErrorIndicatorAtom);
   const userToFollow = useAtomValue(userToFollowAtom);
 
   const viewportStatusFrame = useMemo(
@@ -450,11 +807,6 @@ const ExcalidrawWrapper = () => {
       forceRefresh((prev) => !prev);
     }
   }, [excalidrawAPI]);
-
-  // ?collaborators=<N> — populate the canvas with N static fake
-  // collaborators for exercising avatar/UserList UI without a real
-  // collab room
-  useSimulatedCollaborators(excalidrawAPI);
 
   // ---------------------------------------------------------------------------
   // Hoisted loadImages
@@ -548,7 +900,26 @@ const ExcalidrawWrapper = () => {
 
     initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
-      initialStatePromiseRef.current.promise.resolve(data.scene);
+      initialStatePromiseRef.current.promise.resolve(
+        data.scene
+          ? {
+              ...data.scene,
+              elements: ensureBoardPage(data.scene.elements || []),
+              appState: {
+                ...data.scene.appState,
+                selectedElementIds: {},
+                boxSelectionMode: "overlap",
+                viewBackgroundColor: "#f8edf2",
+                frameRendering: {
+                  enabled: true,
+                  clip: true,
+                  name: false,
+                  outline: false,
+                },
+              },
+            }
+          : data.scene,
+      );
     });
 
     const onHashChange = async (event: HashChangeEvent) => {
@@ -566,11 +937,25 @@ const ExcalidrawWrapper = () => {
         initializeScene({ collabAPI, excalidrawAPI }).then((data) => {
           loadImages(data);
           if (data.scene) {
+            lastGoodBoardSceneRef.current = [];
             excalidrawAPI.updateScene({
-              elements: restoreElements(data.scene.elements, null, {
-                repairBindings: true,
-              }),
-              appState: restoreAppState(data.scene.appState, null),
+              elements: ensureBoardPage(
+                restoreElements(data.scene.elements, null, {
+                  repairBindings: true,
+                }),
+              ),
+              appState: {
+                ...restoreAppState(data.scene.appState, null),
+                selectedElementIds: {},
+                boxSelectionMode: "overlap",
+                viewBackgroundColor: "#f8edf2",
+                frameRendering: {
+                  enabled: true,
+                  clip: true,
+                  name: false,
+                  outline: false,
+                },
+              },
               captureUpdate: CaptureUpdateAction.IMMEDIATELY,
             });
           }
@@ -637,10 +1022,6 @@ const ExcalidrawWrapper = () => {
       }
     }, SYNC_BROWSER_TABS_TIMEOUT);
 
-    const onUnload = () => {
-      LocalData.flushSave();
-    };
-
     const visibilityChange = (event: FocusEvent | Event) => {
       if (event.type === EVENT.BLUR || document.hidden) {
         LocalData.flushSave();
@@ -654,13 +1035,11 @@ const ExcalidrawWrapper = () => {
     };
 
     window.addEventListener(EVENT.HASHCHANGE, onHashChange, false);
-    window.addEventListener(EVENT.UNLOAD, onUnload, false);
     window.addEventListener(EVENT.BLUR, visibilityChange, false);
     document.addEventListener(EVENT.VISIBILITY_CHANGE, visibilityChange, false);
     window.addEventListener(EVENT.FOCUS, visibilityChange, false);
     return () => {
       window.removeEventListener(EVENT.HASHCHANGE, onHashChange, false);
-      window.removeEventListener(EVENT.UNLOAD, onUnload, false);
       window.removeEventListener(EVENT.BLUR, visibilityChange, false);
       window.removeEventListener(EVENT.FOCUS, visibilityChange, false);
       document.removeEventListener(
@@ -669,7 +1048,14 @@ const ExcalidrawWrapper = () => {
         false,
       );
     };
-  }, [isCollabDisabled, collabAPI, excalidrawAPI, setLangCode, loadImages]);
+  }, [
+    isCollabDisabled,
+    collabAPI,
+    excalidrawAPI,
+    setLangCode,
+    loadImages,
+    fitBoardPage,
+  ]);
 
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
@@ -701,6 +1087,196 @@ const ExcalidrawWrapper = () => {
     appState: AppState,
     files: BinaryFiles,
   ) => {
+    const repairScene = (repair: () => void) => {
+      if (sceneRepairAttemptsRef.current >= 8) {
+        if (sceneRepairAttemptsRef.current === 8) {
+          console.error(
+            "Stopped repeated board scene repairs to keep the editor open.",
+          );
+          excalidrawAPI?.setToast({
+            message:
+              "This saved board needs repair. Your data has not been cleared.",
+          });
+        }
+        sceneRepairAttemptsRef.current += 1;
+        return false;
+      }
+      sceneRepairAttemptsRef.current += 1;
+      repair();
+      return true;
+    };
+    if (
+      excalidrawAPI &&
+      !appState.isLoading &&
+      appState.boxSelectionMode !== "overlap"
+    ) {
+      if (
+        repairScene(() =>
+          excalidrawAPI.updateScene({
+            appState: { boxSelectionMode: "overlap" },
+            captureUpdate: CaptureUpdateAction.NEVER,
+          }),
+        )
+      ) {
+        return;
+      }
+    }
+    const allowBoardLayerReplacement = allowBoardLayerReplacementRef.current;
+    allowBoardLayerReplacementRef.current = false;
+    const previousBoardScene = lastGoodBoardSceneRef.current;
+    const previousBoard = getBoardPage(previousBoardScene);
+    if (excalidrawAPI && previousBoard && !allowBoardLayerReplacement) {
+      const previousProtectedIds = [
+        previousBoard.id,
+        getBoardBackground(previousBoardScene)?.id,
+        getBoardBackgroundImage(previousBoardScene)?.id,
+        getBoardTextureImage(previousBoardScene)?.id,
+      ].filter((id): id is string => !!id);
+      const deletedBoardLayer = previousProtectedIds.some(
+        (id) =>
+          !elements.some((element) => element.id === id && !element.isDeleted),
+      );
+      if (deletedBoardLayer) {
+        const restoredBoardScene = previousBoardScene.map((element) =>
+          previousProtectedIds.includes(element.id) && !element.locked
+            ? newElementWith(element, { locked: true })
+            : element,
+        );
+        if (
+          repairScene(() =>
+            excalidrawAPI.updateScene({
+              elements: restoredBoardScene,
+              appState: { selectedElementIds: {} },
+              captureUpdate: CaptureUpdateAction.NEVER,
+            }),
+          )
+        ) {
+          excalidrawAPI.setToast({
+            message: "Use Board setup to change the board background.",
+          });
+          return;
+        }
+      }
+    }
+    if (
+      excalidrawAPI &&
+      !appState.isLoading &&
+      (!getBoardPage(elements) || !getBoardBackground(elements))
+    ) {
+      if (
+        repairScene(() =>
+          excalidrawAPI.updateScene({
+            elements: ensureBoardPage(elements),
+            appState: { selectedElementIds: {} },
+            captureUpdate: CaptureUpdateAction.NEVER,
+          }),
+        )
+      ) {
+        return;
+      }
+    }
+    if (!hasFittedPageRef.current && getBoardPage(elements)) {
+      hasFittedPageRef.current = true;
+      editorRootRef.current?.ownerDocument.defaultView?.requestAnimationFrame(
+        fitBoardPage,
+      );
+    }
+    const page = getBoardPage(elements);
+    const background = getBoardBackground(elements);
+    const backgroundImage = getBoardBackgroundImage(elements);
+    const textureImage = getBoardTextureImage(elements);
+    const protectedIds = new Set(
+      [page?.id, background?.id, backgroundImage?.id, textureImage?.id].filter(
+        (id): id is string => !!id,
+      ),
+    );
+    const unlockedBoardLayer = elements.some(
+      (element) => protectedIds.has(element.id) && !element.locked,
+    );
+    const selectedBoardLayer =
+      appState.openDialog?.name !== "imageExport" &&
+      [...protectedIds].some((id) => appState.selectedElementIds[id]);
+    if (excalidrawAPI && (unlockedBoardLayer || selectedBoardLayer)) {
+      if (
+        repairScene(() =>
+          excalidrawAPI.updateScene({
+            elements: unlockedBoardLayer
+              ? elements.map((element) =>
+                  protectedIds.has(element.id) && !element.locked
+                    ? (() => {
+                        const previous = previousBoardScene.find(
+                          (candidate) =>
+                            candidate.id === element.id && candidate.locked,
+                        );
+                        return (
+                          previous || newElementWith(element, { locked: true })
+                        );
+                      })()
+                    : element,
+                )
+              : elements,
+            appState: selectedBoardLayer
+              ? {
+                  selectedElementIds: Object.fromEntries(
+                    Object.entries(appState.selectedElementIds).filter(
+                      ([id]) => !protectedIds.has(id),
+                    ),
+                  ),
+                }
+              : undefined,
+            captureUpdate: CaptureUpdateAction.NEVER,
+          }),
+        )
+      ) {
+        return;
+      }
+    }
+    if (sceneRepairAttemptsRef.current > 8) {
+      return;
+    }
+    sceneRepairAttemptsRef.current = 0;
+    lastGoodBoardSceneRef.current = [...elements];
+    if (page && background) {
+      const nextBoardState = {
+        width: Math.round(page.width),
+        height: Math.round(page.height),
+        color: background.backgroundColor,
+        texture: (page.customData?.gratitudeTexture || "none") as BoardTexture,
+        hasImage: !!getBoardBackgroundImage(elements),
+      };
+      setBoardState((previous) =>
+        previous.width === nextBoardState.width &&
+        previous.height === nextBoardState.height &&
+        previous.color === nextBoardState.color &&
+        previous.texture === nextBoardState.texture &&
+        previous.hasImage === nextBoardState.hasImage
+          ? previous
+          : nextBoardState,
+      );
+    }
+    const selected = elements.filter(
+      (element) => appState.selectedElementIds[element.id],
+    );
+    if (canvasAdapter) {
+      const nextSelection = canvasAdapter.getSelection();
+      setVisionSelection((previous) =>
+        JSON.stringify(previous) === JSON.stringify(nextSelection)
+          ? previous
+          : nextSelection,
+      );
+    }
+    const inspectorKey =
+      selected.map((element) => element.id).join(",") ||
+      (appState.activeTool.type === "selection"
+        ? ""
+        : appState.activeTool.type);
+    if (inspectorKey !== lastInspectorKey.current) {
+      lastInspectorKey.current = inspectorKey;
+      if (inspectorKey) {
+        setBoardSettingsOpen(false);
+        setRightOpen(false);
+      }
+    }
     if (collabAPI?.isCollaborating()) {
       collabAPI.syncElements(elements);
     }
@@ -708,33 +1284,53 @@ const ExcalidrawWrapper = () => {
     // this check is redundant, but since this is a hot path, it's best
     // not to evaludate the nested expression every time
     if (!LocalData.isSavePaused()) {
-      LocalData.save(elements, appState, files, () => {
-        if (excalidrawAPI) {
-          let didChange = false;
-
-          const elements = excalidrawAPI
-            .getSceneElementsIncludingDeleted()
-            .map((element) => {
-              if (
-                LocalData.fileStorage.shouldUpdateImageElementStatus(element)
-              ) {
-                const newElement = newElementWith(element, { status: "saved" });
-                if (newElement !== element) {
-                  didChange = true;
-                }
-                return newElement;
-              }
-              return element;
-            });
-
-          if (didChange) {
-            excalidrawAPI.updateScene({
-              elements,
-              captureUpdate: CaptureUpdateAction.NEVER,
-            });
-          }
+      const ownerWindow = editorRootRef.current?.ownerDocument.defaultView;
+      let visionStorage: { storage: Storage; title: string } | undefined;
+      try {
+        if (ownerWindow) {
+          visionStorage = {
+            storage: ownerWindow.localStorage,
+            title: excalidrawAPI?.getName() || "My vision board",
+          };
         }
-      });
+      } catch {
+        // The existing scene save remains available if browser storage is blocked.
+      }
+      LocalData.save(
+        elements,
+        appState,
+        files,
+        () => {
+          if (excalidrawAPI) {
+            let didChange = false;
+
+            const elements = excalidrawAPI
+              .getSceneElementsIncludingDeleted()
+              .map((element) => {
+                if (
+                  LocalData.fileStorage.shouldUpdateImageElementStatus(element)
+                ) {
+                  const newElement = newElementWith(element, {
+                    status: "saved",
+                  });
+                  if (newElement !== element) {
+                    didChange = true;
+                  }
+                  return newElement;
+                }
+                return element;
+              });
+
+            if (didChange) {
+              excalidrawAPI.updateScene({
+                elements,
+                captureUpdate: CaptureUpdateAction.NEVER,
+              });
+            }
+          }
+        },
+        visionStorage,
+      );
     }
 
     // Render the debug scene if the debug canvas is available
@@ -748,71 +1344,9 @@ const ExcalidrawWrapper = () => {
     }
   };
 
-  const [latestShareableLink, setLatestShareableLink] = useState<string | null>(
-    null,
-  );
-
-  const onExportToBackend = async (
-    exportedElements: readonly NonDeletedExcalidrawElement[],
-    appState: Partial<AppState>,
-    files: BinaryFiles,
-  ) => {
-    if (exportedElements.length === 0) {
-      throw new Error(t("alerts.cannotExportEmptyCanvas"));
-    }
-    try {
-      const { url, errorMessage } = await exportToBackend(
-        exportedElements,
-        {
-          ...appState,
-          viewBackgroundColor: appState.exportBackground
-            ? appState.viewBackgroundColor
-            : getDefaultAppState().viewBackgroundColor,
-        },
-        files,
-      );
-
-      if (errorMessage) {
-        throw new Error(errorMessage);
-      }
-
-      if (url) {
-        setLatestShareableLink(url);
-      }
-    } catch (error: any) {
-      if (error.name !== "AbortError") {
-        const { width, height } = appState;
-        console.error(error, {
-          width,
-          height,
-          devicePixelRatio: window.devicePixelRatio,
-        });
-        throw new Error(error.message);
-      }
-    }
-  };
-
-  const renderCustomStats = (
-    elements: readonly NonDeletedExcalidrawElement[],
-    appState: UIAppState,
-  ) => {
-    return (
-      <CustomStats
-        setToast={(message) => excalidrawAPI!.setToast({ message })}
-        appState={appState}
-        elements={elements}
-      />
-    );
-  };
-
   const isOffline = useAtomValue(isOfflineAtom);
 
   const localStorageQuotaExceeded = useAtomValue(localStorageQuotaExceededAtom);
-
-  const onCollabDialogOpen = useCallback(
-    () => setShareDialogState({ isOpen: true, type: "collaborationOnly" }),
-    [setShareDialogState],
-  );
 
   // ---------------------------------------------------------------------------
   // onExport — intercepts file save to wait for pending image loads
@@ -820,6 +1354,16 @@ const ExcalidrawWrapper = () => {
   const onExport: Required<ExcalidrawProps>["onExport"] = useCallback(
     async function* () {
       let snapshot = FileStatusStore.getSnapshot();
+      const failed = [...snapshot.value.values()].filter(
+        (status) => status === "error",
+      ).length;
+      if (failed) {
+        throw new Error(
+          `${failed} board image${
+            failed === 1 ? " is" : "s are"
+          } unavailable. Retry the missing image before exporting.`,
+        );
+      }
       const { pending, total } = FileStatusStore.getPendingCount(
         snapshot.value,
       );
@@ -837,6 +1381,16 @@ const ExcalidrawWrapper = () => {
       // Wait for all pending images to finish
       while (true) {
         snapshot = await FileStatusStore.pull(snapshot.version);
+        const nowFailed = [...snapshot.value.values()].filter(
+          (status) => status === "error",
+        ).length;
+        if (nowFailed) {
+          throw new Error(
+            `${nowFailed} board image${
+              nowFailed === 1 ? " is" : "s are"
+            } unavailable. Retry the missing image before exporting.`,
+          );
+        }
         const { pending: nowPending, total: nowTotal } =
           FileStatusStore.getPendingCount(snapshot.value);
 
@@ -867,6 +1421,34 @@ const ExcalidrawWrapper = () => {
   // browsers generally prevent infinite self-embedding, there are
   // cases where it still happens, and while we disallow self-embedding
   // by not whitelisting our own origin, this serves as an additional guard
+  const placeAsset = async (
+    asset: GratitudeAsset,
+    ownerDocument: Document,
+    position?: { x: number; y: number },
+  ) => {
+    const ownerWindow = ownerDocument.defaultView;
+    if (!excalidrawAPI || !ownerWindow) {
+      return;
+    }
+    try {
+      const downloaded = await fetchAsset(asset, ownerWindow);
+      const image =
+        asset.mimeType === "image/svg+xml"
+          ? await svgToPng(downloaded, ownerDocument)
+          : downloaded;
+      await canvasAdapter?.createImage(
+        image,
+        ownerWindow,
+        asset,
+        position ? { ...position, constrainToBoard: snapToBoard } : undefined,
+      );
+    } catch {
+      excalidrawAPI.setToast({
+        message: "That asset could not be added. Please try again.",
+      });
+    }
+  };
+
   if (isSelfEmbedding) {
     return (
       <div
@@ -885,15 +1467,171 @@ const ExcalidrawWrapper = () => {
 
   return (
     <GratitudeShell
-      api={excalidrawAPI}
+      adapter={canvasAdapter}
       name={excalidrawAPI?.getName() || "My vision board"}
+      theme={editorTheme}
+      onPlaceAsset={placeAsset}
+      onUploadAsset={async (file: File, ownerDocument: Document) => {
+        const ownerWindow = ownerDocument.defaultView;
+        if (!excalidrawAPI || !ownerWindow) {
+          return;
+        }
+        try {
+          const asset: GratitudeAsset = {
+            id: `upload:${ownerWindow.crypto.randomUUID()}`,
+            provider: "upload",
+            type: "photo",
+            title: file.name,
+            tags: [],
+            previewUrl: "",
+            assetUrl: "",
+            mimeType: file.type,
+            license: {
+              tier: "A",
+              id: "user-provided",
+              label: "User provided",
+              attributionRequired: false,
+            },
+            editable: { crop: true, filters: true },
+          };
+          await canvasAdapter?.createImage(file, ownerWindow, asset);
+        } catch {
+          excalidrawAPI.setToast({
+            message: "That photo could not be added. Use PNG, JPEG, or WebP.",
+          });
+        }
+      }}
+      rightOpen={rightOpen}
+      boardSettingsOpen={boardSettingsOpen}
+      onBoardSettingsOpen={() => {
+        excalidrawAPI?.updateScene({ appState: { selectedElementIds: {} } });
+        setBoardSettingsOpen(true);
+        setRightOpen(true);
+      }}
+      boardSettings={
+        <BoardSettings
+          {...boardState}
+          onSizeChange={changeBoardSize}
+          onColorChange={changeBoardColor}
+          onTextureChange={changeBoardTexture}
+          onImageChange={(file) => {
+            if (
+              !["image/png", "image/jpeg", "image/webp"].includes(file.type)
+            ) {
+              excalidrawAPI?.setToast({
+                message: "Use a PNG, JPEG, or WebP image.",
+              });
+              return;
+            }
+            void setBackgroundImage(file, "photo").catch(() =>
+              excalidrawAPI?.setToast({
+                message: "That image could not be added.",
+              }),
+            );
+          }}
+          onImageRemove={() => void setBackgroundImage(null, "photo")}
+        />
+      }
+      onRightToggle={() => setRightOpen((open) => !open)}
+      footerRef={setFooterTarget}
+      selectionToolbar={
+        <GratitudeSelectionToolbar
+          adapter={canvasAdapter}
+          selection={visionSelection}
+        />
+      }
     >
       <div
+        ref={editorRootRef}
         className={clsx("excalidraw-app", {
           "is-collaborating": isCollaborating,
         })}
+        onDragOverCapture={(event) => {
+          if (
+            Array.from(event.dataTransfer.types).includes(
+              GRATITUDE_ASSET_DRAG_TYPE,
+            )
+          ) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+          }
+        }}
+        onDropCapture={(event) => {
+          const serialized = event.dataTransfer.getData(
+            GRATITUDE_ASSET_DRAG_TYPE,
+          );
+          if (!serialized || !excalidrawAPI) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          try {
+            const asset: unknown = JSON.parse(serialized);
+            if (!isGratitudeAsset(asset)) {
+              throw new Error("Invalid asset data");
+            }
+            const state = excalidrawAPI.getAppState();
+            const position = {
+              x:
+                (event.clientX - state.offsetLeft) / state.zoom.value -
+                state.scrollX,
+              y:
+                (event.clientY - state.offsetTop) / state.zoom.value -
+                state.scrollY,
+            };
+            void placeAsset(asset, event.currentTarget.ownerDocument, position);
+          } catch {
+            excalidrawAPI.setToast({
+              message: "That asset could not be dropped on the board.",
+            });
+          }
+        }}
       >
         <Excalidraw
+          name="My vision board"
+          snapToBoard={snapToBoard}
+          renderEditorUI={(slots) => (
+            <>
+              {footerTarget &&
+                createPortal(
+                  <div className="gratitude-board-controls">
+                    {slots.history}
+                    {slots.zoom}
+                    <button
+                      type="button"
+                      role="switch"
+                      className={`gratitude-snap-toggle${
+                        snapToBoard ? " is-active" : ""
+                      }`}
+                      aria-label="Snap to edges"
+                      aria-checked={snapToBoard}
+                      title="Keep every movable item inside the board"
+                      onClick={() => setSnapToBoard((enabled) => !enabled)}
+                    >
+                      <span>Snap to edges</span>
+                      <span
+                        className="gratitude-snap-toggle__track"
+                        aria-hidden="true"
+                      />
+                      <span
+                        className="gratitude-snap-toggle__state"
+                        aria-hidden="true"
+                      >
+                        {snapToBoard ? "On" : "Off"}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="gratitude-fit-page"
+                      onClick={fitBoardPage}
+                    >
+                      Fit page
+                    </button>
+                  </div>,
+                  footerTarget,
+                )}
+            </>
+          )}
           viewportStatusFrame={viewportStatusFrame}
           userToFollow={userToFollow}
           onChange={onChange}
@@ -902,38 +1640,47 @@ const ExcalidrawWrapper = () => {
           isCollaborating={isCollaborating}
           onPointerUpdate={collabAPI?.onPointerUpdate}
           UIOptions={{
+            disabledActions: [
+              "gridMode",
+              "objectsSnapMode",
+              "arrowBinding",
+              "midpointSnapping",
+              "zenMode",
+              "viewMode",
+              "stats",
+              "addToLibrary",
+              "hyperlink",
+              "copyElementLink",
+              "linkToElement",
+              "toggleShapeSwitch",
+              "changeFillStyle",
+              "changeSloppiness",
+              "changeRoundness",
+              "changeFreedrawMode",
+              "changeArrowProperties",
+              "changeArrowhead",
+              "changeArrowType",
+            ],
             canvasActions: {
               toggleTheme: true,
-              export: { onExportToBackend },
+              export: false,
+            },
+            tools: {
+              image: true,
+              laser: false,
+              embeddable: false,
+              autoshape: false,
+              bucketfill: false,
+              magicframe: false,
+              lasso: false,
             },
           }}
           langCode={langCode}
-          renderCustomStats={renderCustomStats}
           detectScroll={false}
           handleKeyboardGlobally={true}
           autoFocus={true}
           theme={editorTheme}
           onThemeChange={setAppTheme}
-          renderTopRightUI={(isMobile) => {
-            if (isMobile || !collabAPI || isCollabDisabled) {
-              return null;
-            }
-
-            return (
-              <div className="excalidraw-ui-top-right">
-                {collabError.message && (
-                  <CollabError collabError={collabError} />
-                )}
-                <LiveCollaborationTrigger
-                  isCollaborating={isCollaborating}
-                  onSelect={() =>
-                    setShareDialogState({ isOpen: true, type: "share" })
-                  }
-                  editorInterface={editorInterface}
-                />
-              </div>
-            );
-          }}
           onLinkOpen={(element, event) => {
             if (element.link && isElementLink(element.link)) {
               event.preventDefault();
@@ -945,21 +1692,17 @@ const ExcalidrawWrapper = () => {
             }
           }}
         >
-          <AppMainMenu
-            onCollabDialogOpen={onCollabDialogOpen}
-            isCollaborating={isCollaborating}
-            isCollabEnabled={!isCollabDisabled}
-            theme={appTheme}
-            refresh={() => forceRefresh((prev) => !prev)}
-          />
+          <WelcomeScreen>
+            <WelcomeScreen.Center>
+              <GratitudeWelcomeScreen adapter={canvasAdapter} />
+            </WelcomeScreen.Center>
+          </WelcomeScreen>
+          <AppMainMenu theme={appTheme} />
           <OverwriteConfirmDialog>
             <OverwriteConfirmDialog.Actions.ExportToImage />
             <OverwriteConfirmDialog.Actions.SaveToDisk />
           </OverwriteConfirmDialog>
           <AppFooter onChange={() => excalidrawAPI?.refresh()} />
-          {excalidrawAPI && <AIComponents excalidrawAPI={excalidrawAPI} />}
-
-          <TTDDialogTrigger />
           {isCollaborating && isOffline && (
             <div className="alertalert--warning">
               {t("alerts.collabOfflineWarning")}
@@ -970,120 +1713,11 @@ const ExcalidrawWrapper = () => {
               {t("alerts.localStorageQuotaExceeded")}
             </div>
           )}
-          {latestShareableLink && (
-            <ShareableLinkDialog
-              link={latestShareableLink}
-              onCloseRequest={() => setLatestShareableLink(null)}
-              setErrorMessage={setErrorMessage}
-            />
-          )}
-          {excalidrawAPI && !isCollabDisabled && (
-            <Collab excalidrawAPI={excalidrawAPI} />
-          )}
-
-          <ShareDialog
-            collabAPI={collabAPI}
-            onExportToBackend={async () => {
-              if (excalidrawAPI) {
-                try {
-                  await onExportToBackend(
-                    excalidrawAPI.getSceneElements(),
-                    excalidrawAPI.getAppState(),
-                    excalidrawAPI.getFiles(),
-                  );
-                } catch (error: any) {
-                  setErrorMessage(error.message);
-                }
-              }
-            }}
-          />
-
           {errorMessage && (
             <ErrorDialog onClose={() => setErrorMessage("")}>
               {errorMessage}
             </ErrorDialog>
           )}
-
-          <CommandPalette
-            customCommandPaletteItems={[
-              {
-                label: t("labels.liveCollaboration"),
-                category: DEFAULT_CATEGORIES.app,
-                keywords: [
-                  "team",
-                  "multiplayer",
-                  "share",
-                  "public",
-                  "session",
-                  "invite",
-                ],
-                icon: usersIcon,
-                perform: () => {
-                  setShareDialogState({
-                    isOpen: true,
-                    type: "collaborationOnly",
-                  });
-                },
-              },
-              {
-                label: t("roomDialog.button_stopSession"),
-                category: DEFAULT_CATEGORIES.app,
-                predicate: () => !!collabAPI?.isCollaborating(),
-                keywords: [
-                  "stop",
-                  "session",
-                  "end",
-                  "leave",
-                  "close",
-                  "exit",
-                  "collaboration",
-                ],
-                perform: () => {
-                  if (collabAPI) {
-                    collabAPI.stopCollaboration();
-                    if (!collabAPI.isCollaborating()) {
-                      setShareDialogState({ isOpen: false });
-                    }
-                  }
-                },
-              },
-              {
-                label: t("labels.share"),
-                category: DEFAULT_CATEGORIES.app,
-                predicate: true,
-                icon: share,
-                keywords: [
-                  "link",
-                  "shareable",
-                  "readonly",
-                  "export",
-                  "publish",
-                  "snapshot",
-                  "url",
-                  "collaborate",
-                  "invite",
-                ],
-                perform: async () => {
-                  setShareDialogState({ isOpen: true, type: "share" });
-                },
-              },
-              {
-                label: t("labels.installPWA"),
-                category: DEFAULT_CATEGORIES.app,
-                predicate: () => !!pwaEvent,
-                perform: () => {
-                  if (pwaEvent) {
-                    pwaEvent.prompt();
-                    pwaEvent.userChoice.then(() => {
-                      // event cannot be reused, but we'll hopefully
-                      // grab new one as the event should be fired again
-                      pwaEvent = null;
-                    });
-                  }
-                },
-              },
-            ]}
-          />
           {isVisualDebuggerEnabled() && excalidrawAPI && (
             <DebugCanvas
               appState={excalidrawAPI.getAppState()}
@@ -1098,12 +1732,6 @@ const ExcalidrawWrapper = () => {
 };
 
 const ExcalidrawApp = () => {
-  const isCloudExportWindow =
-    window.location.pathname === "/excalidraw-plus-export";
-  if (isCloudExportWindow) {
-    return <ExcalidrawPlusIframeExport />;
-  }
-
   return (
     <TopErrorBoundary>
       <Provider store={appJotaiStore}>

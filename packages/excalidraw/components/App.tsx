@@ -82,7 +82,6 @@ import {
   isDevEnv,
   updateStable,
   addEventListener,
-  normalizeEOL,
   getDateTime,
   isShallowEqual,
   arrayToMap,
@@ -164,7 +163,6 @@ import {
   isPathALoop,
   createSrcDoc,
   embeddableURLValidator,
-  maybeParseEmbedSrc,
   getEmbedLink,
   getInitializedImageElements,
   normalizeSVG,
@@ -299,7 +297,6 @@ import type {
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
 
 import {
-  actionAddToLibrary,
   actionBringForward,
   actionBringToFront,
   actionCopy,
@@ -318,24 +315,15 @@ import {
   actionSelectAll,
   actionSendBackward,
   actionSendToBack,
-  actionToggleGridMode,
-  actionToggleStats,
-  actionToggleZenMode,
   actionUnbindText,
   actionBindText,
   actionUngroup,
-  actionLink,
   actionToggleElementLock,
   actionToggleLinearEditor,
-  actionToggleObjectsSnapMode,
-  actionToggleArrowBinding,
-  actionToggleMidpointSnapping,
   actionToggleCropEditor,
 } from "../actions";
 import { actionWrapTextInContainer } from "../actions/actionBoundText";
 import { actionPaste } from "../actions/actionClipboard";
-import { actionCopyElementLink } from "../actions/actionElementLink";
-import { actionUnlockAllElements } from "../actions/actionElementLock";
 import {
   actionRemoveAllElementsFromFrame,
   actionSelectAllElementsInFrame,
@@ -343,7 +331,6 @@ import {
 } from "../actions/actionFrame";
 import { createRedoAction, createUndoAction } from "../actions/actionHistory";
 import { actionTextAutoResize } from "../actions/actionTextAutoResize";
-import { actionToggleViewMode } from "../actions/actionToggleViewMode";
 import { ActionManager } from "../actions/manager";
 import { actions } from "../actions/register";
 import { getShortcutFromShortcutName } from "../actions/shortcuts";
@@ -423,7 +410,6 @@ import { withBatchedUpdates, withBatchedUpdatesThrottled } from "../reactUtils";
 import { isPointHittingTextAutoResizeHandle } from "../textAutoResizeHandle";
 import { textWysiwyg } from "../wysiwyg/textWysiwyg";
 import { isOverScrollBars } from "../scene/scrollbars";
-import { isMaybeMermaidDefinition } from "../mermaid";
 import { LassoTrail } from "../lasso";
 import { EraserTrail } from "../eraser";
 import { getShortcutKey } from "../shortcut";
@@ -2193,6 +2179,9 @@ class App extends React.Component<AppProps, AppState> {
         : null;
 
     return nonDeletedFramesLikes.map((f) => {
+      if (f.customData?.gratitudePage === true) {
+        return null;
+      }
       // The name is a decoration that follows the frame's render overrides,
       // except while it's being edited: editing is interaction and keeps to
       // document geometry like everything else interactive. Culling by the
@@ -4727,77 +4716,6 @@ class App extends React.Component<AppProps, AppState> {
 
     // ------------------- Only textual stuff remaining -------------------
     if (!data.text) {
-      return;
-    }
-
-    // ------------------- Successful Mermaid -------------------
-    if (!isPlainPaste && isMaybeMermaidDefinition(data.text)) {
-      const api = await import("@excalidraw/mermaid-to-excalidraw");
-      try {
-        const { elements: skeletonElements, files = {} } =
-          await api.parseMermaidToExcalidraw(data.text);
-
-        const elements = convertToExcalidrawElements(skeletonElements, {
-          regenerateIds: true,
-        });
-
-        this.addElementsFromPasteOrLibrary({
-          elements,
-          files,
-          position:
-            this.editorInterface.formFactor === "desktop" ? "cursor" : "center",
-        });
-
-        return;
-      } catch (err: any) {
-        console.warn(
-          `parsing pasted text as mermaid definition failed: ${err.message}`,
-        );
-      }
-    }
-
-    // ------------------- Pure embeddable URLs -------------------
-    const nonEmptyLines = normalizeEOL(data.text)
-      .split(/\n+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const embbeddableUrls = nonEmptyLines
-      .map((str) => maybeParseEmbedSrc(str))
-      .filter(
-        (string) =>
-          embeddableURLValidator(string, this.props.validateEmbeddable) &&
-          (/^(http|https):\/\/[^\s/$.?#].[^\s]*$/.test(string) ||
-            getEmbedLink(string)?.type === "video"),
-      );
-
-    if (
-      !isPlainPaste &&
-      embbeddableUrls.length > 0 &&
-      embbeddableUrls.length === nonEmptyLines.length
-    ) {
-      const embeddables: NonDeleted<ExcalidrawEmbeddableElement>[] = [];
-      for (const url of embbeddableUrls) {
-        const prevEmbeddable: ExcalidrawEmbeddableElement | undefined =
-          embeddables[embeddables.length - 1];
-        const embeddable = this.insertEmbeddableElement({
-          sceneX: prevEmbeddable
-            ? prevEmbeddable.x + prevEmbeddable.width + 20
-            : sceneX,
-          sceneY,
-          link: normalizeLink(url),
-        });
-        if (embeddable) {
-          embeddables.push(embeddable);
-        }
-      }
-      if (embeddables.length) {
-        this.store.scheduleCapture();
-        this.setState({
-          selectedElementIds: Object.fromEntries(
-            embeddables.map((embeddable) => [embeddable.id, true]),
-          ),
-        });
-      }
       return;
     }
 
@@ -11104,6 +11022,33 @@ class App extends React.Component<AppProps, AppState> {
           // when we're editing the name of a frame, we want the user to be
           // able to select and interact with the text input
           if (!this.state.editingFrame) {
+            const boardPage = this.props.snapToBoard
+              ? this.scene
+                  .getNonDeletedElements()
+                  .find(
+                    (element) =>
+                      element.type === "frame" &&
+                      element.customData?.gratitudePage === true,
+                  )
+              : null;
+            const boardSnap =
+              boardPage &&
+              selectedElements.length > 0 &&
+              selectedElements.every(
+                (element) =>
+                  pointerDownState.originalElements.get(element.id)?.frameId ===
+                  boardPage.id,
+              )
+                ? {
+                    bounds: [
+                      boardPage.x,
+                      boardPage.y,
+                      boardPage.x + boardPage.width,
+                      boardPage.y + boardPage.height,
+                    ] as [number, number, number, number],
+                    threshold: 12 / this.state.zoom.value,
+                  }
+                : undefined;
             dragSelectedElements(
               pointerDownState,
               selectedElements,
@@ -11111,6 +11056,7 @@ class App extends React.Component<AppProps, AppState> {
               this.scene,
               snapOffset,
               event[KEYS.CTRL_OR_CMD] ? null : this.getEffectiveGridSize(),
+              boardSnap,
             );
           }
 
@@ -11493,7 +11439,13 @@ class App extends React.Component<AppProps, AppState> {
           this.store.scheduleCapture();
         }
 
-        if (hitLockedElement?.locked) {
+        const isBoardBackgroundLayer =
+          hitLockedElement?.customData?.gratitudePage === true ||
+          hitLockedElement?.customData?.gratitudeBackground === true ||
+          hitLockedElement?.customData?.gratitudeBackgroundImage === true ||
+          hitLockedElement?.customData?.gratitudeTextureImage === true;
+
+        if (hitLockedElement?.locked && !isBoardBackgroundLayer) {
           this.setState({
             activeLockedId:
               hitLockedElement.groupIds.length > 0
@@ -13712,13 +13664,7 @@ class App extends React.Component<AppProps, AppState> {
 
     if (type === "canvas") {
       if (this.state.viewModeEnabled) {
-        return [
-          ...options,
-          actionToggleGridMode,
-          actionToggleZenMode,
-          actionToggleViewMode,
-          actionToggleStats,
-        ];
+        return [...options];
       }
 
       return [
@@ -13729,15 +13675,6 @@ class App extends React.Component<AppProps, AppState> {
         copyText,
         CONTEXT_MENU_SEPARATOR,
         actionSelectAll,
-        actionUnlockAllElements,
-        CONTEXT_MENU_SEPARATOR,
-        actionToggleGridMode,
-        actionToggleObjectsSnapMode,
-        actionToggleArrowBinding,
-        actionToggleMidpointSnapping,
-        actionToggleZenMode,
-        actionToggleViewMode,
-        actionToggleStats,
       ];
     }
 
@@ -13785,16 +13722,12 @@ class App extends React.Component<AppProps, AppState> {
       actionWrapTextInContainer,
       actionUngroup,
       CONTEXT_MENU_SEPARATOR,
-      actionAddToLibrary,
       ...zIndexActions,
       CONTEXT_MENU_SEPARATOR,
       actionFlipHorizontal,
       actionFlipVertical,
       CONTEXT_MENU_SEPARATOR,
       actionToggleLinearEditor,
-      CONTEXT_MENU_SEPARATOR,
-      actionLink,
-      actionCopyElementLink,
       CONTEXT_MENU_SEPARATOR,
       actionDuplicateSelection,
       actionToggleElementLock,

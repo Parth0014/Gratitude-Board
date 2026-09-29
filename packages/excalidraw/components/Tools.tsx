@@ -341,23 +341,9 @@ export const FrameToolButton = createToolButton("frame");
 
 /**
  * The selection tool button — pointer-clicking it while the selection tool
- * is active switches to lasso.
+ * remains selected when clicked again.
  */
-export const SelectionToolButton = createToolButton("selection", {
-  onSelect: (app, { pointerType }) => {
-    if (app.state.activeTool.type === "selection" && pointerType !== null) {
-      // pointer-clicking the active selection tool switches to lasso;
-      // keyboard/AT activation stays on selection
-      app.setActiveTool({ type: "lasso" });
-      return;
-    }
-
-    if (app.state.activeTool.type !== "selection") {
-      trackEvent("toolbar", "selection", "ui");
-      app.setActiveTool({ type: "selection" });
-    }
-  },
-});
+export const SelectionToolButton = createToolButton("selection");
 
 /**
  * Rendered in place of the selection button when lasso is the preferred

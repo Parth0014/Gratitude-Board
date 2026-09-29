@@ -754,9 +754,10 @@ const renderElementToSvg = (
 
         rect.setAttribute("width", `${element.width}px`);
         rect.setAttribute("height", `${element.height}px`);
-        // Rounded corners
-        rect.setAttribute("rx", FRAME_STYLE.radius.toString());
-        rect.setAttribute("ry", FRAME_STYLE.radius.toString());
+        if (element.customData?.gratitudePage !== true) {
+          rect.setAttribute("rx", FRAME_STYLE.radius.toString());
+          rect.setAttribute("ry", FRAME_STYLE.radius.toString());
+        }
 
         rect.setAttribute("fill", "none");
         rect.setAttribute(

@@ -170,7 +170,7 @@ export const frameClip = (
 ) => {
   context.translate(frame.x + appState.scrollX, frame.y + appState.scrollY);
   context.beginPath();
-  if (context.roundRect) {
+  if (context.roundRect && frame.customData?.gratitudePage !== true) {
     context.roundRect(
       0,
       0,

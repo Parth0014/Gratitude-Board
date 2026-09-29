@@ -1,4 +1,5 @@
 import path from "path";
+
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import svgrPlugin from "vite-plugin-svgr";
@@ -6,15 +7,23 @@ import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { VitePWA } from "vite-plugin-pwa";
 import checker from "vite-plugin-checker";
 import { createHtmlPlugin } from "vite-plugin-html";
-import Sitemap from "vite-plugin-sitemap";
+
 import { woff2BrowserPlugin } from "../scripts/woff2/woff2-vite-plugins";
+import { searchPexels } from "../server/pexels.mjs";
+import { searchOpenverse } from "../server/openverse.mjs";
+import { searchWikimedia } from "../server/wikimedia.mjs";
+import { searchSmithsonian } from "../server/smithsonian.mjs";
+import { searchRijksmuseum } from "../server/rijksmuseum.mjs";
+import { patternMonsterRequest } from "../server/patternMonster.mjs";
 export default defineConfig(({ mode }) => {
   // To load .env variables
   const envVars = loadEnv(mode, `../`);
+  const privateEnv = loadEnv(mode, `../`, "");
   // https://vitejs.dev/config/
   return {
     server: {
       port: Number(envVars.VITE_APP_PORT || 3000),
+      strictPort: true,
       // open the browser
       open: true,
     },
@@ -132,13 +141,211 @@ export default defineConfig(({ mode }) => {
       assetsInlineLimit: 0,
     },
     plugins: [
-      Sitemap({
-        hostname: "https://excalidraw.com",
-        outDir: "build",
-        changefreq: "monthly",
-        // its static in public folder
-        generateRobotsTxt: false,
-      }),
+      {
+        name: "gratitude-pexels-dev-api",
+        enforce: "pre",
+        configureServer(server) {
+          server.middlewares.use("/reset-local-data", (request, response) => {
+            if (request.headers.host !== "localhost:3000") {
+              response.statusCode = 400;
+              response.end("Open this page at localhost:3000.");
+              return;
+            }
+            response.setHeader("Content-Type", "text/html; charset=utf-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.setHeader("Clear-Site-Data", '"cache", "storage"');
+            response.end(`<!doctype html><html lang="en"><meta charset="utf-8"><title>Reset local app data</title>
+<body style="font:16px system-ui;max-width:36rem;margin:4rem auto;padding:1rem">
+<h1>Clearing localhost app data…</h1><p id="status">Please wait.</p>
+<script>
+(async () => {
+  const root = document.getElementById("status");
+  const ownerWindow = root.ownerDocument.defaultView;
+  const attempts = [];
+  try { ownerWindow.localStorage.clear(); } catch (error) { attempts.push(error); }
+  try { ownerWindow.sessionStorage.clear(); } catch (error) { attempts.push(error); }
+  try {
+    const keys = await ownerWindow.caches.keys();
+    await Promise.all(keys.map((key) => ownerWindow.caches.delete(key)));
+  } catch (error) { attempts.push(error); }
+  try {
+    const registrations = await ownerWindow.navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  } catch (error) { attempts.push(error); }
+  try {
+    const databases = await ownerWindow.indexedDB.databases();
+    await Promise.all(databases.filter((database) => database.name).map((database) => new Promise((resolve) => {
+      const deletion = ownerWindow.indexedDB.deleteDatabase(database.name);
+      deletion.onsuccess = resolve;
+      deletion.onerror = resolve;
+      deletion.onblocked = resolve;
+    })));
+  } catch (error) { attempts.push(error); }
+  root.textContent = attempts.length ? "Some browser data could not be cleared. Opening the app…" : "Local data cleared. Opening the app…";
+  ownerWindow.setTimeout(() => ownerWindow.location.replace("/"), 700);
+})();
+</script></body></html>`);
+          });
+          server.middlewares.use("/sw.js", (_request, response) => {
+            response.setHeader("Content-Type", "application/javascript");
+            response.setHeader("Cache-Control", "no-store");
+            response.end(`self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.registration.unregister().then(() =>
+    self.clients.matchAll().then((clients) =>
+      Promise.all(clients.map((client) => client.navigate(client.url)))
+    )
+  ));
+});`);
+          });
+          server.middlewares.use("/api/pexels", async (request, response) => {
+            const result = await searchPexels(
+              new URL(request.url || "", "http://localhost").searchParams,
+              privateEnv.PEXELS_API_KEY || process.env.PEXELS_API_KEY,
+            );
+            response.statusCode = result.status;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify(result.body));
+          });
+          server.middlewares.use(
+            "/api/openverse",
+            async (request, response) => {
+              const result = await searchOpenverse(
+                new URL(request.url || "", "http://localhost").searchParams,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/wikimedia",
+            async (request, response) => {
+              const result = await searchWikimedia(
+                new URL(request.url || "", "http://localhost").searchParams,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/smithsonian",
+            async (request, response) => {
+              const result = await searchSmithsonian(
+                new URL(request.url || "", "http://localhost").searchParams,
+                privateEnv.SMITHSONIAN_API_KEY ||
+                  process.env.SMITHSONIAN_API_KEY,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/rijksmuseum",
+            async (request, response) => {
+              const result = await searchRijksmuseum(
+                new URL(request.url || "", "http://localhost").searchParams,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/pattern-monster",
+            async (request, response) => {
+              const result = await patternMonsterRequest(
+                new URL(request.url || "", "http://localhost").searchParams,
+                privateEnv.PATTERN_MONSTER_API_KEY ||
+                  process.env.PATTERN_MONSTER_API_KEY,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", result.contentType);
+              response.end(
+                typeof result.body === "string"
+                  ? result.body
+                  : JSON.stringify(result.body),
+              );
+            },
+          );
+        },
+        configurePreviewServer(server) {
+          server.middlewares.use("/api/pexels", async (request, response) => {
+            const result = await searchPexels(
+              new URL(request.url || "", "http://localhost").searchParams,
+              privateEnv.PEXELS_API_KEY || process.env.PEXELS_API_KEY,
+            );
+            response.statusCode = result.status;
+            response.setHeader("Content-Type", "application/json");
+            response.end(JSON.stringify(result.body));
+          });
+          server.middlewares.use(
+            "/api/openverse",
+            async (request, response) => {
+              const result = await searchOpenverse(
+                new URL(request.url || "", "http://localhost").searchParams,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/wikimedia",
+            async (request, response) => {
+              const result = await searchWikimedia(
+                new URL(request.url || "", "http://localhost").searchParams,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/smithsonian",
+            async (request, response) => {
+              const result = await searchSmithsonian(
+                new URL(request.url || "", "http://localhost").searchParams,
+                privateEnv.SMITHSONIAN_API_KEY ||
+                  process.env.SMITHSONIAN_API_KEY,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/rijksmuseum",
+            async (request, response) => {
+              const result = await searchRijksmuseum(
+                new URL(request.url || "", "http://localhost").searchParams,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", "application/json");
+              response.end(JSON.stringify(result.body));
+            },
+          );
+          server.middlewares.use(
+            "/api/pattern-monster",
+            async (request, response) => {
+              const result = await patternMonsterRequest(
+                new URL(request.url || "", "http://localhost").searchParams,
+                privateEnv.PATTERN_MONSTER_API_KEY ||
+                  process.env.PATTERN_MONSTER_API_KEY,
+              );
+              response.statusCode = result.status;
+              response.setHeader("Content-Type", result.contentType);
+              response.end(
+                typeof result.body === "string"
+                  ? result.body
+                  : JSON.stringify(result.body),
+              );
+            },
+          );
+        },
+      },
       woff2BrowserPlugin(),
       react(),
       checker({
@@ -226,94 +433,14 @@ export default defineConfig(({ mode }) => {
           maximumFileSizeToCacheInBytes: 2.3 * 1024 ** 2, // 2.3MB
         },
         manifest: {
-          short_name: "Excalidraw",
-          name: "Excalidraw",
-          description:
-            "Excalidraw is a whiteboard tool that lets you easily sketch diagrams that have a hand-drawn feel to them.",
-          icons: [
-            {
-              src: "android-chrome-192x192.png",
-              sizes: "192x192",
-              type: "image/png",
-            },
-            {
-              src: "apple-touch-icon.png",
-              type: "image/png",
-              sizes: "180x180",
-            },
-            {
-              src: "favicon-32x32.png",
-              sizes: "32x32",
-              type: "image/png",
-            },
-            {
-              src: "favicon-16x16.png",
-              sizes: "16x16",
-              type: "image/png",
-            },
-          ],
+          short_name: "Gratitude",
+          name: "Gratitude Studio",
+          description: "Create and reflect on your vision board.",
           start_url: "/",
-          id: "excalidraw",
+          id: "gratitude-studio",
           display: "standalone",
-          theme_color: "#121212",
-          background_color: "#ffffff",
-          file_handlers: [
-            {
-              action: "/",
-              accept: {
-                "application/vnd.excalidraw+json": [".excalidraw"],
-              },
-            },
-          ],
-          share_target: {
-            action: "/web-share-target",
-            method: "POST",
-            enctype: "multipart/form-data",
-            params: {
-              files: [
-                {
-                  name: "file",
-                  accept: [
-                    "application/vnd.excalidraw+json",
-                    "application/json",
-                    ".excalidraw",
-                  ],
-                },
-              ],
-            },
-          },
-          screenshots: [
-            {
-              src: "/screenshots/virtual-whiteboard.png",
-              type: "image/png",
-              sizes: "462x945",
-            },
-            {
-              src: "/screenshots/wireframe.png",
-              type: "image/png",
-              sizes: "462x945",
-            },
-            {
-              src: "/screenshots/illustration.png",
-              type: "image/png",
-              sizes: "462x945",
-            },
-            {
-              src: "/screenshots/shapes.png",
-              type: "image/png",
-              sizes: "462x945",
-            },
-            {
-              src: "/screenshots/collaboration.png",
-              type: "image/png",
-              sizes: "462x945",
-            },
-            {
-              src: "/screenshots/export.png",
-              type: "image/png",
-              sizes: "462x945",
-            },
-          ],
+          theme_color: "#f8edf2",
+          background_color: "#f8edf2",
         },
       }),
       createHtmlPlugin({

@@ -4,10 +4,7 @@ import { Popover } from "radix-ui";
 
 import { CLASSES } from "@excalidraw/common";
 
-import { isArrowElement } from "@excalidraw/element";
-
 import type {
-  ExcalidrawElement,
   NonDeletedElementsMap,
   NonDeletedSceneElementsMap,
 } from "@excalidraw/element/types";
@@ -16,8 +13,6 @@ import { actionToggleZenMode } from "../actions";
 
 import { t } from "../i18n";
 import { getTargetElements } from "../scene";
-
-import { getFormValue } from "../actions/actionProperties";
 
 import { useTextEditorFocus } from "../hooks/useTextEditorFocus";
 
@@ -30,9 +25,6 @@ import Stack from "./Stack";
 import { Tooltip } from "./Tooltip";
 import { PropertiesPopover } from "./PropertiesPopover";
 import {
-  sharpArrowIcon,
-  roundArrowIcon,
-  elbowArrowIcon,
   TextSizeIcon,
   adjustmentsIcon,
   DotsHorizontalIcon,
@@ -151,7 +143,6 @@ export const SelectedShapeActions = ({
     return (
       <div className="selected-shape-actions">
         <div>{renderAction("changeBucketFillBackgroundColor")}</div>
-        {renderAction("changeFillStyle")}
         {renderAction("changeOpacity")}
       </div>
     );
@@ -163,19 +154,10 @@ export const SelectedShapeActions = ({
       {predicates.backgroundColor && (
         <div>{renderAction("changeBackgroundColor")}</div>
       )}
-      {predicates.fill && renderAction("changeFillStyle")}
 
       {predicates.strokeWidth && renderAction("changeStrokeWidth")}
 
       {predicates.strokeStyle && <>{renderAction("changeStrokeStyle")}</>}
-
-      {predicates.freedrawMode && renderAction("changeFreedrawMode")}
-
-      {predicates.sloppiness && <>{renderAction("changeSloppiness")}</>}
-
-      {predicates.roundness && <>{renderAction("changeRoundness")}</>}
-
-      {predicates.arrowType && <>{renderAction("changeArrowType")}</>}
 
       {predicates.text && (
         <>
@@ -186,7 +168,6 @@ export const SelectedShapeActions = ({
       )}
 
       {predicates.verticalAlign && renderAction("changeVerticalAlign")}
-      {predicates.arrowheads && <>{renderAction("changeArrowhead")}</>}
 
       {predicates.opacity && renderAction("changeOpacity")}
 
@@ -281,118 +262,12 @@ const CombinedShapeProperties = ({
             onClose={() => {}}
           >
             <div className="selected-shape-actions">
-              {predicates.fill && renderAction("changeFillStyle")}
               {predicates.strokeWidth && renderAction("changeStrokeWidth")}
-              {
-                /* in compact UI the freedraw pressure setting is rendered as a
-                  standalone cycle button in the compact actions list; we render
-                  it in the combined properties popup as well for clarity
-                */
-                predicates.freedrawMode && renderAction("changeFreedrawMode")
-              }
               {predicates.strokeStyle && (
                 <>{renderAction("changeStrokeStyle")}</>
               )}
-              {predicates.sloppiness && <>{renderAction("changeSloppiness")}</>}
-              {predicates.roundness && renderAction("changeRoundness")}
               {predicates.opacity && renderAction("changeOpacity")}
             </div>
-          </PropertiesPopover>
-        )}
-      </Popover.Root>
-    </div>
-  );
-};
-
-const CombinedArrowProperties = ({
-  appState,
-  renderAction,
-  setAppState,
-  targetElements,
-  predicates,
-  container,
-  app,
-}: {
-  appState: UIAppState;
-  renderAction: ActionManager["renderAction"];
-  setAppState: React.Component<any, AppState>["setState"];
-  targetElements: ExcalidrawElement[];
-  predicates: ShapeActionPredicates;
-  container: HTMLDivElement | null;
-  app: AppClassProperties;
-}) => {
-  if (!predicates.arrowType) {
-    return null;
-  }
-
-  const isOpen = appState.openPopup === "compactArrowProperties";
-
-  return (
-    <div className="compact-action-item">
-      <Popover.Root
-        open={isOpen}
-        onOpenChange={(open) => {
-          if (open) {
-            setAppState({ openPopup: "compactArrowProperties" });
-          } else {
-            setAppState({ openPopup: null });
-          }
-        }}
-      >
-        <Popover.Trigger asChild>
-          <button
-            type="button"
-            className={clsx("compact-action-button properties-trigger", {
-              active: isOpen,
-            })}
-            title={t("labels.arrowtypes")}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-
-              setAppState({
-                openPopup: isOpen ? null : "compactArrowProperties",
-              });
-            }}
-          >
-            {(() => {
-              // Show an icon based on the current arrow type
-              const arrowType = getFormValue(
-                targetElements,
-                app,
-                (element) => {
-                  if (isArrowElement(element)) {
-                    return element.elbowed
-                      ? "elbow"
-                      : element.roundness
-                      ? "round"
-                      : "sharp";
-                  }
-                  return null;
-                },
-                (element) => isArrowElement(element),
-                (hasSelection) =>
-                  hasSelection ? null : appState.currentItemArrowType,
-              );
-
-              if (arrowType === "elbow") {
-                return elbowArrowIcon;
-              }
-              if (arrowType === "round") {
-                return roundArrowIcon;
-              }
-              return sharpArrowIcon;
-            })()}
-          </button>
-        </Popover.Trigger>
-        {isOpen && (
-          <PropertiesPopover
-            container={container}
-            className="properties-content"
-            style={{ maxWidth: "13rem" }}
-            onClose={() => {}}
-          >
-            {renderAction("changeArrowProperties")}
           </PropertiesPopover>
         )}
       </Popover.Root>
@@ -645,11 +520,6 @@ export const CompactShapeActions = ({
       )}
 
       {/* Freedraw pressure: standalone button cycling the variability mode */}
-      {predicates.freedrawMode && (
-        <div className="compact-action-item">
-          {renderAction("changeFreedrawMode", { cycle: true })}
-        </div>
-      )}
 
       <CombinedShapeProperties
         appState={appState}
@@ -657,16 +527,6 @@ export const CompactShapeActions = ({
         setAppState={setAppState}
         predicates={predicates}
         container={container}
-      />
-
-      <CombinedArrowProperties
-        appState={appState}
-        renderAction={renderAction}
-        setAppState={setAppState}
-        targetElements={targetElements}
-        predicates={predicates}
-        container={container}
-        app={app}
       />
       {/* Linear Editor */}
       {predicates.lineEditor && (
@@ -809,15 +669,6 @@ export const MobileShapeActions = ({
           container={container}
         />
         {/* Combined Arrow Properties */}
-        <CombinedArrowProperties
-          appState={appState}
-          renderAction={renderAction}
-          setAppState={setAppState}
-          targetElements={targetElements}
-          predicates={predicates}
-          container={container}
-          app={app}
-        />
         {/* Linear Editor */}
         <LinearEditorAction
           renderAction={renderAction}

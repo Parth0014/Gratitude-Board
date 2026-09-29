@@ -838,6 +838,8 @@ export type ElementRenderOffsets = ReadonlyMap<
 
 export interface ExcalidrawProps {
   className?: string;
+  /** Keep dragged elements inside the marked board page when enabled. */
+  snapToBoard?: boolean;
   /**
    * Document that owns Excalidraw's mounted DOM.
    *
@@ -1147,8 +1149,16 @@ export type CanvasActions = Partial<{
 export type UIOptions = Partial<{
   dockedSidebarBreakpoint: number;
   canvasActions: CanvasActions;
+  /** Commands omitted from the host app's interactive editor. */
+  disabledActions: readonly string[];
   tools: {
     image: boolean;
+    laser?: boolean;
+    embeddable?: boolean;
+    autoshape?: boolean;
+    bucketfill?: boolean;
+    magicframe?: boolean;
+    lasso?: boolean;
   };
   /**
    * Optionally control the editor form factor and desktop UI mode from the host app.

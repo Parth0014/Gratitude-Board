@@ -14,7 +14,6 @@ import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 import {
   actionExportWithDarkMode,
   actionChangeExportBackground,
-  actionChangeExportEmbedScene,
   actionChangeExportScale,
   actionChangeProjectName,
 } from "../actions/actionExport";
@@ -81,9 +80,7 @@ const ImageExportModal = ({
   const [exportWithBackground, setExportWithBackground] = useState(
     appStateSnapshot.exportBackground,
   );
-  const [embedScene, setEmbedScene] = useState(
-    appStateSnapshot.exportEmbedScene,
-  );
+  const embedScene = false;
   const [exportScale, setExportScale] = useState(appStateSnapshot.exportScale);
 
   const previewRef = useRef<HTMLDivElement>(null);
@@ -258,24 +255,6 @@ const ImageExportModal = ({
             onChange={(checked) => {
               actionManager.executeAction(
                 actionExportWithDarkMode,
-                "ui",
-                checked,
-              );
-            }}
-          />
-        </ExportSetting>
-        <ExportSetting
-          label={t("imageExportDialog.label.embedScene")}
-          tooltip={t("imageExportDialog.tooltip.embedScene")}
-          name="exportEmbedSwitch"
-        >
-          <Switch
-            name="exportEmbedSwitch"
-            checked={embedScene}
-            onChange={(checked) => {
-              setEmbedScene(checked);
-              actionManager.executeAction(
-                actionChangeExportEmbedScene,
                 "ui",
                 checked,
               );

@@ -143,8 +143,6 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               shortcuts={[KEYS.E, KEYS["0"]]}
             />
             <Shortcut label={t("toolBar.frame")} shortcuts={[KEYS.F]} />
-            <Shortcut label={t("toolBar.laser")} shortcuts={[KEYS.K]} />
-            <Shortcut label={t("toolBar.bucketfill")} shortcuts={[KEYS.B]} />
             <Shortcut
               label={t("labels.eyeDropper")}
               shortcuts={[KEYS.I, "Shift+S", "Shift+G"]}
@@ -172,26 +170,6 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               ]}
             />
             <Shortcut
-              label={t("helpDialog.curvedArrow")}
-              shortcuts={[
-                "A",
-                t("helpDialog.click"),
-                t("helpDialog.click"),
-                t("helpDialog.click"),
-              ]}
-              isOr={false}
-            />
-            <Shortcut
-              label={t("helpDialog.curvedLine")}
-              shortcuts={[
-                "L",
-                t("helpDialog.click"),
-                t("helpDialog.click"),
-                t("helpDialog.click"),
-              ]}
-              isOr={false}
-            />
-            <Shortcut
               label={t("helpDialog.cropStart")}
               shortcuts={[t("helpDialog.doubleClick"), getShortcutKey("Enter")]}
               isOr={true}
@@ -199,20 +177,6 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
             <Shortcut
               label={t("helpDialog.cropFinish")}
               shortcuts={[getShortcutKey("Enter"), getShortcutKey("Escape")]}
-              isOr={true}
-            />
-            <Shortcut label={t("toolBar.lock")} shortcuts={[KEYS.Q]} />
-            <Shortcut
-              label={t("helpDialog.preventBinding")}
-              shortcuts={[getShortcutKey("CtrlOrCmd")]}
-            />
-            <Shortcut
-              label={t("toolBar.link")}
-              shortcuts={[getShortcutKey("CtrlOrCmd+K")]}
-            />
-            <Shortcut
-              label={t("toolBar.convertElementType")}
-              shortcuts={["Tab", "Shift+Tab"]}
               isOr={true}
             />
           </ShortcutIsland>
@@ -248,22 +212,6 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               label={t("helpDialog.movePageLeftRight")}
               shortcuts={["Shift+PgUp/PgDn"]}
             />
-            <Shortcut
-              label={t("buttons.zenMode")}
-              shortcuts={[getShortcutKey("Alt+Z")]}
-            />
-            <Shortcut
-              label={t("buttons.objectsSnapMode")}
-              shortcuts={[getShortcutKey("Alt+S")]}
-            />
-            <Shortcut
-              label={t("labels.toggleGrid")}
-              shortcuts={[getShortcutKey("CtrlOrCmd+'")]}
-            />
-            <Shortcut
-              label={t("labels.viewMode")}
-              shortcuts={[getShortcutKey("Alt+R")]}
-            />
             {actionManager.isActionEnabled(actionToggleTheme) && (
               <Shortcut
                 label={t("labels.toggleTheme")}
@@ -271,39 +219,14 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               />
             )}
             <Shortcut
-              label={t("stats.fullTitle")}
-              shortcuts={[getShortcutKey("Alt+/")]}
-            />
-            <Shortcut
               label={t("search.title")}
               shortcuts={[getShortcutFromShortcutName("searchMenu")]}
-            />
-            <Shortcut
-              label={t("commandPalette.title")}
-              shortcuts={
-                isFirefox
-                  ? [getShortcutFromShortcutName("commandPalette")]
-                  : [
-                      getShortcutFromShortcutName("commandPalette"),
-                      getShortcutFromShortcutName("commandPalette", 1),
-                    ]
-              }
             />
           </ShortcutIsland>
           <ShortcutIsland
             className="HelpDialog__island--editor"
             caption={t("helpDialog.editor")}
           >
-            <Shortcut
-              label={t("helpDialog.createFlowchart")}
-              shortcuts={[getShortcutKey(`CtrlOrCmd+Arrow Key`)]}
-              isOr={true}
-            />
-            <Shortcut
-              label={t("helpDialog.navigateFlowchart")}
-              shortcuts={[getShortcutKey(`Alt+Arrow Key`)]}
-              isOr={true}
-            />
             <Shortcut
               label={t("labels.moveCanvas")}
               shortcuts={[

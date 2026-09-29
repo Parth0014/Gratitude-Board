@@ -1,457 +1,768 @@
 @import "../packages/excalidraw/css/variables.module.scss";
 
 .gratitude-studio {
-  --gratitude-rose: #ea436b;
-  --gratitude-ink: #33272b;
+  --studio-accent: #c34d76;
+  --studio-ink: #342d35;
+  --studio-muted: #6f6570;
+  --studio-line: #e6dce3;
+  --studio-surface: #fff;
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100%;
-  color: var(--gratitude-ink);
-  background: #f5f0ed;
-  font-family: Inter, Assistant, sans-serif;
+  color: var(--studio-ink);
+  background: #f7f3f6;
+  font: 14px/1.4 system-ui, sans-serif;
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--studio-accent);
+    outline-offset: 2px;
+  }
 }
 
 .gratitude-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  height: 64px;
-  flex: none;
-  padding: 0 24px;
-  background: #fffaf8;
-  border-bottom: 1px solid #eadfe0;
+  gap: 12px;
+  min-height: 60px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--studio-line);
+  background: var(--studio-surface);
+  box-shadow: 0 1px 3px rgb(52 45 53 / 5%);
 }
 
-.gratitude-brand {
+.gratitude-brand,
+.gratitude-header__actions,
+.gratitude-board-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-family: Georgia, serif;
-  font-size: 21px;
-  white-space: nowrap;
+  gap: 8px;
 }
 
 .gratitude-brand__mark {
-  color: var(--gratitude-rose);
-  font-size: 26px;
+  width: 26px;
+  height: 26px;
+  color: var(--studio-accent);
 }
+
+.gratitude-brand {
+  font-size: 17px;
+  font-weight: 700;
+}
+
 .gratitude-board-name {
-  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.gratitude-export {
-  border: 0;
-  border-radius: 9px;
-  padding: 11px 22px;
-  color: white;
-  background: var(--gratitude-rose);
-  font: inherit;
   font-weight: 600;
+}
+
+.gratitude-header__actions button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+  background: var(--studio-surface);
+  color: var(--studio-ink);
   cursor: pointer;
 }
-.gratitude-export:hover {
-  background: #ce3159;
+
+.gratitude-header__actions .gratitude-export {
+  border-color: var(--studio-accent);
+  background: var(--studio-accent);
+  color: #fff;
 }
-.gratitude-export:focus-visible {
-  outline: 3px solid #a9274d;
-  outline-offset: 2px;
+
+.gratitude-export-menu { position: relative; }
+.gratitude-export-menu > div[role="menu"] {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: 270px;
+  padding: 7px;
+  border: 1px solid var(--studio-line);
+  border-radius: 13px;
+  background: white;
+  box-shadow: 0 16px 45px rgb(37 29 40 / 22%);
 }
+.gratitude-export-menu [role="menuitem"] { display: grid; gap: 2px; padding: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--studio-ink); text-align: left; cursor: pointer; }
+.gratitude-export-menu [role="menuitem"]:hover { background: #f9eef2; }
+.gratitude-export-menu [role="menuitem"] span { color: var(--studio-muted); font-size: 11px; }
+
 .gratitude-workspace {
   display: flex;
   flex: 1;
   min-height: 0;
 }
+
+.gratitude-assets {
+  flex: none;
+  display: flex;
+  width: 380px;
+  min-width: 0;
+  border-right: 1px solid var(--studio-line);
+  background: var(--studio-surface);
+}
+
+.gratitude-assets__rail {
+  display: flex;
+  flex: 0 0 72px;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 18px 8px;
+  background: #292331;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.gratitude-assets__rail::-webkit-scrollbar {
+  display: none;
+}
+
+.gratitude-assets__rail button {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  width: 56px;
+  padding: 10px 2px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #ded7e3;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gratitude-assets__rail button:hover,
+.gratitude-assets__rail button[aria-pressed="true"] {
+  background: #524254;
+  color: #fff;
+}
+
+.gratitude-assets__rail button[aria-pressed="true"] {
+  box-shadow: inset 3px 0 var(--studio-accent);
+}
+
+.gratitude-assets__rail svg {
+  width: 22px;
+  height: 22px;
+}
+
+.gratitude-assets__rail-divider {
+  width: 32px;
+  margin: 7px 0;
+  border-top: 1px solid #55495a;
+}
+
+.gratitude-assets__panel {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 24px 20px 28px;
+}
+
+.gratitude-assets__eyebrow {
+  color: var(--studio-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.gratitude-assets__heading { position: relative; }
+.gratitude-assets__sheet-close { display: none; }
+
+.gratitude-assets__heading h2 {
+  margin: 4px 0 4px;
+  font-size: 25px;
+  letter-spacing: -0.04em;
+}
+
+.gratitude-assets__heading p {
+  margin: 0 0 22px;
+}
+
+.gratitude-assets__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  background: #f9f7f9;
+  color: #857985;
+}
+
+.gratitude-assets__search:focus-within {
+  border-color: var(--studio-accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgb(195 77 118 / 12%);
+}
+
+.gratitude-assets__search svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.gratitude-assets__search input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--studio-ink);
+  font-size: 13px;
+}
+
+.gratitude-assets__upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  margin-top: 12px;
+  border: 1px dashed #d8b5c4;
+  border-radius: 9px;
+  background: #fff8fb;
+  color: #9d3f63;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.gratitude-assets__upload:hover {
+  border-style: solid;
+  background: #fceef4;
+}
+
+.gratitude-assets__upload svg {
+  width: 17px;
+  height: 17px;
+}
+
+.gratitude-assets__heading p,
+.gratitude-assets__message,
+.gratitude-assets__credit {
+  color: var(--studio-muted);
+  font-size: 12px;
+}
+
+.gratitude-assets__suggestions {
+  margin: 24px 0;
+}
+
+.gratitude-assets__suggestions > span {
+  color: var(--studio-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.gratitude-assets__suggestions > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.gratitude-assets__suggestions button {
+  padding: 6px 10px;
+  border: 1px solid var(--studio-line);
+  border-radius: 20px;
+  background: #fff;
+  color: var(--studio-ink);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.gratitude-assets__suggestions button:hover {
+  border-color: var(--studio-accent);
+  color: #9d3f63;
+}
+
+.gratitude-assets__results-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 23px 0 12px;
+}
+
+.gratitude-assets__results-heading h3 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gratitude-assets__results-heading span {
+  color: var(--studio-muted);
+  font-size: 11px;
+}
+
+.gratitude-assets__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gratitude-asset-card {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  background: #f8f5f7;
+  color: var(--studio-ink);
+}
+
+.gratitude-asset-card:hover {
+  border-color: var(--studio-accent);
+  box-shadow: 0 3px 12px rgb(52 45 53 / 15%);
+}
+
+.gratitude-asset-card > button:first-child {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.gratitude-assets__grid .is-photo > button:first-child {
+  height: 126px;
+  padding: 0;
+}
+
+.gratitude-assets__grid .is-photo > button:first-child img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gratitude-assets__grid .is-sticker > button:first-child {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 110px;
+  padding: 14px 6px 8px;
+}
+
+.gratitude-assets__grid .is-sticker > button:first-child img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.gratitude-assets__grid .is-sticker > button:first-child span {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gratitude-asset-card .gratitude-asset-card__info {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(34 27 38 / 82%);
+  color: white;
+  font: 700 12px/1 system-ui;
+  cursor: pointer;
+}
+
+.gratitude-asset-card__license {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 90%);
+  color: #6d3850;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.gratitude-asset-details {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.gratitude-asset-details__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(25 20 28 / 45%);
+}
+
+.gratitude-asset-details section {
+  position: relative;
+  width: min(360px, calc(100vw - 32px));
+  padding: 18px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 20px 70px rgb(20 15 22 / 30%);
+}
+
+.gratitude-asset-details section > img {
+  width: 100%;
+  max-height: 220px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #f7f2f5;
+}
+
+.gratitude-asset-details__close {
+  position: absolute;
+  z-index: 1;
+  top: 24px;
+  right: 24px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.gratitude-asset-details section a { margin-right: 14px; color: var(--studio-accent); }
+.gratitude-asset-details__add { width: 100%; margin-top: 16px; padding: 11px; border: 0; border-radius: 9px; background: var(--studio-accent); color: white; font-weight: 700; cursor: pointer; }
+
+.gratitude-assets__layouts {
+  grid-template-columns: 1fr;
+}
+
+.gratitude-assets__grid .gratitude-layout-card {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  grid-template-rows: auto auto;
+  gap: 2px 12px;
+  min-height: 82px;
+  padding: 9px;
+  text-align: left;
+}
+
+.gratitude-layout-card__preview {
+  position: relative;
+  grid-row: 1 / 3;
+  width: 92px;
+  height: 66px;
+  overflow: hidden;
+  border: 1px solid #e3d7dd;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.gratitude-layout-card__preview i {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid #bd718c;
+  border-radius: 2px;
+  background: #f5dce5;
+}
+
+.gratitude-layout-card strong {
+  align-self: end;
+  font-size: 12px;
+}
+
+.gratitude-layout-card small {
+  color: var(--studio-muted);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.gratitude-assets__grid .gratitude-text-card {
+  display: grid;
+  gap: 7px;
+  min-height: 78px;
+  padding: 12px;
+  border: 1px solid var(--studio-line);
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gratitude-text-card span { font-size: 18px; font-weight: 700; line-height: 1.05; }
+.gratitude-text-card small { color: var(--studio-muted); font-size: 10px; text-transform: capitalize; }
+
+.gratitude-assets__grid .gratitude-layout-card {
+  border: 1px solid var(--studio-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--studio-ink);
+  cursor: pointer;
+}
+
+.gratitude-assets__message {
+  padding: 22px 12px;
+  border: 1px dashed var(--studio-line);
+  border-radius: 10px;
+  background: #fcfafb;
+  text-align: center;
+}
+
+.gratitude-assets__credit {
+  margin-top: 20px;
+}
+
+.gratitude-assets__credit a {
+  color: #9d3f63;
+}
+
+.gratitude-inspector {
+  flex: none;
+  width: 260px;
+  overflow: auto;
+  padding: 18px;
+  border-left: 1px solid var(--studio-line);
+  background: var(--studio-surface);
+}
+
+.gratitude-inspector__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gratitude-inspector__header h2 {
+  margin: 2px 0 12px;
+  font-size: 18px;
+}
+
+.gratitude-inspector__header span {
+  color: var(--studio-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.gratitude-inspector__content {
+  display: grid;
+  gap: 10px;
+}
+
 .gratitude-editor {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
 }
+
 .gratitude-editor .excalidraw-app {
   height: 100%;
 }
-.gratitude-studio .excalidraw {
-  --color-primary: #ea436b;
-  --color-primary-darker: #a9274d;
-}
 
-/* Keep the engine toolbar and move the complete tool set into a floating dock. */
-.gratitude-studio .excalidraw .shapes-section {
-  position: fixed;
-  z-index: 5;
-  inset: auto auto 20px 50%;
+.gratitude-editor .gratitude-editor-footer {
+  position: absolute;
+  z-index: 6;
+  top: auto;
+  bottom: 16px;
+  left: 50%;
+  right: auto;
+  display: block;
   width: max-content;
+  height: auto;
+  max-width: calc(100% - 24px);
   transform: translateX(-50%);
 }
-.gratitude-studio .excalidraw .App-toolbar {
-  border: 1px solid #eadfe0;
-  border-radius: 16px;
-  background: rgba(255, 250, 248, 0.97);
-  box-shadow: 0 8px 28px rgba(73, 45, 52, 0.14);
-  backdrop-filter: blur(14px);
-}
-.gratitude-studio .excalidraw .App-toolbar .ToolIcon {
-  border-radius: 10px;
-}
-.gratitude-studio .excalidraw .App-toolbar .ToolIcon--checked {
-  color: #a9274d;
-  background: #fbe9ed;
-}
 
-/* A consistent Gratitude icon language for every primary native tool. */
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  button[data-testid^="toolbar-"]
-  .ToolIcon__icon {
-  position: relative;
-  color: currentColor;
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  button[data-testid^="toolbar-"]
-  .ToolIcon__icon
-  svg {
-  visibility: hidden;
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  button[data-testid^="toolbar-"]
-  .ToolIcon__icon::after {
+.gratitude-selection-toolbar {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: currentColor;
-  font-family: Inter, "Segoe UI Symbol", sans-serif;
-  font-size: 21px;
-  font-weight: 500;
-  line-height: 1;
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-hand"]
-  .ToolIcon__icon::after {
-  content: "\270b";
-  font-size: 17px;
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-selection"]
-  .ToolIcon__icon::after {
-  content: "\2196";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-rectangle"]
-  .ToolIcon__icon::after {
-  content: "\25a2";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-diamond"]
-  .ToolIcon__icon::after {
-  content: "\25c7";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-ellipse"]
-  .ToolIcon__icon::after {
-  content: "\25cb";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-arrow"]
-  .ToolIcon__icon::after {
-  content: "\2197";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-line"]
-  .ToolIcon__icon::after {
-  content: "\ff0f";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-freedraw"]
-  .ToolIcon__icon::after {
-  content: "\3030";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-text"]
-  .ToolIcon__icon::after {
-  content: "T";
-  font-family: Georgia, serif;
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-stickynote"]
-  .ToolIcon__icon::after {
-  content: "\25a4";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-eraser"]
-  .ToolIcon__icon::after {
-  content: "\25e9";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  .App-toolbar__extra-tools-trigger
-  .ToolIcon__icon::after {
-  content: "\ff0b";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-image"]
-  .ToolIcon__icon::after {
-  content: "\25a7";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-frame"]
-  .ToolIcon__icon::after {
-  content: "\25a3";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-embeddable"]
-  .ToolIcon__icon::after {
-  content: "\2197";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-autoshape"]
-  .ToolIcon__icon::after {
-  content: "\2727";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-laser"]
-  .ToolIcon__icon::after {
-  content: "\2301";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-bucketfill"]
-  .ToolIcon__icon::after {
-  content: "\25d2";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-lasso"]
-  .ToolIcon__icon::after {
-  content: "\2318";
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar
-  [data-testid="toolbar-magicframe"]
-  .ToolIcon__icon::after {
-  content: "\2726";
-}
-
-.gratitude-studio
-  .excalidraw
-  .App-toolbar__extra-tools-dropdown
-  .dropdown-menu-item__icon {
-  color: #a9274d;
-}
-.gratitude-studio
-  .excalidraw
-  .App-toolbar__extra-tools-dropdown
-  .dropdown-menu-item__icon
-  svg {
-  stroke: currentColor;
-}
-
-.gratitude-studio .excalidraw .selected-shape-actions-container {
-  position: fixed;
   z-index: 5;
-  top: 50%;
-  right: 18px;
-  transform: translateY(-50%);
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px;
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  background: var(--studio-surface);
+  box-shadow: 0 3px 12px rgb(52 45 53 / 8%);
+}
+
+.gratitude-selection-toolbar:empty {
+  display: none;
+}
+
+.gratitude-selection-toolbar__inner,
+.gratitude-selection-toolbar__colors,
+.gratitude-selection-toolbar__buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gratitude-board-controls {
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 5px;
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  background: var(--studio-surface);
+  box-shadow: 0 3px 12px rgb(52 45 53 / 12%);
+}
+
+.gratitude-board-controls > button {
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid var(--studio-line);
+  border-radius: 7px;
+  background: var(--studio-surface);
+  color: var(--studio-ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.gratitude-board-controls > button:hover,
+.gratitude-board-controls > button.is-active {
+  border-color: var(--studio-accent);
+  background: #fbedf2;
+  color: var(--studio-accent);
+}
+
+.gratitude-board-controls > .gratitude-snap-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gratitude-snap-toggle__track {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: #a69aa3;
+  transition: background 120ms ease;
+}
+
+.gratitude-snap-toggle__track::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  content: "";
+  transition: transform 120ms ease;
+}
+
+.gratitude-snap-toggle.is-active .gratitude-snap-toggle__track {
+  background: var(--studio-accent);
+}
+
+.gratitude-snap-toggle.is-active .gratitude-snap-toggle__track::after {
+  transform: translateX(14px);
+}
+
+.gratitude-snap-toggle__state {
+  min-width: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
 }
 
 @media (max-width: 700px) {
-  .gratitude-header {
-    height: 56px;
-    padding: 0 12px;
+  .gratitude-header { height: 56px; padding: 0 12px; }
+  .gratitude-brand span { display: none; }
+  .gratitude-header__actions { gap: 6px; }
+  .gratitude-board-setup, .gratitude-export { padding: 8px 10px; font-size: 12px; }
+
+  .gratitude-assets {
+    position: fixed;
+    z-index: 12;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    width: auto;
+    height: min(54vh, 460px);
+    flex-direction: column-reverse;
+    border-right: 0;
+    border-top: 1px solid var(--studio-line);
+    box-shadow: 0 -12px 36px rgb(45 35 48 / 16%);
   }
-  .gratitude-brand {
-    font-size: 0;
-    gap: 0;
-  }
-  .gratitude-brand__mark {
-    font-size: 25px;
-  }
-  .gratitude-export {
-    padding: 9px 13px;
-  }
-  .gratitude-studio .excalidraw .shapes-section {
-    bottom: 8px;
-    max-width: calc(100vw - 16px);
-  }
-  .gratitude-studio .excalidraw .App-toolbar {
-    max-width: 100%;
+
+  .gratitude-assets__rail {
+    display: flex;
+    flex: 0 0 calc(62px + env(safe-area-inset-bottom));
+    flex-direction: row;
+    gap: 2px;
     overflow-x: auto;
-  }
-  .gratitude-studio .excalidraw .selected-shape-actions-container {
-    top: 70px;
-    right: 8px;
-    transform: none;
-  }
-}
-
-.excalidraw {
-  --color-primary-contrast-offset: #625ee0; // to offset Chubb illusion
-
-  &.theme--dark {
-    --color-primary-contrast-offset: #726dff; // to offset Chubb illusion
+    padding: 4px 6px env(safe-area-inset-bottom);
   }
 
-  .footer-center {
-    justify-content: flex-end;
-    margin-top: auto;
-    margin-bottom: auto;
-    margin-inline-start: auto;
+  .gratitude-assets__rail button {
+    flex: 0 0 58px;
+    width: 58px;
+    height: 54px;
   }
 
-  .encrypted-icon {
-    border-radius: var(--space-factor);
-    color: var(--color-primary);
-    margin-top: auto;
-    margin-bottom: auto;
-    margin-inline-start: auto;
-    margin-inline-end: 0.6em;
-    z-index: var(--zIndex-layerUI);
+  .gratitude-assets__rail-divider { display: none; }
 
-    svg {
-      width: 1.2rem;
-      height: 1.2rem;
-    }
+  .gratitude-assets__panel {
+    flex: 1;
+    width: auto;
+    min-height: 0;
+    padding: 18px 12px;
   }
 
-  .dropdown-menu-container {
-    .dropdown-menu-item {
-      &.active-collab {
-        background-color: #ecfdf5;
-        color: #064e3c;
-      }
-      &.highlighted {
-        color: var(--color-promo);
-        font-weight: 700;
-        .dropdown-menu-item__icon g {
-          stroke-width: 2;
-        }
-      }
-    }
-  }
-
-  &.theme--dark {
-    .dropdown-menu-item {
-      &.active-collab {
-        background-color: #064e3c;
-        color: #ecfdf5;
-      }
-    }
-  }
-
-  .alert {
-    pointer-events: none;
+  .gratitude-assets.is-collapsed { height: calc(62px + env(safe-area-inset-bottom)); }
+  .gratitude-assets.is-collapsed .gratitude-assets__panel { display: none; }
+  .gratitude-assets__sheet-close {
     position: absolute;
-    top: 6.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    text-align: center;
-    line-height: 1.5;
-    border-radius: var(--border-radius-md);
-    z-index: 6;
-    white-space: pre;
-
-    &--warning {
-      background-color: var(--color-warning);
-      color: var(--color-text-warning);
-    }
-
-    &--danger {
-      background-color: var(--color-danger-dark);
-      color: var(--color-danger-text);
-    }
+    top: -8px;
+    right: 0;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--studio-line);
+    border-radius: 50%;
+    background: white;
+    color: var(--studio-ink);
+    font-size: 20px;
   }
-}
 
-.excalidraw-app.is-collaborating {
-  [data-testid="clear-canvas-button"] {
+  .gratitude-editor { width: 100%; padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
+  .gratitude-editor-footer { bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .gratitude-selection-toolbar { right: 8px; bottom: calc(78px + env(safe-area-inset-bottom)); left: 8px; overflow-x: auto; }
+
+  .gratitude-board-name,
+  .gratitude-inspector {
     display: none;
-  }
-}
-
-.plus-banner {
-  display: flex;
-  justify-content: center;
-  cursor: pointer;
-  align-items: center;
-  border: 1px solid var(--color-primary);
-  padding: 0.5rem 0.875rem;
-  border-radius: var(--border-radius-lg);
-  background-color: var(--island-bg-color);
-  text-decoration: none !important;
-
-  font-family: var(--ui-font);
-  font-size: 0.8333rem;
-  box-sizing: border-box;
-  height: var(--lg-button-size);
-
-  border: none;
-  box-shadow: 0 0 0 1px var(--color-surface-lowest);
-  background-color: var(--color-surface-low);
-  color: var(--button-color, var(--color-on-surface)) !important;
-
-  &:active {
-    box-shadow: 0 0 0 1px var(--color-brand-active);
-  }
-
-  &:hover {
-    background-color: var(--color-primary);
-    color: white !important;
-  }
-
-  &:active {
-    background-color: var(--color-primary-darker);
-  }
-}
-
-.theme--dark {
-  .plus-banner {
-    &:hover {
-      color: black !important;
-    }
   }
 }

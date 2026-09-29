@@ -282,7 +282,7 @@ describe("props.activeTool (forced tool)", () => {
     const laserItem = document.querySelector<HTMLButtonElement>(
       '[data-testid="toolbar-laser"]',
     );
-    expect(laserItem!.disabled).toBe(true);
+    expect(laserItem).toBe(null);
 
     // Q (toggle tool lock) is ignored — locking is implied while forced
     expect(h.state.activeTool.locked).toBe(false);
@@ -366,6 +366,18 @@ describe("toolbar", () => {
     openExtraTools();
     expect(queryTool("image")).not.toBe(null);
     expect(queryTool("frame")).not.toBe(null);
+  });
+
+  it("does not activate host-disabled drawing tools from shortcuts", async () => {
+    await render(
+      <Excalidraw
+        UIOptions={{ tools: { image: true, laser: false, bucketfill: false } }}
+      />,
+    );
+    fireEvent.keyDown(document, { key: "k", code: "KeyK" });
+    expect(window.h.state.activeTool.type).toBe("selection");
+    fireEvent.keyDown(document, { key: "b", code: "KeyB" });
+    expect(window.h.state.activeTool.type).toBe("selection");
   });
 
   it("hides the image tool through UIOptions.tools.image", async () => {

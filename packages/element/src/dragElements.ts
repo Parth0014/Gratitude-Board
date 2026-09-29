@@ -42,6 +42,7 @@ export const dragSelectedElements = (
     y: number;
   },
   gridSize: NullableGridSize,
+  boardSnap?: { bounds: Bounds; threshold: number },
 ) => {
   if (
     _selectedElements.length === 1 &&
@@ -102,6 +103,51 @@ export const dragSelectedElements = (
     snapOffset,
     gridSize,
   );
+
+  if (boardSnap) {
+    const [left, top, right, bottom] = getCommonBounds(origElements);
+    const [boardLeft, boardTop, boardRight, boardBottom] = boardSnap.bounds;
+    const constrainAxis = (
+      offset: number,
+      min: number,
+      max: number,
+      limitMin: number,
+      limitMax: number,
+    ) => {
+      if (max - min > limitMax - limitMin) {
+        return offset;
+      }
+      const nextMin = min + offset;
+      const nextMax = max + offset;
+      if (
+        nextMin < limitMin ||
+        Math.abs(nextMin - limitMin) <= boardSnap.threshold
+      ) {
+        return limitMin - min;
+      }
+      if (
+        nextMax > limitMax ||
+        Math.abs(nextMax - limitMax) <= boardSnap.threshold
+      ) {
+        return limitMax - max;
+      }
+      return offset;
+    };
+    adjustedOffset.x = constrainAxis(
+      adjustedOffset.x,
+      left,
+      right,
+      boardLeft,
+      boardRight,
+    );
+    adjustedOffset.y = constrainAxis(
+      adjustedOffset.y,
+      top,
+      bottom,
+      boardTop,
+      boardBottom,
+    );
+  }
 
   const elementsToUpdateIds = new Set(
     Array.from(elementsToUpdate, (el) => el.id),

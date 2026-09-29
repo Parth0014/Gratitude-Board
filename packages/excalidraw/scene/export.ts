@@ -421,7 +421,7 @@ export const exportToSvg = async (
       rect.setAttribute("width", `${frame.width}`);
       rect.setAttribute("height", `${frame.height}`);
 
-      if (!exportingFrame) {
+      if (!exportingFrame && frame.customData?.gratitudePage !== true) {
         rect.setAttribute("rx", `${FRAME_STYLE.radius}`);
         rect.setAttribute("ry", `${FRAME_STYLE.radius}`);
       }

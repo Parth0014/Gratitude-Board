@@ -209,7 +209,7 @@
   },
   "library": {
     "noItems": "No items added yet...",
-    "hint_emptyLibrary": "Select an item on canvas to add it here, or install a library from the public repository, below.",
+    "hint_emptyLibrary": "Select an item on the board to save it to your library.",
     "hint_emptyPrivateLibrary": "Select an item on canvas to add it here.",
     "search": {
       "inputPlaceholder": "Search library",
@@ -278,7 +278,7 @@
     "cannotExportEmptyCanvas": "Cannot export empty canvas.",
     "couldNotCopyToClipboard": "Couldn't copy to clipboard.",
     "decryptFailed": "Couldn't decrypt data.",
-    "uploadedSecurly": "The upload has been secured with end-to-end encryption, which means that Excalidraw server and third parties can't read the content.",
+    "uploadedSecurly": "The upload has been secured with end-to-end encryption.",
     "loadSceneOverridePrompt": "Loading external drawing will replace your existing content. Do you wish to continue?",
     "collabStopOverridePrompt": "Stopping the session will overwrite your previous, locally stored drawing. Are you sure?\n\n(If you want to keep your local drawing, simply close the browser tab instead.)",
     "errorAddingToLibrary": "Couldn't add item to the library",
@@ -286,7 +286,7 @@
     "confirmAddLibrary": "This will add {{numShapes}} shape(s) to your library. Are you sure?",
     "imageDoesNotContainScene": "This image does not seem to contain any scene data. Have you enabled scene embedding during export?",
     "cannotRestoreFromImage": "Scene couldn't be restored from this image file",
-    "invalidSceneUrl": "Couldn't import scene from the supplied URL. It's either malformed, or doesn't contain valid Excalidraw JSON data.",
+    "invalidSceneUrl": "Couldn't import a board from the supplied URL. The link or data may be invalid.",
     "resetLibrary": "This will clear your library. Are you sure?",
     "removeItemsFromsLibrary": "Delete {{count}} item(s) from library?",
     "invalidEncryptionKey": "Encryption key must be of 22 characters. Live collaboration is disabled.",
@@ -345,7 +345,7 @@
     "bucketfill": "Bucket fill",
     "hand": "Hand (panning tool)",
     "extraTools": "More tools",
-    "mermaidToExcalidraw": "Mermaid to Excalidraw",
+    "mermaidToExcalidraw": "Diagram import",
     "convertElementType": "Toggle shape type"
   },
   "bucketfill": {
@@ -448,9 +448,9 @@
     "link_title": "Shareable link",
     "link_details": "Export as a read-only link.",
     "link_button": "Export to Link",
-    "excalidrawplus_description": "Save the scene to your Excalidraw+ workspace.",
+    "excalidrawplus_description": "Cloud export is unavailable.",
     "excalidrawplus_button": "Export",
-    "excalidrawplus_exportError": "Couldn't export to Excalidraw+ at this moment..."
+    "excalidrawplus_exportError": "Cloud export is unavailable."
   },
   "helpDialog": {
     "blog": "Read our blog",
@@ -549,8 +549,8 @@
     }
   },
   "encrypted": {
-    "tooltip": "Your drawings are end-to-end encrypted so Excalidraw's servers will never see them.",
-    "link": "Blog post on end-to-end encryption in Excalidraw"
+    "tooltip": "Your boards are end-to-end encrypted.",
+    "link": "Learn about end-to-end encryption"
   },
   "stats": {
     "angle": "Angle",
@@ -606,7 +606,7 @@
       "center_heading": "Your drawings are saved in your browser's storage.",
       "center_heading_line2": "Browser storage can be cleared unexpectedly.",
       "center_heading_line3": "Save your work to a file regularly to avoid losing it.",
-      "center_heading_plus": "Did you want to go to the Excalidraw+ instead?",
+      "center_heading_plus": "Welcome to Gratitude Studio",
       "menuHint": "Export, preferences, languages, ..."
     },
     "defaults": {
@@ -641,9 +641,9 @@
         "description": "Export the scene data to a file from which you can import later."
       },
       "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Export to Excalidraw+",
-        "description": "Save the scene to your Excalidraw+ workspace."
+        "title": "Gratitude Studio",
+        "button": "Export board",
+        "description": "Save your vision board."
       }
     },
     "modal": {
@@ -660,9 +660,9 @@
     }
   },
   "mermaid": {
-    "title": "Mermaid to Excalidraw",
+    "title": "Diagram import",
     "button": "Insert",
-    "description": "Currently only <flowchartLink>Flowchart</flowchartLink>, <sequenceLink>Sequence</sequenceLink>, <classLink>Class</classLink>, and <erdLink>Entity Relationship</erdLink> Diagrams are supported. The other types will be rendered as image in Excalidraw.",
+    "description": "This diagram import feature is unavailable in Gratitude Studio.",
     "syntax": "Mermaid Syntax",
     "preview": "Preview",
     "label": "Mermaid",
@@ -709,7 +709,7 @@
       "mermaidParseError": "Mermaid syntax error"
     },
     "rateLimit": {
-      "messageLimit": "You've hit your AI limit on the free plan. Try out Excalidraw+ for more or come back tomorrow.",
+      "messageLimit": "This feature is unavailable right now.",
       "generalRateLimit": "Hold your horses, you're too fast for us! Please wait a moment before trying again.",
       "messageLimitInputPlaceholder": "You've reached your message limit"
     },

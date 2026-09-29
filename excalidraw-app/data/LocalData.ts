@@ -40,6 +40,11 @@ import type { MaybePromise } from "@excalidraw/common/utility-types";
 
 import { appJotaiStore, atom } from "../app-jotai";
 import { SAVE_TO_LOCAL_STORAGE_TIMEOUT, STORAGE_KEYS } from "../app_constants";
+import {
+  createVisionBoardDocument,
+  readVisionBoardDocument,
+  VISION_DOCUMENT_STORAGE_KEY,
+} from "../vision/document";
 
 import { FileManager } from "./FileManager";
 import { FileStatusStore } from "./fileStatusStore";
@@ -73,6 +78,7 @@ class LocalFileManager extends FileManager {
 const saveDataStateToLocalStorage = (
   elements: readonly ExcalidrawElement[],
   appState: AppState,
+  visionStorage?: { storage: Storage; title: string },
 ) => {
   const localStorageQuotaExceeded = appJotaiStore.get(
     localStorageQuotaExceededAtom,
@@ -95,6 +101,17 @@ const saveDataStateToLocalStorage = (
       STORAGE_KEYS.LOCAL_STORAGE_APP_STATE,
       JSON.stringify(_appState),
     );
+    if (visionStorage) {
+      const previous = readVisionBoardDocument(
+        visionStorage.storage.getItem(VISION_DOCUMENT_STORAGE_KEY),
+      );
+      visionStorage.storage.setItem(
+        VISION_DOCUMENT_STORAGE_KEY,
+        JSON.stringify(
+          createVisionBoardDocument(elements, visionStorage.title, previous),
+        ),
+      );
+    }
     updateBrowserStateVersion(STORAGE_KEYS.VERSION_DATA_STATE);
     if (localStorageQuotaExceeded) {
       appJotaiStore.set(localStorageQuotaExceededAtom, false);
@@ -121,8 +138,9 @@ export class LocalData {
       appState: AppState,
       files: BinaryFiles,
       onFilesSaved: () => void,
+      visionStorage?: { storage: Storage; title: string },
     ) => {
-      saveDataStateToLocalStorage(elements, appState);
+      saveDataStateToLocalStorage(elements, appState, visionStorage);
 
       await this.fileStorage.saveFiles({
         elements,
@@ -139,10 +157,11 @@ export class LocalData {
     appState: AppState,
     files: BinaryFiles,
     onFilesSaved: () => void,
+    visionStorage?: { storage: Storage; title: string },
   ) => {
     // we need to make the `isSavePaused` check synchronously (undebounced)
     if (!this.isSavePaused()) {
-      this._save(elements, appState, files, onFilesSaved);
+      this._save(elements, appState, files, onFilesSaved, visionStorage);
     }
   };
 

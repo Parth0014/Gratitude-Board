@@ -23,7 +23,6 @@ import { useLibraryCache } from "../hooks/useLibraryItemSvg";
 import { useScrollPosition } from "../hooks/useScrollPosition";
 import { t } from "../i18n";
 
-import { LibraryMenuControlButtons } from "./LibraryMenuControlButtons";
 import { LibraryDropdownMenu } from "./LibraryMenuHeaderContent";
 import {
   LibraryMenuSection,
@@ -446,15 +445,6 @@ export default function LibraryMenuItems({
 
         {JSX_whenNotSearching}
         {JSX_whenSearching}
-
-        {IS_LIBRARY_EMPTY && (
-          <LibraryMenuControlButtons
-            style={{ padding: "16px 0", width: "100%" }}
-            id={id}
-            libraryReturnUrl={libraryReturnUrl}
-            theme={theme}
-          />
-        )}
       </Stack.Col>
     </div>
   );

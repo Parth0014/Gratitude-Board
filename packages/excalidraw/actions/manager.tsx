@@ -99,6 +99,7 @@ export class ActionManager {
       .sort((a, b) => (b.keyPriority || 0) - (a.keyPriority || 0))
       .filter(
         (action) =>
+          !this.app.props.UIOptions.disabledActions?.includes(action.name) &&
           (action.name in canvasActions
             ? canvasActions[action.name as keyof typeof canvasActions]
             : true) &&
@@ -153,6 +154,12 @@ export class ActionManager {
     source: ActionSource = "api",
     value: Parameters<T["perform"]>[2] = null,
   ) {
+    if (
+      source !== "api" &&
+      this.app.props.UIOptions.disabledActions?.includes(action.name)
+    ) {
+      return;
+    }
     // the user must not be able to affect a non-interactive editor
     // (programmatic execution by the host remains allowed, as are
     // navigation actions when navigation is)
@@ -184,6 +191,7 @@ export class ActionManager {
 
     if (
       this.actions[name] &&
+      !this.app.props.UIOptions.disabledActions?.includes(name) &&
       "PanelComponent" in this.actions[name] &&
       (name in canvasActions
         ? canvasActions[name as keyof typeof canvasActions]
@@ -239,8 +247,9 @@ export class ActionManager {
     const appState = this.getAppState();
 
     return (
-      !action.predicate ||
-      action.predicate(elements, appState, this.app.props, this.app)
+      !this.app.props.UIOptions.disabledActions?.includes(action.name) &&
+      (!action.predicate ||
+        action.predicate(elements, appState, this.app.props, this.app))
     );
   };
 }

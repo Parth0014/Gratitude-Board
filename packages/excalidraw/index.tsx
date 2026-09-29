@@ -81,6 +81,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     isCollaborating = false,
     onPointerUpdate,
     renderTopLeftUI,
+    renderEditorUI,
     renderTopRightUI,
     langCode = defaultLang.code,
     viewModeEnabled,
@@ -129,6 +130,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
       ...canvasActions,
     },
     tools: {
+      ...props.UIOptions?.tools,
       image: props.UIOptions?.tools?.image ?? true,
     },
   };
@@ -223,6 +225,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           isCollaborating={isCollaborating}
           onPointerUpdate={onPointerUpdate}
           renderTopLeftUI={renderTopLeftUI}
+          renderEditorUI={renderEditorUI}
           renderTopRightUI={renderTopRightUI}
           langCode={langCode}
           viewModeEnabled={viewModeEnabled}

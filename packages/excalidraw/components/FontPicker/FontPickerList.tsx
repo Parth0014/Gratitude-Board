@@ -170,6 +170,8 @@ export const FontPickerList = React.memo(
       () =>
         allFonts.filter(
           (font) =>
+            font.value !== FONT_FAMILY.Cascadia &&
+            font.value !== FONT_FAMILY["Comic Shanns"] &&
             !sceneFamilies.has(font.value) &&
             (showDeprecatedFonts || !font.deprecated), // skip deprecated fonts
         ),

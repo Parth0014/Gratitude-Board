@@ -32,7 +32,12 @@ import {
   type ColorDefaultKey,
 } from "../actions/colorTargets";
 
-import { SelectedShapeActions, CompactShapeActions, UndoRedoActions, ZoomActions } from "./Actions";
+import {
+  SelectedShapeActions,
+  CompactShapeActions,
+  UndoRedoActions,
+  ZoomActions,
+} from "./Actions";
 import { LoadingMessage } from "./LoadingMessage";
 import { MobileMenu } from "./MobileMenu";
 import { PasteChartDialog } from "./PasteChartDialog";
@@ -48,7 +53,6 @@ import { useAppProps, useEditorInterface, useStylesPanelMode } from "./App";
 import { OverwriteConfirmDialog } from "./OverwriteConfirm/OverwriteConfirm";
 import { sidebarRightIcon } from "./icons";
 import { DefaultSidebar } from "./DefaultSidebar";
-import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
 import ElementLinkDialog from "./ElementLinkDialog";
 import { ErrorDialog } from "./ErrorDialog";
@@ -115,19 +119,12 @@ const DefaultMainMenu: React.FC<{
     <MainMenu __fallback>
       <MainMenu.DefaultItems.LoadScene />
       <MainMenu.DefaultItems.SaveToActiveFile />
-      {/* FIXME we should to test for this inside the item itself */}
-      {UIOptions.canvasActions.export && <MainMenu.DefaultItems.Export />}
-      {/* FIXME we should to test for this inside the item itself */}
       {UIOptions.canvasActions.saveAsImage && (
         <MainMenu.DefaultItems.SaveAsImage />
       )}
       <MainMenu.DefaultItems.SearchMenu />
       <MainMenu.DefaultItems.Help />
       <MainMenu.DefaultItems.ClearCanvas />
-      <MainMenu.Separator />
-      <MainMenu.Group title="Excalidraw links">
-        <MainMenu.DefaultItems.Socials />
-      </MainMenu.Group>
       <MainMenu.Separator />
       <MainMenu.DefaultItems.ToggleTheme allowSystemTheme={false} />
       <MainMenu.DefaultItems.ChangeCanvasBackground />
@@ -474,8 +471,25 @@ const LayerUI = ({
           them first on initial render to optimize layout shift */}
       {children}
       {appProps.renderEditorUI?.({
-        tools: !appState.viewModeEnabled && <Toolbar app={app} appState={appState} setAppState={setAppState} UIOptions={UIOptions} onPenModeToggle={onPenModeToggle} onLockToggle={onLockToggle} heading={null} />,
-        properties: showSelectedShapeActions(appState, elements) ? renderSelectedShapeActions() : null,
+        tools: !appState.viewModeEnabled && (
+          <Toolbar
+            app={app}
+            appState={appState}
+            setAppState={setAppState}
+            UIOptions={UIOptions}
+            onPenModeToggle={onPenModeToggle}
+            onLockToggle={onLockToggle}
+            heading={null}
+          />
+        ),
+        properties: showSelectedShapeActions(appState, elements) ? (
+          <SelectedShapeActions
+            appState={appState}
+            elementsMap={app.scene.getNonDeletedElementsMap()}
+            renderAction={actionManager.renderAction}
+            app={app}
+          />
+        ) : null,
         menu: renderCanvasActions(),
         history: <UndoRedoActions renderAction={actionManager.renderAction} />,
         zoom: <ZoomActions renderAction={actionManager.renderAction} />,
@@ -509,7 +523,6 @@ const LayerUI = ({
       {/* Keep supporting surfaces available to host-supplied UI, including
           MainMenu.DefaultItems. */}
       <DefaultOverwriteConfirmDialog />
-      {appState.openDialog?.name === "ttd" && <TTDDialog __fallback />}
       {/* ------------------------------------------------------------------ */}
 
       {defaultUIEnabled && appState.isLoading && <LoadingMessage delay={250} />}
@@ -661,14 +674,16 @@ const LayerUI = ({
           >
             {renderWelcomeScreen && <tunnels.WelcomeScreenCenterTunnel.Out />}
             {!appProps.renderEditorUI && renderFixedSideContainer()}
-            {!appProps.renderEditorUI && <Footer
-              appState={appState}
-              actionManager={actionManager}
-              showExitZenModeBtn={showExitZenModeBtn}
-              renderWelcomeScreen={renderWelcomeScreen}
-              defaultUIEnabled={defaultUIEnabled}
-              zoomUIEnabled={zoomUIEnabled}
-            />}
+            {!appProps.renderEditorUI && (
+              <Footer
+                appState={appState}
+                actionManager={actionManager}
+                showExitZenModeBtn={showExitZenModeBtn}
+                renderWelcomeScreen={renderWelcomeScreen}
+                defaultUIEnabled={defaultUIEnabled}
+                zoomUIEnabled={zoomUIEnabled}
+              />
+            )}
             {(appState.toast ||
               (scrollBackToContentUIEnabled && appState.scrolledOutside) ||
               appProps.viewportStatusFrame?.label) && (

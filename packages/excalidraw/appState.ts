@@ -31,7 +31,7 @@ export const getDefaultAppState = (): Omit<
     collaborators: new Map(),
     currentItemBackgroundColor: DEFAULT_ELEMENT_PROPS.backgroundColor,
     currentItemEndArrowhead: "arrow",
-    currentItemFillStyle: DEFAULT_ELEMENT_PROPS.fillStyle,
+    currentItemFillStyle: "solid",
     currentItemFontFamily: DEFAULT_FONT_FAMILY,
     currentItemFontSize: DEFAULT_FONT_SIZE,
     currentItemOpacity: DEFAULT_ELEMENT_PROPS.opacity,
