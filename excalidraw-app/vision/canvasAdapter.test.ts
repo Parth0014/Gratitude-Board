@@ -117,6 +117,14 @@ describe("CanvasAdapter", () => {
       gratitudeLayoutId: layout.id,
       gratitudeSlotId: layout.slots[0].id,
     });
+    expect(slots[0]).toEqual(
+      expect.objectContaining({
+        backgroundColor: "#f6f1f3",
+        strokeColor: "#d4c7cd",
+        strokeStyle: "solid",
+        opacity: 100,
+      }),
+    );
     expect(updateScene).toHaveBeenLastCalledWith(
       expect.objectContaining({
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,

@@ -15,13 +15,34 @@ export interface VisionLayout {
   slots: VisionLayoutSlot[];
 }
 
+const TEMPLATE_CONTENT_TOP = 0.1;
+const TEMPLATE_CONTENT_HEIGHT = 0.88;
+
+export const getLayoutSlotBounds = (
+  layoutSlot: VisionLayoutSlot,
+  reserveTemplateHeading = false,
+) =>
+  reserveTemplateHeading
+    ? {
+        x: layoutSlot.x,
+        y: TEMPLATE_CONTENT_TOP + layoutSlot.y * TEMPLATE_CONTENT_HEIGHT,
+        width: layoutSlot.width,
+        height: layoutSlot.height * TEMPLATE_CONTENT_HEIGHT,
+      }
+    : {
+        x: layoutSlot.x,
+        y: layoutSlot.y,
+        width: layoutSlot.width,
+        height: layoutSlot.height,
+      };
+
 const slot = (
   id: string,
   x: number,
   y: number,
   width: number,
   height: number,
-  frame: VisionLayoutSlot["frame"] = "rounded",
+  frame: VisionLayoutSlot["frame"] = "none",
   rotation = 0,
 ): VisionLayoutSlot => ({ id, x, y, width, height, frame, rotation });
 
@@ -31,11 +52,11 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     title: "Hero + four",
     description: "One defining image with four supporting moments",
     slots: [
-      slot("hero", 0.05, 0.06, 0.56, 0.56),
-      slot("a", 0.65, 0.06, 0.3, 0.26),
-      slot("b", 0.65, 0.36, 0.3, 0.26),
-      slot("c", 0.05, 0.67, 0.43, 0.27),
-      slot("d", 0.52, 0.67, 0.43, 0.27),
+      slot("hero", 0.02, 0.02, 0.61, 0.64),
+      slot("a", 0.638, 0.02, 0.342, 0.316),
+      slot("b", 0.638, 0.344, 0.342, 0.316),
+      slot("c", 0.02, 0.668, 0.476, 0.312),
+      slot("d", 0.504, 0.668, 0.476, 0.312),
     ],
   },
   {
@@ -43,9 +64,9 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     title: "Editorial story",
     description: "Magazine inspired rhythm",
     slots: [
-      slot("a", 0.06, 0.08, 0.38, 0.52, "none", -2),
-      slot("b", 0.49, 0.08, 0.45, 0.26),
-      slot("c", 0.49, 0.39, 0.45, 0.5, "polaroid", 2),
+      slot("a", 0.02, 0.02, 0.54, 0.96),
+      slot("b", 0.568, 0.02, 0.412, 0.378),
+      slot("c", 0.568, 0.406, 0.412, 0.574),
     ],
   },
   {
@@ -55,10 +76,10 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     slots: Array.from({ length: 9 }, (_, index) =>
       slot(
         String(index),
-        0.05 + (index % 3) * 0.31,
-        0.05 + Math.floor(index / 3) * 0.31,
-        0.28,
-        0.28,
+        0.02 + (index % 3) * 0.322,
+        0.02 + Math.floor(index / 3) * 0.322,
+        0.316,
+        0.316,
       ),
     ),
   },
@@ -67,9 +88,9 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     title: "Three paths",
     description: "Three equal aspirations",
     slots: [
-      slot("a", 0.05, 0.1, 0.28, 0.8),
-      slot("b", 0.36, 0.1, 0.28, 0.8),
-      slot("c", 0.67, 0.1, 0.28, 0.8),
+      slot("a", 0.02, 0.02, 0.316, 0.96),
+      slot("b", 0.342, 0.02, 0.316, 0.96),
+      slot("c", 0.664, 0.02, 0.316, 0.96),
     ],
   },
   {
@@ -77,11 +98,11 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     title: "Center focus",
     description: "A central dream surrounded by details",
     slots: [
-      slot("center", 0.28, 0.22, 0.44, 0.56, "circle"),
-      slot("a", 0.05, 0.08, 0.2, 0.3),
-      slot("b", 0.75, 0.08, 0.2, 0.3),
-      slot("c", 0.05, 0.62, 0.2, 0.3),
-      slot("d", 0.75, 0.62, 0.2, 0.3),
+      slot("center", 0.29, 0.2, 0.42, 0.6, "circle"),
+      slot("a", 0.03, 0.03, 0.24, 0.35, "rounded"),
+      slot("b", 0.73, 0.03, 0.24, 0.35, "rounded"),
+      slot("c", 0.03, 0.62, 0.24, 0.35, "rounded"),
+      slot("d", 0.73, 0.62, 0.24, 0.35, "rounded"),
     ],
   },
   {
@@ -89,10 +110,10 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     title: "Postcards",
     description: "A playful travel wall",
     slots: [
-      slot("a", 0.06, 0.08, 0.4, 0.36, "polaroid", -4),
-      slot("b", 0.53, 0.07, 0.4, 0.36, "polaroid", 3),
-      slot("c", 0.09, 0.53, 0.4, 0.36, "polaroid", 3),
-      slot("d", 0.54, 0.53, 0.38, 0.36, "polaroid", -3),
+      slot("a", 0.04, 0.05, 0.445, 0.42, "polaroid", -2),
+      slot("b", 0.515, 0.04, 0.445, 0.42, "polaroid", 2),
+      slot("c", 0.04, 0.53, 0.445, 0.42, "polaroid", 2),
+      slot("d", 0.515, 0.54, 0.445, 0.42, "polaroid", -2),
     ],
   },
   {
@@ -100,10 +121,10 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     title: "Horizon",
     description: "Wide scenes and small details",
     slots: [
-      slot("hero", 0.05, 0.06, 0.9, 0.5),
-      slot("a", 0.05, 0.62, 0.28, 0.3),
-      slot("b", 0.36, 0.62, 0.28, 0.3),
-      slot("c", 0.67, 0.62, 0.28, 0.3),
+      slot("hero", 0.02, 0.02, 0.96, 0.62),
+      slot("a", 0.02, 0.648, 0.316, 0.332),
+      slot("b", 0.342, 0.648, 0.316, 0.332),
+      slot("c", 0.664, 0.648, 0.316, 0.332),
     ],
   },
   {
@@ -121,7 +142,10 @@ export const VISION_LAYOUTS: VisionLayout[] = [
     id: "diptych",
     title: "Then and next",
     description: "Two strong side by side images",
-    slots: [slot("a", 0.06, 0.1, 0.41, 0.8), slot("b", 0.53, 0.1, 0.41, 0.8)],
+    slots: [
+      slot("a", 0.02, 0.02, 0.476, 0.96),
+      slot("b", 0.504, 0.02, 0.476, 0.96),
+    ],
   },
   {
     id: "cascade",

@@ -693,7 +693,11 @@ export const AssetPanel = ({
                           height: `${slot.height * 100}%`,
                           transform: `rotate(${slot.rotation || 0}deg)`,
                           borderRadius:
-                            slot.frame === "circle" ? "50%" : undefined,
+                            slot.frame === "circle"
+                              ? "50%"
+                              : slot.frame === "rounded"
+                              ? "5px"
+                              : "1px",
                         }}
                       />
                     ))}

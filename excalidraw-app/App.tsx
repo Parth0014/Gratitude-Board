@@ -60,6 +60,7 @@ import type {
 } from "@excalidraw/excalidraw/types";
 import type { ResolutionType } from "@excalidraw/common/utility-types";
 import type { ResolvablePromise } from "@excalidraw/common/utils";
+import type { Radians } from "@excalidraw/math";
 
 import {
   Provider,
@@ -128,6 +129,8 @@ import { svgToPng } from "./assets/sanitizeSvg";
 import { createCanvasAdapter } from "./vision/canvasAdapter";
 import { EMPTY_VISION_SELECTION } from "./vision/contracts";
 import { VisionDocumentRepository } from "./vision/repository";
+import { getLayoutSlotBounds, VISION_LAYOUTS } from "./vision/layouts";
+import { LEGACY_VISION_TEMPLATE_STYLES } from "./vision/templates";
 
 import {
   ensureBoardPage,
@@ -209,7 +212,7 @@ const initializeScene = async (opts: {
       deleteInvisibleElements: true,
     }),
     appState: restoreAppState(
-      localDataState?.appState || { viewBackgroundColor: "#f8edf2" },
+      localDataState?.appState || { viewBackgroundColor: "transparent" },
       null,
     ),
   };
@@ -341,7 +344,6 @@ const initializeScene = async (opts: {
 
 const ExcalidrawWrapper = () => {
   const excalidrawAPI = useExcalidrawAPI();
-  const [rightOpen, setRightOpen] = useState(false);
   const [boardSettingsOpen, setBoardSettingsOpen] = useState(false);
   const [keepInsideBoard, setKeepInsideBoard] = useState(true);
   const [boardTitle, setBoardTitle] = useState("My vision board");
@@ -362,7 +364,6 @@ const ExcalidrawWrapper = () => {
   const lastGoodBoardSceneRef = useRef<readonly OrderedExcalidrawElement[]>([]);
   const allowBoardLayerReplacementRef = useRef(false);
   const sceneRepairAttemptsRef = useRef(0);
-  const lastInspectorKey = useRef("");
   const canvasAdapter = useMemo(
     () => (excalidrawAPI ? createCanvasAdapter(excalidrawAPI) : null),
     [excalidrawAPI],
@@ -986,7 +987,7 @@ const ExcalidrawWrapper = () => {
                 ...data.scene.appState,
                 selectedElementIds: {},
                 boxSelectionMode: "overlap",
-                viewBackgroundColor: "#f8edf2",
+                viewBackgroundColor: "transparent",
                 frameRendering: {
                   enabled: true,
                   clip: true,
@@ -1025,7 +1026,7 @@ const ExcalidrawWrapper = () => {
                 ...restoreAppState(data.scene.appState, null),
                 selectedElementIds: {},
                 boxSelectionMode: "overlap",
-                viewBackgroundColor: "#f8edf2",
+                viewBackgroundColor: "transparent",
                 frameRendering: {
                   enabled: true,
                   clip: true,
@@ -1164,6 +1165,26 @@ const ExcalidrawWrapper = () => {
     appState: AppState,
     files: BinaryFiles,
   ) => {
+    const gridHost = editorRootRef.current;
+    if (gridHost) {
+      const zoom = appState.zoom.value;
+      let dotSpacing = 24 * zoom;
+      while (dotSpacing < 12) {
+        dotSpacing *= 2;
+      }
+      while (dotSpacing > 48) {
+        dotSpacing /= 2;
+      }
+      gridHost.style.setProperty("--studio-dot-spacing", `${dotSpacing}px`);
+      gridHost.style.setProperty(
+        "--studio-dot-x",
+        `${(appState.scrollX * zoom) % dotSpacing}px`,
+      );
+      gridHost.style.setProperty(
+        "--studio-dot-y",
+        `${(appState.scrollY * zoom) % dotSpacing}px`,
+      );
+    }
     const repairScene = (repair: () => void) => {
       if (sceneRepairAttemptsRef.current >= 8) {
         if (sceneRepairAttemptsRef.current === 8) {
@@ -1240,6 +1261,90 @@ const ExcalidrawWrapper = () => {
     }
     const page = boardInspection.page;
     const background = boardInspection.background;
+    const activeTemplateId = elements.find(
+      (element) => element.customData?.gratitudeTemplateId,
+    )?.customData?.gratitudeTemplateId as string | undefined;
+    const legacyTemplateStyle = activeTemplateId
+      ? LEGACY_VISION_TEMPLATE_STYLES[activeTemplateId]
+      : undefined;
+    const hasOutdatedLayoutGuides = elements.some(
+      (element) =>
+        element.customData?.gratitudeLayoutSlot === true &&
+        (element.opacity !== 100 ||
+          element.backgroundColor !== "#f6f1f3" ||
+          element.strokeColor !== "#d4c7cd" ||
+          element.strokeStyle !== "solid"),
+    );
+    const hasLegacyTemplateColors =
+      !!legacyTemplateStyle &&
+      (background?.backgroundColor === legacyTemplateStyle.background[0] ||
+        elements.some(
+          (element) =>
+            element.customData?.gratitudeTemplateId === activeTemplateId &&
+            element.strokeColor === legacyTemplateStyle.accent[0],
+        ));
+    if (excalidrawAPI && (hasOutdatedLayoutGuides || hasLegacyTemplateColors)) {
+      excalidrawAPI.updateScene({
+        elements: elements.map((element) => {
+          if (element.customData?.gratitudeLayoutSlot === true) {
+            if (!hasOutdatedLayoutGuides) {
+              return element;
+            }
+            const layout = VISION_LAYOUTS.find(
+              (candidate) =>
+                candidate.id === element.customData?.gratitudeLayoutId,
+            );
+            const layoutSlot = layout?.slots.find(
+              (candidate) =>
+                candidate.id === element.customData?.gratitudeSlotId,
+            );
+            const bounds = layoutSlot
+              ? getLayoutSlotBounds(
+                  layoutSlot,
+                  Boolean(element.customData?.gratitudeTemplateId),
+                )
+              : null;
+            return newElementWith(element, {
+              ...(page && bounds
+                ? {
+                    x: page.x + page.width * bounds.x,
+                    y: page.y + page.height * bounds.y,
+                    width: page.width * bounds.width,
+                    height: page.height * bounds.height,
+                    angle: (((layoutSlot?.rotation || 0) * Math.PI) /
+                      180) as Radians,
+                  }
+                : {}),
+              opacity: 100,
+              backgroundColor: "#f6f1f3",
+              strokeColor: "#d4c7cd",
+              strokeStyle: "solid",
+            });
+          }
+          if (
+            legacyTemplateStyle &&
+            element.customData?.gratitudeTemplateId === activeTemplateId &&
+            element.strokeColor === legacyTemplateStyle.accent[0]
+          ) {
+            return newElementWith(element, {
+              strokeColor: legacyTemplateStyle.accent[1],
+            });
+          }
+          if (
+            legacyTemplateStyle &&
+            element.id === background?.id &&
+            element.backgroundColor === legacyTemplateStyle.background[0]
+          ) {
+            return newElementWith(element, {
+              backgroundColor: legacyTemplateStyle.background[1],
+            });
+          }
+          return element;
+        }),
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+      return;
+    }
     setHasBoardContent(
       elements.some(
         (element) =>
@@ -1269,9 +1374,6 @@ const ExcalidrawWrapper = () => {
           : nextBoardState,
       );
     }
-    const selected = elements.filter(
-      (element) => appState.selectedElementIds[element.id],
-    );
     if (canvasAdapter) {
       const nextSelection = canvasAdapter.getSelection();
       setVisionSelection((previous) =>
@@ -1279,19 +1381,8 @@ const ExcalidrawWrapper = () => {
           ? previous
           : nextSelection,
       );
-    }
-    const inspectorKey =
-      selected.map((element) => element.id).join(",") ||
-      (appState.activeTool.type === "selection"
-        ? ""
-        : appState.activeTool.type);
-    if (inspectorKey !== lastInspectorKey.current) {
-      lastInspectorKey.current = inspectorKey;
-      if (inspectorKey) {
+      if (nextSelection.count > 0 && boardSettingsOpen) {
         setBoardSettingsOpen(false);
-        setRightOpen(selected.length > 0);
-      } else if (!boardSettingsOpen) {
-        setRightOpen(false);
       }
     }
     if (collabAPI?.isCollaborating()) {
@@ -1554,12 +1645,10 @@ const ExcalidrawWrapper = () => {
           });
         }
       }}
-      rightOpen={rightOpen}
       boardSettingsOpen={boardSettingsOpen}
       onBoardSettingsOpen={() => {
         excalidrawAPI?.updateScene({ appState: { selectedElementIds: {} } });
         setBoardSettingsOpen(true);
-        setRightOpen(true);
       }}
       boardSettings={
         <BoardSettings
@@ -1585,7 +1674,7 @@ const ExcalidrawWrapper = () => {
           onImageRemove={() => void setBackgroundImage(null, "photo")}
         />
       }
-      onRightToggle={() => setRightOpen((open) => !open)}
+      onRightToggle={() => setBoardSettingsOpen(false)}
       footerRef={setFooterTarget}
       selectionToolbar={
         <GratitudeSelectionToolbar
@@ -1593,8 +1682,6 @@ const ExcalidrawWrapper = () => {
           selection={visionSelection}
         />
       }
-      selectionKind={visionSelection.kind}
-      selectionCount={visionSelection.count}
       hasBoardContent={hasBoardContent}
     >
       <div

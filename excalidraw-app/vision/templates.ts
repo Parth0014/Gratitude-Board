@@ -14,6 +14,35 @@ export interface VisionTemplate {
   layout: VisionLayout;
 }
 
+export const LEGACY_VISION_TEMPLATE_STYLES: Record<
+  string,
+  {
+    accent: [string, string];
+    background: [string, string];
+  }
+> = {
+  "travel-story": {
+    accent: ["#e684a5", "#c84b73"],
+    background: ["#fff6ed", "#fffaf6"],
+  },
+  "peaceful-home": {
+    accent: ["#9a7fba", "#795a9d"],
+    background: ["#f4f0f7", "#faf8fc"],
+  },
+  "career-growth": {
+    accent: ["#cf4977", "#b4325a"],
+    background: ["#fdf1f5", "#fff8fa"],
+  },
+  "wellness-rhythm": {
+    accent: ["#5e9d8b", "#3f7f6d"],
+    background: ["#eff8f4", "#f7fcfa"],
+  },
+  "daily-gratitude": {
+    accent: ["#d69b4c", "#a96d24"],
+    background: ["#fff8e8", "#fffbf2"],
+  },
+};
+
 const layout = (id: string) => {
   const match = VISION_LAYOUTS.find((candidate) => candidate.id === id);
   if (!match) {
@@ -29,8 +58,8 @@ export const VISION_TEMPLATES: VisionTemplate[] = [
     category: "travel",
     description: "A playful wall of destinations and memories.",
     prompt: "Where do you want your next chapter to take you?",
-    accent: "#e684a5",
-    backgroundColor: "#fff6ed",
+    accent: "#c84b73",
+    backgroundColor: "#fffaf6",
     heading: "Places I will explore",
     layout: layout("postcards"),
   },
@@ -40,8 +69,8 @@ export const VISION_TEMPLATES: VisionTemplate[] = [
     category: "home",
     description: "A calm collection for rooms, rituals and belonging.",
     prompt: "What would make everyday life feel lighter?",
-    accent: "#9a7fba",
-    backgroundColor: "#f4f0f7",
+    accent: "#795a9d",
+    backgroundColor: "#faf8fc",
     heading: "A home that restores me",
     layout: layout("editorial"),
   },
@@ -51,8 +80,8 @@ export const VISION_TEMPLATES: VisionTemplate[] = [
     category: "career",
     description: "One central ambition supported by practical milestones.",
     prompt: "What contribution would make you proud?",
-    accent: "#cf4977",
-    backgroundColor: "#fdf1f5",
+    accent: "#b4325a",
+    backgroundColor: "#fff8fa",
     heading: "Work with meaning",
     layout: layout("hero-four"),
   },
@@ -62,8 +91,8 @@ export const VISION_TEMPLATES: VisionTemplate[] = [
     category: "wellness",
     description: "Balance movement, rest, nourishment and connection.",
     prompt: "How do you want to feel in your body each day?",
-    accent: "#5e9d8b",
-    backgroundColor: "#eff8f4",
+    accent: "#3f7f6d",
+    backgroundColor: "#f7fcfa",
     heading: "My nourishing rhythm",
     layout: layout("center-focus"),
   },
@@ -73,8 +102,8 @@ export const VISION_TEMPLATES: VisionTemplate[] = [
     category: "gratitude",
     description: "Nine everyday moments worth noticing.",
     prompt: "Which ordinary moments make life feel rich?",
-    accent: "#d69b4c",
-    backgroundColor: "#fff8e8",
+    accent: "#a96d24",
+    backgroundColor: "#fffbf2",
     heading: "What already matters",
     layout: layout("nine-grid"),
   },

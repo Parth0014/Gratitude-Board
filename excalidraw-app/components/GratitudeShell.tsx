@@ -244,15 +244,12 @@ export const GratitudeShell = ({
   onPlaceAsset,
   onReplaceAsset,
   onUploadAsset,
-  rightOpen,
   boardSettingsOpen,
   onBoardSettingsOpen,
   boardSettings,
   onRightToggle,
   footerRef,
   selectionToolbar,
-  selectionKind,
-  selectionCount,
   hasBoardContent,
   children,
 }: {
@@ -269,15 +266,12 @@ export const GratitudeShell = ({
     ownerDocument: Document,
   ) => Promise<void>;
   onUploadAsset: (file: File, ownerDocument: Document) => Promise<void>;
-  rightOpen: boolean;
   boardSettingsOpen: boolean;
   onBoardSettingsOpen: () => void;
   boardSettings: React.ReactNode;
   onRightToggle: () => void;
   footerRef: (element: HTMLDivElement | null) => void;
   selectionToolbar: React.ReactNode;
-  selectionKind: string;
-  selectionCount: number;
   hasBoardContent: boolean;
   children: React.ReactNode;
 }) => (
@@ -328,7 +322,7 @@ export const GratitudeShell = ({
     </header>
     <div
       className={`gratitude-workspace${
-        rightOpen ? " gratitude-workspace--inspector-open" : ""
+        boardSettingsOpen ? " gratitude-workspace--inspector-open" : ""
       }`}
     >
       <AssetPanel
@@ -341,6 +335,12 @@ export const GratitudeShell = ({
         onAddText={(preset) => adapter?.createTextPreset(preset)}
       />
       <main className="gratitude-editor" aria-label="Vision board editor">
+        <div
+          className={`gratitude-selection-toolbar theme--${theme}`}
+          aria-live="polite"
+        >
+          {selectionToolbar}
+        </div>
         {!hasBoardContent && adapter && (
           <section
             className="gratitude-board-starter"
@@ -379,17 +379,11 @@ export const GratitudeShell = ({
           ref={footerRef}
         />
       </main>
-      {rightOpen && (
-        <aside className="gratitude-inspector" aria-label="Element properties">
+      {boardSettingsOpen && (
+        <aside className="gratitude-inspector" aria-label="Board settings">
           <div className="gratitude-inspector__header">
             <div>
-              <h2>
-                {boardSettingsOpen
-                  ? "Board setup"
-                  : selectionCount > 1
-                  ? `${selectionCount} items`
-                  : `Edit ${selectionKind}`}
-              </h2>
+              <h2>Board setup</h2>
             </div>
             <button
               type="button"
@@ -402,7 +396,7 @@ export const GratitudeShell = ({
           <div
             className={`gratitude-inspector__content excalidraw theme--${theme}`}
           >
-            {boardSettingsOpen ? boardSettings : selectionToolbar}
+            {boardSettings}
           </div>
         </aside>
       )}

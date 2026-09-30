@@ -5,6 +5,7 @@ import { VISION_FONTS } from "../vision/fonts";
 import type {
   CanvasAdapter,
   VisionFontFamily,
+  VisionImageEdits,
   VisionSelection,
 } from "../vision/contracts";
 
@@ -13,25 +14,59 @@ const FONTS = VISION_FONTS.map((font) => ({
   value: font.id,
   category: font.category,
 }));
-const SWATCHES = [
+const INK_COLORS = [
   "#33272b",
-  "#ea436b",
+  "#b4325a",
   "#8b5277",
-  "#8c75c6",
-  "#6b927d",
-  "#bf8b48",
+  "#6f5eb5",
+  "#557f6b",
+  "#a86f35",
   "#ffffff",
 ];
-const PAPERS = [
+const FILL_COLORS = [
   "#f9dce3",
   "#fbe5d5",
   "#fbefca",
   "#def0e5",
   "#ebe2f7",
   "#dfecf7",
+  "#ffffff",
 ];
 
-const ColorField = ({
+type Panel = "color" | "position" | "adjust" | "more" | "opacity" | null;
+
+const Icon = ({ name }: { name: "copy" | "layers" | "trash" }) => {
+  const paths = {
+    copy: (
+      <>
+        <rect x="8" y="8" width="10" height="10" rx="2" />
+        <path d="M6 14H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1" />
+      </>
+    ),
+    layers: (
+      <>
+        <path d="m12 3-9 5 9 5 9-5-9-5Z" />
+        <path d="m3 12 9 5 9-5M3 16l9 5 9-5" />
+      </>
+    ),
+    trash: (
+      <>
+        <path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6" />
+      </>
+    ),
+  } as const;
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      {paths[name]}
+    </svg>
+  );
+};
+
+const Divider = () => (
+  <span className="gratitude-toolbar__divider" aria-hidden="true" />
+);
+
+const Swatches = ({
   label,
   value,
   colors,
@@ -40,34 +75,67 @@ const ColorField = ({
   label: string;
   value: string;
   colors: string[];
-  onChange: (color: string) => void;
+  onChange: (value: string) => void;
 }) => (
-  <div className="gratitude-selection-toolbar__colors" aria-label={label}>
-    <span>{label}</span>
+  <div className="gratitude-toolbar__swatches" aria-label={label}>
     {colors.map((color) => (
       <button
         key={color}
         type="button"
         className={value === color ? "is-active" : ""}
         style={{ backgroundColor: color }}
-        title={color}
         aria-label={`${label} ${color}`}
         aria-pressed={value === color}
         onClick={() => onChange(color)}
       />
     ))}
     <label
-      className="gratitude-selection-toolbar__custom"
-      title={`Custom ${label.toLowerCase()}`}
+      className="gratitude-toolbar__custom-color"
+      title={`Custom ${label}`}
     >
       <input
         type="color"
-        aria-label={`Custom ${label.toLowerCase()}`}
+        aria-label={`Custom ${label}`}
         value={/^#[0-9a-f]{6}$/i.test(value) ? value : "#ffffff"}
         onChange={(event) => onChange(event.currentTarget.value)}
       />
+      <span>+</span>
     </label>
   </div>
+);
+
+const Range = ({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  suffix = "",
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  suffix?: string;
+  onChange: (value: number) => void;
+}) => (
+  <label className="gratitude-toolbar__range">
+    <span>{label}</span>
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(event) => onChange(Number(event.currentTarget.value))}
+    />
+    <output>
+      {value}
+      {suffix}
+    </output>
+  </label>
 );
 
 export const GratitudeSelectionToolbar = ({
@@ -77,54 +145,70 @@ export const GratitudeSelectionToolbar = ({
   adapter: CanvasAdapter | null;
   selection: VisionSelection;
 }) => {
-  const [photoPanel, setPhotoPanel] = React.useState<
-    "crop" | "adjust" | "style" | "effects"
-  >("crop");
-  if (!adapter || selection.count !== 1) {
-    return selection.count > 1 ? (
-      <div className="gratitude-selection-toolbar__hint">
-        {selection.count} items selected
-      </div>
-    ) : null;
+  const [panel, setPanel] = React.useState<Panel>(null);
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const selectionKey = selection.ids.join(",");
+
+  React.useEffect(() => setPanel(null), [selectionKey]);
+  React.useEffect(() => {
+    if (!panel) {
+      return;
+    }
+    const ownerDocument = rootRef.current?.ownerDocument;
+    const close = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setPanel(null);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPanel(null);
+      }
+    };
+    ownerDocument?.addEventListener("pointerdown", close);
+    ownerDocument?.addEventListener("keydown", closeOnEscape);
+    return () => {
+      ownerDocument?.removeEventListener("pointerdown", close);
+      ownerDocument?.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [panel]);
+
+  if (!adapter || selection.count === 0) {
+    return null;
   }
+
   const { kind, style } = selection;
-  const names = {
-    text: "Text",
-    note: "Note",
-    image: "Photo",
-    drawing: "Drawing",
-    shape: "Shape",
-    item: "Item",
-    none: "Item",
-    multiple: "Items",
-  } as const;
+  const isMultiple = selection.count > 1;
+  const title = isMultiple
+    ? `${selection.count} items`
+    : (
+        {
+          text: "Text",
+          note: "Note",
+          image: "Photo",
+          drawing: "Drawing",
+          shape: "Shape",
+          item: "Item",
+          none: "Item",
+          multiple: "Items",
+        } as const
+      )[kind];
+  const togglePanel = (next: Exclude<Panel, null>) =>
+    setPanel((current) => (current === next ? null : next));
+  const updateImage = (
+    patch: Partial<VisionImageEdits>,
+    ownerDocument: Document,
+  ) => void adapter.updateImageEdits(patch, ownerDocument);
+
   return (
-    <div className="gratitude-selection-toolbar__inner">
-      <span className="gratitude-selection-toolbar__name">{names[kind]}</span>
-      <div
-        className="gratitude-selection-toolbar__buttons gratitude-selection-toolbar__quick"
-        aria-label="Quick actions"
-      >
-        <button type="button" onClick={() => adapter.duplicateSelection()}>
-          Duplicate
-        </button>
-        <button type="button" onClick={() => adapter.arrangeSelection("front")}>
-          Front
-        </button>
-        <button type="button" onClick={() => adapter.arrangeSelection("back")}>
-          Back
-        </button>
-        <button
-          type="button"
-          className="is-danger"
-          onClick={() => adapter.delete(selection.ids)}
-        >
-          Delete
-        </button>
-      </div>
-      {kind === "text" && (
+    <div className="gratitude-selection-toolbar__inner" ref={rootRef}>
+      <span className="gratitude-selection-toolbar__name">{title}</span>
+      <Divider />
+
+      {!isMultiple && kind === "text" && (
         <>
           <select
+            className="gratitude-toolbar__select gratitude-toolbar__select--font"
             aria-label="Font"
             value={style.fontFamily}
             onChange={(event) =>
@@ -150,496 +234,435 @@ export const GratitudeSelectionToolbar = ({
               ),
             )}
           </select>
-          <label className="gratitude-selection-toolbar__number">
-            Size
-            <input
-              aria-label="Font size"
-              type="number"
-              min="8"
-              max="200"
-              value={style.fontSize}
-              onChange={(event) =>
-                adapter.updateSelection({
-                  fontSize: Math.max(
-                    8,
-                    Math.min(200, Number(event.currentTarget.value) || 8),
-                  ),
-                })
-              }
-            />
-          </label>
-          <ColorField
-            label="Text"
-            value={style.strokeColor || SWATCHES[0]}
-            colors={SWATCHES}
-            onChange={(strokeColor) => adapter.updateSelection({ strokeColor })}
+          <input
+            className="gratitude-toolbar__number"
+            aria-label="Font size"
+            type="number"
+            min="8"
+            max="200"
+            value={style.fontSize}
+            onChange={(event) =>
+              adapter.updateSelection({
+                fontSize: Math.max(
+                  8,
+                  Math.min(200, Number(event.currentTarget.value) || 8),
+                ),
+              })
+            }
           />
+          <div className="gratitude-toolbar__anchor">
+            <button
+              type="button"
+              className="gratitude-toolbar__color"
+              aria-label="Text color"
+              aria-expanded={panel === "color"}
+              style={
+                {
+                  "--toolbar-color": style.strokeColor || INK_COLORS[0],
+                } as React.CSSProperties
+              }
+              onClick={() => togglePanel("color")}
+            />
+            {panel === "color" && (
+              <div className="gratitude-toolbar__popover">
+                <strong>Text color</strong>
+                <Swatches
+                  label="Text color"
+                  value={style.strokeColor || INK_COLORS[0]}
+                  colors={INK_COLORS}
+                  onChange={(strokeColor) =>
+                    adapter.updateSelection({ strokeColor })
+                  }
+                />
+              </div>
+            )}
+          </div>
           <div
-            className="gratitude-selection-toolbar__buttons"
+            className="gratitude-toolbar__segmented"
             aria-label="Text alignment"
           >
-            {(["left", "center", "right"] as const).map((textAlign) => (
+            {(["left", "center", "right"] as const).map((align) => (
               <button
-                key={textAlign}
+                key={align}
                 type="button"
-                aria-label={`Align ${textAlign}`}
-                aria-pressed={style.textAlign === textAlign}
-                className={style.textAlign === textAlign ? "is-active" : ""}
-                onClick={() => adapter.updateSelection({ textAlign })}
+                className={style.textAlign === align ? "is-active" : ""}
+                aria-label={`Align ${align}`}
+                aria-pressed={style.textAlign === align}
+                onClick={() => adapter.updateSelection({ textAlign: align })}
               >
-                {textAlign === "left"
-                  ? "≡"
-                  : textAlign === "center"
-                  ? "☷"
-                  : "≣"}
+                {align === "left" ? "≡" : align === "center" ? "☷" : "≣"}
               </button>
             ))}
           </div>
         </>
       )}
-      {kind === "note" && (
-        <ColorField
-          label="Paper"
-          value={style.backgroundColor || PAPERS[0]}
-          colors={PAPERS}
-          onChange={(backgroundColor) =>
-            adapter.updateSelection({ backgroundColor })
-          }
-        />
-      )}
-      {kind === "image" && (
+
+      {!isMultiple && kind === "image" && (
         <>
-          <div className="gratitude-photo-tabs" aria-label="Photo editing">
-            {(["crop", "adjust", "style", "effects"] as const).map((panel) => (
-              <button
-                key={panel}
-                type="button"
-                aria-pressed={photoPanel === panel}
-                className={photoPanel === panel ? "is-active" : ""}
-                onClick={() => setPhotoPanel(panel)}
-              >
-                {panel === "style"
-                  ? "Filters & frame"
-                  : panel[0].toUpperCase() + panel.slice(1)}
-              </button>
+          <button type="button" onClick={() => adapter.startImageCrop()}>
+            Crop
+          </button>
+          <button type="button" onClick={() => adapter.setImageFit("fit")}>
+            Fit
+          </button>
+          <button type="button" onClick={() => adapter.setImageFit("fill")}>
+            Fill
+          </button>
+          <select
+            className="gratitude-toolbar__select"
+            aria-label="Photo filter"
+            value={style.imageEdits?.filter || "original"}
+            onChange={(event) =>
+              updateImage(
+                {
+                  filter: event.currentTarget
+                    .value as VisionImageEdits["filter"],
+                },
+                event.currentTarget.ownerDocument,
+              )
+            }
+          >
+            {(
+              [
+                "original",
+                "warm",
+                "film",
+                "soft",
+                "mono",
+                "dreamy",
+                "vintage",
+              ] as const
+            ).map((filter) => (
+              <option key={filter} value={filter}>
+                {filter === "original"
+                  ? "No filter"
+                  : filter[0].toUpperCase() + filter.slice(1)}
+              </option>
             ))}
+          </select>
+          <div className="gratitude-toolbar__anchor">
+            <button
+              type="button"
+              aria-expanded={panel === "adjust"}
+              onClick={() => togglePanel("adjust")}
+            >
+              Adjust
+            </button>
+            {panel === "adjust" && (
+              <div className="gratitude-toolbar__popover gratitude-toolbar__popover--wide">
+                <strong>Adjust photo</strong>
+                {(["brightness", "contrast", "saturation"] as const).map(
+                  (key) => (
+                    <Range
+                      key={key}
+                      label={key[0].toUpperCase() + key.slice(1)}
+                      value={style.imageEdits?.[key] || 100}
+                      min={50}
+                      max={150}
+                      step={5}
+                      suffix="%"
+                      onChange={(value) =>
+                        rootRef.current &&
+                        updateImage(
+                          { [key]: value },
+                          rootRef.current.ownerDocument,
+                        )
+                      }
+                    />
+                  ),
+                )}
+                {(["exposure", "highlights", "shadows", "warmth"] as const).map(
+                  (key) => (
+                    <Range
+                      key={key}
+                      label={key[0].toUpperCase() + key.slice(1)}
+                      value={style.imageEdits?.[key] || 0}
+                      min={-100}
+                      max={100}
+                      step={5}
+                      onChange={(value) =>
+                        rootRef.current &&
+                        updateImage(
+                          { [key]: value },
+                          rootRef.current.ownerDocument,
+                        )
+                      }
+                    />
+                  ),
+                )}
+                <Range
+                  label="Fade"
+                  value={style.imageEdits?.fade || 0}
+                  min={0}
+                  max={100}
+                  step={5}
+                  suffix="%"
+                  onChange={(fade) =>
+                    rootRef.current &&
+                    updateImage({ fade }, rootRef.current.ownerDocument)
+                  }
+                />
+                <Range
+                  label="Blur"
+                  value={style.imageEdits?.blur || 0}
+                  min={0}
+                  max={12}
+                  suffix="px"
+                  onChange={(blur) =>
+                    rootRef.current &&
+                    updateImage({ blur }, rootRef.current.ownerDocument)
+                  }
+                />
+              </div>
+            )}
           </div>
-          {photoPanel === "crop" && (
-            <>
-              <div
-                className="gratitude-selection-toolbar__buttons"
-                aria-label="Photo crop and fit"
-              >
-                <button type="button" onClick={() => adapter.startImageCrop()}>
-                  Crop
-                </button>
-                <button
-                  type="button"
-                  onClick={() => adapter.setImageFit("fit")}
-                >
-                  Fit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => adapter.setImageFit("fill")}
-                >
-                  Fill
-                </button>
+          <div className="gratitude-toolbar__anchor">
+            <button
+              type="button"
+              aria-expanded={panel === "more"}
+              onClick={() => togglePanel("more")}
+            >
+              More
+            </button>
+            {panel === "more" && (
+              <div className="gratitude-toolbar__popover gratitude-toolbar__popover--compact">
+                <strong>Photo tools</strong>
+                <label>
+                  Frame
+                  <select
+                    aria-label="Photo frame"
+                    value={style.imageEdits?.frame || "none"}
+                    onChange={(event) =>
+                      updateImage(
+                        {
+                          frame: event.currentTarget
+                            .value as VisionImageEdits["frame"],
+                        },
+                        event.currentTarget.ownerDocument,
+                      )
+                    }
+                  >
+                    {(
+                      [
+                        "none",
+                        "rounded",
+                        "circle",
+                        "polaroid",
+                        "film",
+                        "arch",
+                        "heart",
+                        "blob",
+                        "organic",
+                        "torn",
+                      ] as const
+                    ).map((frame) => (
+                      <option key={frame} value={frame}>
+                        {frame[0].toUpperCase() + frame.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <button
                   type="button"
                   onClick={() => adapter.rotateSelection(90)}
                 >
-                  Rotate
+                  Rotate 90°
                 </button>
-              </div>
-              {(["width", "height"] as const).map((axis) => (
-                <label
-                  className="gratitude-selection-toolbar__number"
-                  key={axis}
-                >
-                  {axis === "width" ? "Width" : "Height"}
-                  <input
-                    type="number"
-                    min="16"
-                    max="2000"
-                    aria-label={`Photo ${axis}`}
-                    value={Math.round(style[axis] || 16)}
-                    onChange={(event) =>
-                      adapter.updateSelection({
-                        [axis]: Math.max(
-                          16,
-                          Math.min(
-                            2000,
-                            Number(event.currentTarget.value) || 16,
-                          ),
-                        ),
-                      })
-                    }
-                  />
-                </label>
-              ))}
-            </>
-          )}
-          {photoPanel === "style" && (
-            <>
-              <label className="gratitude-selection-toolbar__number">
-                Filter
-                <select
-                  aria-label="Photo filter"
-                  value={style.imageEdits?.filter || "original"}
-                  onChange={(event) =>
-                    void adapter.updateImageEdits(
-                      {
-                        filter: event.currentTarget.value as NonNullable<
-                          typeof style.imageEdits
-                        >["filter"],
-                      },
-                      event.currentTarget.ownerDocument,
-                    )
-                  }
-                >
-                  {(
-                    [
-                      "original",
-                      "warm",
-                      "film",
-                      "soft",
-                      "mono",
-                      "dreamy",
-                      "vintage",
-                    ] as const
-                  ).map((filter) => (
-                    <option key={filter} value={filter}>
-                      {filter[0].toUpperCase() + filter.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="gratitude-selection-toolbar__number">
-                Frame
-                <select
-                  aria-label="Photo frame"
-                  value={style.imageEdits?.frame || "none"}
-                  onChange={(event) =>
-                    void adapter.updateImageEdits(
-                      {
-                        frame: event.currentTarget.value as NonNullable<
-                          typeof style.imageEdits
-                        >["frame"],
-                      },
-                      event.currentTarget.ownerDocument,
-                    )
-                  }
-                >
-                  {(
-                    [
-                      "none",
-                      "rounded",
-                      "circle",
-                      "polaroid",
-                      "film",
-                      "arch",
-                      "heart",
-                      "blob",
-                      "organic",
-                      "torn",
-                    ] as const
-                  ).map((frame) => (
-                    <option key={frame} value={frame}>
-                      {frame[0].toUpperCase() + frame.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div
-                className="gratitude-selection-toolbar__buttons"
-                aria-label="Flip photo"
-              >
                 <button
                   type="button"
-                  aria-pressed={!!style.imageEdits?.flipX}
                   onClick={(event) =>
-                    void adapter.updateImageEdits(
+                    updateImage(
                       { flipX: !style.imageEdits?.flipX },
                       event.currentTarget.ownerDocument,
                     )
                   }
                 >
-                  Flip H
+                  Flip horizontal
                 </button>
                 <button
                   type="button"
-                  aria-pressed={!!style.imageEdits?.flipY}
                   onClick={(event) =>
-                    void adapter.updateImageEdits(
+                    updateImage(
                       { flipY: !style.imageEdits?.flipY },
                       event.currentTarget.ownerDocument,
                     )
                   }
                 >
-                  Flip V
+                  Flip vertical
+                </button>
+                <button
+                  type="button"
+                  onClick={(event) =>
+                    void adapter.resetImageEdits(
+                      event.currentTarget.ownerDocument,
+                    )
+                  }
+                >
+                  Reset photo
                 </button>
               </div>
-              <label className="gratitude-selection-toolbar__number">
-                Border
-                <select
-                  aria-label="Photo border width"
-                  value={style.imageEdits?.borderWidth || 0}
-                  onChange={(event) =>
-                    void adapter.updateImageEdits(
-                      { borderWidth: Number(event.currentTarget.value) },
-                      event.currentTarget.ownerDocument,
-                    )
-                  }
-                >
-                  {[0, 2, 4, 8, 12, 20].map((width) => (
-                    <option key={width} value={width}>
-                      {width === 0 ? "None" : `${width}px`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label
-                className="gratitude-selection-toolbar__custom"
-                title="Border color"
+            )}
+          </div>
+        </>
+      )}
+
+      {!isMultiple &&
+        (kind === "shape" || kind === "drawing" || kind === "note") && (
+          <>
+            <div className="gratitude-toolbar__anchor">
+              <button
+                type="button"
+                className="gratitude-toolbar__labeled-color"
+                aria-expanded={panel === "color"}
+                onClick={() => togglePanel("color")}
               >
-                <input
-                  type="color"
-                  aria-label="Photo border color"
-                  value={style.imageEdits?.borderColor || "#ffffff"}
-                  onChange={(event) =>
-                    void adapter.updateImageEdits(
-                      { borderColor: event.currentTarget.value },
-                      event.currentTarget.ownerDocument,
-                    )
-                  }
+                <span
+                  style={{
+                    backgroundColor:
+                      kind === "drawing"
+                        ? style.strokeColor
+                        : style.backgroundColor,
+                  }}
                 />
-              </label>
-              <button
-                type="button"
-                onPointerDown={() => adapter.previewOriginalImage(true)}
-                onPointerUp={() => adapter.previewOriginalImage(false)}
-                onPointerCancel={() => adapter.previewOriginalImage(false)}
-                onPointerLeave={() => adapter.previewOriginalImage(false)}
-              >
-                Hold to compare
+                {kind === "drawing"
+                  ? "Ink"
+                  : kind === "note"
+                  ? "Paper"
+                  : "Color"}
               </button>
-              <button
-                type="button"
-                onClick={(event) =>
-                  void adapter.resetImageEdits(
-                    event.currentTarget.ownerDocument,
-                  )
+              {panel === "color" && (
+                <div className="gratitude-toolbar__popover">
+                  <strong>
+                    {kind === "drawing"
+                      ? "Ink"
+                      : kind === "note"
+                      ? "Paper"
+                      : "Fill color"}
+                  </strong>
+                  <Swatches
+                    label="Color"
+                    value={
+                      (kind === "drawing"
+                        ? style.strokeColor
+                        : style.backgroundColor) || FILL_COLORS[0]
+                    }
+                    colors={kind === "drawing" ? INK_COLORS : FILL_COLORS}
+                    onChange={(color) =>
+                      adapter.updateSelection(
+                        kind === "drawing"
+                          ? { strokeColor: color }
+                          : { backgroundColor: color },
+                      )
+                    }
+                  />
+                </div>
+              )}
+            </div>
+            {(kind === "shape" || kind === "drawing") && (
+              <select
+                className="gratitude-toolbar__select"
+                aria-label="Line width"
+                value={style.strokeWidth}
+                onChange={(event) =>
+                  adapter.updateSelection({
+                    strokeWidth: Number(event.currentTarget.value),
+                  })
                 }
               >
-                Reset edits
+                {[1, 2, 4, 8].map((width) => (
+                  <option key={width} value={width}>
+                    {width}px line
+                  </option>
+                ))}
+              </select>
+            )}
+            {kind === "shape" && style.rounded !== undefined && (
+              <button
+                type="button"
+                className={style.rounded ? "is-active" : ""}
+                aria-pressed={style.rounded}
+                onClick={() =>
+                  adapter.updateSelection({ rounded: !style.rounded })
+                }
+              >
+                Rounded
               </button>
-            </>
-          )}
-          {photoPanel === "adjust" && (
-            <>
-              {(["brightness", "contrast", "saturation"] as const).map(
-                (adjustment) => (
-                  <label
-                    className="gratitude-selection-toolbar__opacity"
-                    key={adjustment}
-                  >
-                    {adjustment[0].toUpperCase() + adjustment.slice(1)}{" "}
-                    {style.imageEdits?.[adjustment] || 100}%
-                    <input
-                      type="range"
-                      min="50"
-                      max="150"
-                      step="5"
-                      value={style.imageEdits?.[adjustment] || 100}
-                      onChange={(event) =>
-                        void adapter.updateImageEdits(
-                          { [adjustment]: Number(event.currentTarget.value) },
-                          event.currentTarget.ownerDocument,
-                        )
-                      }
-                    />
-                  </label>
-                ),
-              )}
-              {(["exposure", "highlights", "shadows"] as const).map(
-                (adjustment) => (
-                  <label
-                    className="gratitude-selection-toolbar__opacity"
-                    key={adjustment}
-                  >
-                    {adjustment[0].toUpperCase() + adjustment.slice(1)}{" "}
-                    {style.imageEdits?.[adjustment] || 0}
-                    <input
-                      type="range"
-                      min="-100"
-                      max="100"
-                      step="5"
-                      value={style.imageEdits?.[adjustment] || 0}
-                      onChange={(event) =>
-                        void adapter.updateImageEdits(
-                          { [adjustment]: Number(event.currentTarget.value) },
-                          event.currentTarget.ownerDocument,
-                        )
-                      }
-                    />
-                  </label>
-                ),
-              )}
-              {(["fade", "grain"] as const).map((adjustment) => (
-                <label
-                  className="gratitude-selection-toolbar__opacity"
-                  key={adjustment}
-                >
-                  {adjustment[0].toUpperCase() + adjustment.slice(1)}{" "}
-                  {style.imageEdits?.[adjustment] || 0}%
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={style.imageEdits?.[adjustment] || 0}
-                    onChange={(event) =>
-                      void adapter.updateImageEdits(
-                        { [adjustment]: Number(event.currentTarget.value) },
-                        event.currentTarget.ownerDocument,
-                      )
-                    }
-                  />
-                </label>
-              ))}
-              <label className="gratitude-selection-toolbar__opacity">
-                Warmth {style.imageEdits?.warmth || 0}
-                <input
-                  type="range"
-                  min="-100"
-                  max="100"
-                  step="10"
-                  value={style.imageEdits?.warmth || 0}
-                  onChange={(event) =>
-                    void adapter.updateImageEdits(
-                      { warmth: Number(event.currentTarget.value) },
-                      event.currentTarget.ownerDocument,
-                    )
-                  }
-                />
-              </label>
-              <label className="gratitude-selection-toolbar__opacity">
-                Blur {style.imageEdits?.blur || 0}px
-                <input
-                  type="range"
-                  min="0"
-                  max="12"
-                  step="1"
-                  value={style.imageEdits?.blur || 0}
-                  onChange={(event) =>
-                    void adapter.updateImageEdits(
-                      { blur: Number(event.currentTarget.value) },
-                      event.currentTarget.ownerDocument,
-                    )
-                  }
-                />
-              </label>
-            </>
-          )}
-          {photoPanel === "effects" && (
-            <>
-              {(["shadow", "glow"] as const).map((effect) => (
-                <label
-                  className="gratitude-selection-toolbar__opacity"
-                  key={effect}
-                >
-                  {effect[0].toUpperCase() + effect.slice(1)}{" "}
-                  {style.imageEdits?.[effect] || 0}px
-                  <input
-                    type="range"
-                    min="0"
-                    max="30"
-                    step="2"
-                    value={style.imageEdits?.[effect] || 0}
-                    onChange={(event) =>
-                      void adapter.updateImageEdits(
-                        { [effect]: Number(event.currentTarget.value) },
-                        event.currentTarget.ownerDocument,
-                      )
-                    }
-                  />
-                </label>
-              ))}
-              <p className="gratitude-selection-toolbar__hint">
-                Effects are baked into the photo so they stay consistent in
-                exports.
-              </p>
-            </>
-          )}
-        </>
-      )}
-      {(kind === "shape" || kind === "drawing") && (
-        <>
-          {kind === "shape" && (
-            <ColorField
-              label="Fill"
-              value={style.backgroundColor || PAPERS[0]}
-              colors={PAPERS}
-              onChange={(backgroundColor) =>
-                adapter.updateSelection({ backgroundColor })
-              }
-            />
-          )}
-          <ColorField
-            label={kind === "drawing" ? "Ink" : "Outline"}
-            value={style.strokeColor || SWATCHES[0]}
-            colors={SWATCHES}
-            onChange={(strokeColor) => adapter.updateSelection({ strokeColor })}
-          />
-          <label className="gratitude-selection-toolbar__number">
-            Width
-            <select
-              aria-label="Stroke width"
-              value={style.strokeWidth}
-              onChange={(event) =>
-                adapter.updateSelection({
-                  strokeWidth: Number(event.currentTarget.value),
-                })
-              }
-            >
-              {[1, 2, 4, 8].map((width) => (
-                <option key={width} value={width}>
-                  {width}px
-                </option>
-              ))}
-            </select>
-          </label>
-          {style.rounded !== undefined && (
+            )}
+          </>
+        )}
+
+      <Divider />
+      <div className="gratitude-toolbar__anchor">
+        <button
+          type="button"
+          className="gratitude-toolbar__icon-label"
+          aria-expanded={panel === "position"}
+          onClick={() => togglePanel("position")}
+        >
+          <Icon name="layers" />
+          Position
+        </button>
+        {panel === "position" && (
+          <div className="gratitude-toolbar__popover gratitude-toolbar__popover--compact">
+            <strong>Position</strong>
             <button
               type="button"
-              className={style.rounded ? "is-active" : ""}
-              aria-pressed={style.rounded}
-              onClick={() =>
-                adapter.updateSelection({ rounded: !style.rounded })
-              }
+              onClick={() => adapter.arrangeSelection("front")}
             >
-              Rounded corners
+              Bring to front
             </button>
+            <button
+              type="button"
+              onClick={() => adapter.arrangeSelection("back")}
+            >
+              Send to back
+            </button>
+          </div>
+        )}
+      </div>
+      {!isMultiple && typeof style.opacity === "number" && (
+        <div className="gratitude-toolbar__anchor">
+          <button
+            type="button"
+            aria-expanded={panel === "opacity"}
+            onClick={() => togglePanel("opacity")}
+          >
+            Opacity
+          </button>
+          {panel === "opacity" && (
+            <div className="gratitude-toolbar__popover">
+              <strong>Opacity</strong>
+              <Range
+                label="Opacity"
+                value={style.opacity}
+                min={10}
+                max={100}
+                step={5}
+                suffix="%"
+                onChange={(opacity) => adapter.updateSelection({ opacity })}
+              />
+            </div>
           )}
-        </>
+        </div>
       )}
-      <label className="gratitude-selection-toolbar__opacity">
-        Opacity {style.opacity}%
-        <input
-          type="range"
-          min="10"
-          max="100"
-          step="5"
-          value={style.opacity}
-          aria-label="Opacity"
-          onChange={(event) =>
-            adapter.updateSelection({
-              opacity: Number(event.currentTarget.value),
-            })
-          }
-        />
-      </label>
+      <button
+        type="button"
+        className="gratitude-toolbar__icon"
+        aria-label="Duplicate"
+        title="Duplicate"
+        onClick={() => adapter.duplicateSelection()}
+      >
+        <Icon name="copy" />
+      </button>
+      <button
+        type="button"
+        className="gratitude-toolbar__icon gratitude-toolbar__danger"
+        aria-label="Delete"
+        title="Delete"
+        onClick={() => adapter.delete(selection.ids)}
+      >
+        <Icon name="trash" />
+      </button>
     </div>
   );
 };

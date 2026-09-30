@@ -26,6 +26,8 @@ import { getBoardBackground, getBoardPage } from "./engine/boardPage";
 
 import { registerVisionFonts, VISION_FONTS } from "./fonts";
 
+import { getLayoutSlotBounds } from "./layouts";
+
 import type {
   CanvasAdapter,
   VisionFontFamily,
@@ -303,6 +305,11 @@ const getSelectionKind = (type: string): VisionSelectionKind => {
 export const createCanvasAdapter = (
   api: ExcalidrawImperativeAPI,
 ): CanvasAdapter => {
+  const imageEditVersions = new Map<string, number>();
+  const pendingImageEdits = new Map<
+    string,
+    ReturnType<typeof getImageEditData>
+  >();
   const prepareImageFile = async (
     blob: Blob,
     ownerWindow: Window & typeof globalThis,
@@ -815,8 +822,13 @@ export const createCanvasAdapter = (
       if (!selected || selected.type !== "image" || !selected.fileId) {
         return;
       }
-      const previous = getImageEditData(selected.customData);
+      const previous =
+        pendingImageEdits.get(selected.id) ||
+        getImageEditData(selected.customData);
       const edits = { ...previous, ...patch };
+      pendingImageEdits.set(selected.id, edits);
+      const editVersion = (imageEditVersions.get(selected.id) || 0) + 1;
+      imageEditVersions.set(selected.id, editVersion);
       const originalFileId = previous.originalFileId || selected.fileId;
       const original = api.getFiles()[originalFileId];
       if (!original) {
@@ -915,6 +927,9 @@ export const createCanvasAdapter = (
         .map((value) => value.toString(16).padStart(2, "0"))
         .join("") as FileId;
       const dataURL = canvas.toDataURL("image/png") as DataURL;
+      if (imageEditVersions.get(selected.id) !== editVersion) {
+        return;
+      }
       api.addFiles([
         {
           id: fileId,
@@ -969,6 +984,7 @@ export const createCanvasAdapter = (
         elements,
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,
       });
+      pendingImageEdits.delete(selected.id);
     },
     async resetImageEdits(ownerDocument) {
       await this.updateImageEdits(DEFAULT_IMAGE_EDITS, ownerDocument);
@@ -1189,21 +1205,22 @@ export const createCanvasAdapter = (
       const withoutOldSlots = scene.filter(
         (element) => element.customData?.gratitudeLayoutSlot !== true,
       );
-      const slots = layout.slots.map((slot) =>
-        newElement({
+      const slots = layout.slots.map((slot) => {
+        const bounds = getLayoutSlotBounds(slot);
+        return newElement({
           type: "rectangle",
-          x: page.x + page.width * slot.x,
-          y: page.y + page.height * slot.y,
-          width: page.width * slot.width,
-          height: page.height * slot.height,
+          x: page.x + page.width * bounds.x,
+          y: page.y + page.height * bounds.y,
+          width: page.width * bounds.width,
+          height: page.height * bounds.height,
           angle: (((slot.rotation || 0) * Math.PI) / 180) as Radians,
           frameId: page.id,
-          strokeColor: "#b4325a",
-          backgroundColor: "transparent",
+          strokeColor: "#d4c7cd",
+          backgroundColor: "#f6f1f3",
           fillStyle: "solid",
-          strokeStyle: "dashed",
+          strokeStyle: "solid",
           strokeWidth: 1,
-          opacity: 40,
+          opacity: 100,
           roughness: 0,
           roundness:
             slot.frame === "rounded" || slot.frame === "circle"
@@ -1215,8 +1232,8 @@ export const createCanvasAdapter = (
             gratitudeSlotId: slot.id,
             gratitudeSlotFrame: slot.frame || "none",
           },
-        }),
-      );
+        });
+      });
       api.updateScene({
         elements: [...withoutOldSlots, ...slots],
         appState: {
@@ -1243,21 +1260,22 @@ export const createCanvasAdapter = (
             })
           : element,
       );
-      const slots = template.layout.slots.map((slot) =>
-        newElement({
+      const slots = template.layout.slots.map((slot) => {
+        const bounds = getLayoutSlotBounds(slot, true);
+        return newElement({
           type: "rectangle",
-          x: page.x + page.width * slot.x,
-          y: page.y + page.height * slot.y,
-          width: page.width * slot.width,
-          height: page.height * slot.height,
+          x: page.x + page.width * bounds.x,
+          y: page.y + page.height * bounds.y,
+          width: page.width * bounds.width,
+          height: page.height * bounds.height,
           angle: (((slot.rotation || 0) * Math.PI) / 180) as Radians,
           frameId: page.id,
-          strokeColor: template.accent,
-          backgroundColor: "transparent",
+          strokeColor: "#d4c7cd",
+          backgroundColor: "#f6f1f3",
           fillStyle: "solid",
-          strokeStyle: "dashed",
+          strokeStyle: "solid",
           strokeWidth: 1,
-          opacity: 40,
+          opacity: 100,
           roughness: 0,
           roundness:
             slot.frame === "rounded" || slot.frame === "circle"
@@ -1270,8 +1288,8 @@ export const createCanvasAdapter = (
             gratitudeSlotFrame: slot.frame || "none",
             gratitudeTemplateId: template.id,
           },
-        }),
-      );
+        });
+      });
       const fontFamily = FONT_VALUES["lilita-one"];
       const heading = newTextElement({
         x: page.x + page.width * 0.08,
