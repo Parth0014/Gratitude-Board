@@ -6,6 +6,7 @@ import {
 } from "@excalidraw/common";
 
 import type { ExcalidrawElement } from "@excalidraw/element/types";
+import { collectReferencedFileIds } from "@excalidraw/element";
 
 import type { MaybePromise } from "@excalidraw/common/utility-types";
 
@@ -36,14 +37,9 @@ const filterOutDeletedFiles = (
   files: BinaryFiles,
 ) => {
   const nextFiles: BinaryFiles = {};
-  for (const element of elements) {
-    if (
-      !element.isDeleted &&
-      "fileId" in element &&
-      element.fileId &&
-      files[element.fileId]
-    ) {
-      nextFiles[element.fileId] = files[element.fileId];
+  for (const fileId of collectReferencedFileIds(elements)) {
+    if (files[fileId]) {
+      nextFiles[fileId] = files[fileId];
     }
   }
   return nextFiles;

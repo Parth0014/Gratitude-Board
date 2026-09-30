@@ -70,7 +70,13 @@ export const inspectBoardScene = ({
 
   const previousPage = getBoardPage(previousElements);
   if (previousPage && !allowBoardLayerReplacement) {
-    const previousProtectedIds = getProtectedIds(previousElements);
+    // Optional photo/texture layers may legitimately disappear during undo.
+    // Only the permanent page and base background must be restored.
+    const previousProtectedIds = new Set(
+      [previousPage.id, getBoardBackground(previousElements)?.id].filter(
+        (id): id is string => Boolean(id),
+      ),
+    );
     const deletedProtectedLayer = [...previousProtectedIds].some(
       (id) =>
         !elements.some((element) => element.id === id && !element.isDeleted),

@@ -460,7 +460,13 @@ export const AssetPanel = ({
           >
             ×
           </button>
-          <h2>{LABELS[kind]}</h2>
+          <div>
+            <span className="gratitude-assets__eyebrow">BUILD YOUR BOARD</span>
+            <h2>{LABELS[kind]}</h2>
+            <p className="gratitude-assets__subheading">
+              Collect the pieces that feel like you.
+            </p>
+          </div>
         </div>
         <div className="gratitude-assets__view-tabs" aria-label="Library view">
           <button

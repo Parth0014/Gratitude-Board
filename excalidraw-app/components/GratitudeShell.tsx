@@ -295,27 +295,30 @@ export const GratitudeShell = ({
         </svg>
         <span>Gratitude Studio</span>
       </div>
-      <label className="gratitude-board-name" title="Rename board">
-        <span className="sr-only">Board name</span>
-        <input
-          value={name}
-          maxLength={80}
-          aria-label="Board name"
-          onChange={(event) => onNameChange(event.currentTarget.value)}
-          onBlur={() => {
-            if (!name.trim()) {
-              onNameChange("My vision board");
-            }
-          }}
-        />
-      </label>
+      <div className="gratitude-header__board">
+        <span className="gratitude-header__eyebrow">YOUR VISION BOARD</span>
+        <label className="gratitude-board-name" title="Rename board">
+          <span className="sr-only">Board name</span>
+          <input
+            value={name}
+            maxLength={80}
+            aria-label="Board name"
+            onChange={(event) => onNameChange(event.currentTarget.value)}
+            onBlur={() => {
+              if (!name.trim()) {
+                onNameChange("My vision board");
+              }
+            }}
+          />
+        </label>
+      </div>
       <div className="gratitude-header__actions">
         <button
           className="gratitude-board-setup"
           type="button"
           onClick={onBoardSettingsOpen}
         >
-          Board setup
+          <span aria-hidden="true">✦</span> Board setup
         </button>
         <ExportMenu adapter={adapter} />
       </div>

@@ -1,7 +1,10 @@
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { compressData } from "@excalidraw/excalidraw/data/encode";
 import { newElementWith } from "@excalidraw/element";
-import { isInitializedImageElement } from "@excalidraw/element";
+import {
+  collectReferencedFileIds,
+  isInitializedImageElement,
+} from "@excalidraw/element";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import type {
@@ -98,17 +101,17 @@ export class FileManager {
   }) => {
     const addedFiles: Map<FileId, BinaryFileData> = new Map();
 
-    for (const element of elements) {
-      const fileData =
-        isInitializedImageElement(element) && files[element.fileId];
+    for (const fileId of collectReferencedFileIds(elements, {
+      includeDeleted: true,
+    })) {
+      const fileData = files[fileId];
 
       if (
         fileData &&
-        // NOTE if errored during save, won't retry due to this check
         !this.isFileSavedOrBeingSaved(fileData)
       ) {
-        addedFiles.set(element.fileId, files[element.fileId]);
-        this.savingFiles.set(element.fileId, this.getFileVersion(fileData));
+        addedFiles.set(fileId, fileData);
+        this.savingFiles.set(fileId, this.getFileVersion(fileData));
       }
     }
 
@@ -187,13 +190,9 @@ export class FileManager {
    *  of during regular beforeUnload unsaved files check.
    */
   shouldPreventUnload = (elements: readonly ExcalidrawElement[]) => {
-    return elements.some((element) => {
-      return (
-        isInitializedImageElement(element) &&
-        !element.isDeleted &&
-        this.savingFiles.has(element.fileId)
-      );
-    });
+    return collectReferencedFileIds(elements).some((id) =>
+      this.savingFiles.has(id),
+    );
   };
 
   /**

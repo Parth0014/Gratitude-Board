@@ -32,10 +32,9 @@ import {
 } from "@excalidraw/excalidraw/data/restore";
 import {
   getCommonBounds,
+  collectReferencedFileIds,
   newElementWith,
-  newImageElement,
 } from "@excalidraw/element";
-import { isInitializedImageElement } from "@excalidraw/element";
 import clsx from "clsx";
 import {
   parseLibraryTokensFromUrl,
@@ -53,8 +52,6 @@ import type {
   AppState,
   ExcalidrawImperativeAPI,
   BinaryFiles,
-  BinaryFileData,
-  DataURL,
   ExcalidrawInitialDataState,
   ExcalidrawProps,
 } from "@excalidraw/excalidraw/types";
@@ -142,6 +139,7 @@ import {
   PAGE_HEIGHT,
 } from "./vision/engine/boardPage";
 import { inspectBoardScene } from "./vision/engine/sceneGuard";
+import { createBackgroundImageUpdater } from "./vision/engine/backgroundImage";
 
 import type { VisionSelection } from "./vision/contracts";
 
@@ -362,10 +360,13 @@ const ExcalidrawWrapper = () => {
   const editorRootRef = useRef<HTMLDivElement>(null);
   const hasFittedPageRef = useRef(false);
   const lastGoodBoardSceneRef = useRef<readonly OrderedExcalidrawElement[]>([]);
-  const allowBoardLayerReplacementRef = useRef(false);
   const sceneRepairAttemptsRef = useRef(0);
   const canvasAdapter = useMemo(
     () => (excalidrawAPI ? createCanvasAdapter(excalidrawAPI) : null),
+    [excalidrawAPI],
+  );
+  const updateBackgroundImage = useMemo(
+    () => excalidrawAPI ? createBackgroundImageUpdater(excalidrawAPI) : null,
     [excalidrawAPI],
   );
   const fitBoardPage = useCallback(() => {
@@ -651,104 +652,14 @@ const ExcalidrawWrapper = () => {
   };
 
   const setBackgroundImage = async (
-    blob: Blob | null,
+    blob: Blob | null | Promise<Blob | null>,
     kind: "photo" | "texture",
     textureName: BoardTexture = "none",
   ) => {
-    if (!excalidrawAPI) {
-      return;
+    const ownerDocument = editorRootRef.current?.ownerDocument;
+    if (ownerDocument) {
+      await updateBackgroundImage?.(blob, kind, ownerDocument, textureName);
     }
-    const elements = excalidrawAPI.getSceneElements();
-    const page = getBoardPage(elements);
-    const background = getBoardBackground(elements);
-    const previous =
-      kind === "photo"
-        ? getBoardBackgroundImage(elements)
-        : getBoardTextureImage(elements);
-    if (!page || !background) {
-      return;
-    }
-    let image = null;
-    if (blob) {
-      const ownerWindow = editorRootRef.current?.ownerDocument.defaultView;
-      if (!ownerWindow) {
-        return;
-      }
-      const dataURL = await new Promise<DataURL>((resolve, reject) => {
-        const reader = new ownerWindow.FileReader();
-        reader.onload = () => resolve(reader.result as DataURL);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(blob);
-      });
-      const bitmap = await ownerWindow.createImageBitmap(blob);
-      const ratio =
-        kind === "photo"
-          ? Math.max(page.width / bitmap.width, page.height / bitmap.height)
-          : 1;
-      const imageWidth = kind === "photo" ? bitmap.width * ratio : page.width;
-      const imageHeight =
-        kind === "photo" ? bitmap.height * ratio : page.height;
-      bitmap.close();
-      const fileId = ownerWindow.crypto.randomUUID() as FileId;
-      excalidrawAPI.addFiles([
-        {
-          id: fileId,
-          dataURL,
-          mimeType: blob.type as BinaryFileData["mimeType"],
-          created: Date.now(),
-        },
-      ]);
-      image = newImageElement({
-        type: "image",
-        x: page.x + (page.width - imageWidth) / 2,
-        y: page.y + (page.height - imageHeight) / 2,
-        width: imageWidth,
-        height: imageHeight,
-        frameId: page.id,
-        fileId,
-        status: "saved",
-        locked: true,
-        customData:
-          kind === "photo"
-            ? { gratitudeBackgroundImage: true }
-            : { gratitudeTextureImage: true },
-      });
-    }
-    const remaining: ExcalidrawElement[] = elements.filter(
-      (element) => element.id !== previous?.id,
-    );
-    const insertAt =
-      kind === "photo"
-        ? remaining.findIndex((element) => element.id === background.id) + 1
-        : Math.max(
-            remaining.findIndex((element) => element.id === background.id),
-            remaining.findIndex(
-              (element) =>
-                element.id === getBoardBackgroundImage(remaining)?.id,
-            ),
-          ) + 1;
-    if (image) {
-      remaining.splice(insertAt, 0, image);
-    }
-    if (previous) {
-      allowBoardLayerReplacementRef.current = true;
-    }
-    excalidrawAPI.updateScene({
-      elements: remaining.map((element) =>
-        element.id === page.id
-          ? newElementWith(element, {
-              customData: {
-                ...element.customData,
-                gratitudeTexture:
-                  kind === "texture"
-                    ? textureName
-                    : element.customData?.gratitudeTexture,
-              },
-            })
-          : element,
-      ),
-      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-    });
   };
 
   const changeBoardTexture = (texture: BoardTexture) => {
@@ -799,11 +710,14 @@ const ExcalidrawWrapper = () => {
       }
       context.globalAlpha = 1;
     }
-    canvas.toBlob((blob) => {
-      if (blob) {
-        void setBackgroundImage(blob, "texture", texture);
-      }
-    }, "image/png");
+    const blob = new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((value) => value
+        ? resolve(value)
+        : reject(new Error("Texture could not be rendered")), "image/png"),
+    );
+    void setBackgroundImage(blob, "texture", texture).catch(() =>
+      excalidrawAPI?.setToast({ message: "That texture could not be added." }),
+    );
   };
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -912,13 +826,7 @@ const ExcalidrawWrapper = () => {
             });
         }
       } else {
-        const fileIds =
-          data.scene.elements?.reduce((acc, element) => {
-            if (isInitializedImageElement(element)) {
-              return acc.concat(element.fileId);
-            }
-            return acc;
-          }, [] as FileId[]) || [];
+        const fileIds = collectReferencedFileIds(data.scene.elements || []);
 
         if (data.isExternalScene) {
           if (fileIds.length) {
@@ -1071,17 +979,9 @@ const ExcalidrawWrapper = () => {
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_FILES)) {
           const elements = excalidrawAPI.getSceneElementsIncludingDeleted();
           const currFiles = excalidrawAPI.getFiles();
-          const fileIds =
-            elements?.reduce((acc, element) => {
-              if (
-                isInitializedImageElement(element) &&
-                // only load and update images that aren't already loaded
-                !currFiles[element.fileId]
-              ) {
-                return acc.concat(element.fileId);
-              }
-              return acc;
-            }, [] as FileId[]) || [];
+          const fileIds = collectReferencedFileIds(elements).filter(
+            (id) => !currFiles[id],
+          );
           if (fileIds.length) {
             LocalData.fileStorage
               .getFiles(fileIds)
@@ -1203,14 +1103,12 @@ const ExcalidrawWrapper = () => {
       repair();
       return true;
     };
-    const allowBoardLayerReplacement = allowBoardLayerReplacementRef.current;
-    allowBoardLayerReplacementRef.current = false;
     const previousBoardScene = lastGoodBoardSceneRef.current;
     const boardInspection = inspectBoardScene({
       elements,
       appState,
       previousElements: previousBoardScene,
-      allowBoardLayerReplacement,
+      allowBoardLayerReplacement: false,
     });
     const boardRepair = boardInspection.repair;
     if (excalidrawAPI && boardRepair) {

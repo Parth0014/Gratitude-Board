@@ -23,6 +23,7 @@ import type {
 import type { Radians } from "@excalidraw/math";
 
 import { getBoardBackground, getBoardPage } from "./engine/boardPage";
+import { rescaleImageCrop } from "./engine/imageCrop";
 
 import { registerVisionFonts, VISION_FONTS } from "./fonts";
 
@@ -949,6 +950,7 @@ export const createCanvasAdapter = (
         const size = Math.min(element.width, element.height);
         return newElementWith(element, {
           fileId,
+          crop: rescaleImageCrop(element.crop, canvas.width, canvas.height),
           width: shouldSquare ? size : element.width,
           height: shouldSquare ? size : element.height,
           scale: [edits.flipX ? -1 : 1, edits.flipY ? -1 : 1],

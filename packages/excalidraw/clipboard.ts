@@ -13,6 +13,7 @@ import { deepCopyElement } from "@excalidraw/element";
 import {
   isFrameLikeElement,
   isInitializedImageElement,
+  collectReferencedFileIds,
 } from "@excalidraw/element";
 
 import { getContainingFrame } from "@excalidraw/element";
@@ -151,19 +152,15 @@ export const serializeAsClipboardJSON = ({
   const framesToCopy = new Set<ExcalidrawFrameLikeElement>(
     elements.filter((element) => isFrameLikeElement(element)),
   );
-  let foundFile = false;
-
-  const _files = elements.reduce((acc, element) => {
-    if (isInitializedImageElement(element)) {
-      foundFile = true;
-      if (files && files[element.fileId]) {
-        acc[element.fileId] = files[element.fileId];
-      }
+  const referencedFileIds = collectReferencedFileIds(elements);
+  const _files: BinaryFiles = {};
+  for (const fileId of referencedFileIds) {
+    if (files?.[fileId]) {
+      _files[fileId] = files[fileId];
     }
-    return acc;
-  }, {} as BinaryFiles);
+  }
 
-  if (foundFile && !files) {
+  if (referencedFileIds.length && !files) {
     console.warn(
       "copyToClipboard: attempting to file element(s) without providing associated `files` object.",
     );

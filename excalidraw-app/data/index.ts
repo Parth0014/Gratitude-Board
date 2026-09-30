@@ -9,7 +9,7 @@ import {
 } from "@excalidraw/excalidraw/data/encryption";
 import { serializeAsJSON } from "@excalidraw/excalidraw/data/json";
 import { isInvisiblySmallElement } from "@excalidraw/element";
-import { isInitializedImageElement } from "@excalidraw/element";
+import { collectReferencedFileIds } from "@excalidraw/element";
 import { t } from "@excalidraw/excalidraw/i18n";
 import { bytesToHexString } from "@excalidraw/common";
 
@@ -261,9 +261,9 @@ export const exportToBackend = async (
 
   try {
     const filesMap = new Map<FileId, BinaryFileData>();
-    for (const element of elements) {
-      if (isInitializedImageElement(element) && files[element.fileId]) {
-        filesMap.set(element.fileId, files[element.fileId]);
+    for (const fileId of collectReferencedFileIds(elements)) {
+      if (files[fileId]) {
+        filesMap.set(fileId, files[fileId]);
       }
     }
 
