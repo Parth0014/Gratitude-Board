@@ -1,15 +1,38 @@
 import React from "react";
 
-import { VISION_LAYOUTS } from "../vision/layouts";
-import { VISION_TEXT_PRESETS } from "../vision/typography";
+import { VISION_TEMPLATES } from "../vision/templates";
 
 import { AssetPanel } from "./AssetPanel";
+import {
+  CHECKLIST_DISMISS_KEY,
+  GratitudeChecklist,
+} from "./GratitudeChecklist";
+import { GratitudeLobby, LOBBY_MOOD_COLORS } from "./GratitudeLobby";
 
 import type { CanvasAdapter, VisionTheme } from "../vision/contracts";
 
 import type { GratitudeAsset } from "../assets/contracts";
+import type { VisionTemplate } from "../vision/templates";
+import type { VisionLayout } from "../vision/layouts";
+import type { VisionTextPreset } from "../vision/typography";
 
-const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
+const EXPORT_SUCCESS_MESSAGES: Record<string, string> = {
+  "high-resolution": "Board PNG downloaded",
+  print: "Print layout opened",
+  selection: "Print piece downloaded",
+  "reel-web": "Web reel downloaded",
+  video: "Reel video downloaded",
+  "reel-plan": "Reel plan downloaded",
+  credits: "Asset credits downloaded",
+};
+
+const ExportMenu = ({
+  adapter,
+  onNotify,
+}: {
+  adapter: CanvasAdapter | null;
+  onNotify: (message: string) => void;
+}) => {
   const [open, setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -59,6 +82,7 @@ const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
     try {
       await action(ownerDocument);
       setOpen(false);
+      onNotify(EXPORT_SUCCESS_MESSAGES[label] ?? "Export downloaded");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Export failed");
     } finally {
@@ -251,6 +275,9 @@ export const GratitudeShell = ({
   footerRef,
   selectionToolbar,
   hasBoardContent,
+  boardColor,
+  onMoodSelect,
+  onNotify,
   children,
 }: {
   adapter: CanvasAdapter | null;
@@ -273,9 +300,73 @@ export const GratitudeShell = ({
   footerRef: (element: HTMLDivElement | null) => void;
   selectionToolbar: React.ReactNode;
   hasBoardContent: boolean;
+  boardColor: string;
+  onMoodSelect: (color: string) => void;
+  onNotify: (message: string) => void;
   children: React.ReactNode;
-}) => (
-  <div className="gratitude-studio" data-theme={theme}>
+}) => {
+  const studioRef = React.useRef<HTMLDivElement>(null);
+  const [lobbyDismissed, setLobbyDismissed] = React.useState(false);
+  const [checklistDismissed, setChecklistDismissed] = React.useState(false);
+  React.useEffect(() => {
+    const storage =
+      studioRef.current?.ownerDocument.defaultView?.localStorage;
+    try {
+      if (storage?.getItem(CHECKLIST_DISMISS_KEY) === "1") {
+        setChecklistDismissed(true);
+      }
+    } catch {
+      // checklist dismissal is a nicety; ignore storage failures
+    }
+  }, []);
+  const [progress, setProgress] = React.useState({
+    photo: false,
+    text: false,
+    mood: false,
+  });
+  const markProgress = (key: "photo" | "text" | "mood") =>
+    setProgress((current) =>
+      current[key] ? current : { ...current, [key]: true },
+    );
+
+  const handlePlaceAsset = async (
+    asset: GratitudeAsset,
+    ownerDocument: Document,
+  ) => {
+    await onPlaceAsset(asset, ownerDocument);
+    if (asset.type === "photo") {
+      markProgress("photo");
+    }
+  };
+  const handleUploadAsset = async (file: File, ownerDocument: Document) => {
+    await onUploadAsset(file, ownerDocument);
+    markProgress("photo");
+  };
+  const handleApplyLayout = (layout: VisionLayout) => {
+    adapter?.applyLayout(layout);
+    markProgress("mood");
+    onNotify(`Layout applied: ${layout.title}`);
+  };
+  const handleApplyTemplate = (template: VisionTemplate) => {
+    adapter?.applyTemplate(template);
+    markProgress("mood");
+    onNotify(`Recipe applied: ${template.title}`);
+  };
+  const handleAddText = (preset: VisionTextPreset) => {
+    adapter?.createTextPreset(preset);
+    markProgress("text");
+  };
+  const handleBoardSettingsOpen = () => {
+    markProgress("mood");
+    onBoardSettingsOpen();
+  };
+  const showChecklist =
+    hasBoardContent &&
+    !checklistDismissed &&
+    !(progress.photo && progress.text && progress.mood);
+
+  return (
+  <div className="gratitude-studio" data-theme={theme} ref={studioRef}>
     <header className="gratitude-header">
       <div className="gratitude-brand" aria-label="Gratitude Studio">
         <svg
@@ -316,11 +407,11 @@ export const GratitudeShell = ({
         <button
           className="gratitude-board-setup"
           type="button"
-          onClick={onBoardSettingsOpen}
+          onClick={handleBoardSettingsOpen}
         >
           <span aria-hidden="true">✦</span> Board setup
         </button>
-        <ExportMenu adapter={adapter} />
+        <ExportMenu adapter={adapter} onNotify={onNotify} />
       </div>
     </header>
     <div
@@ -329,13 +420,13 @@ export const GratitudeShell = ({
       }`}
     >
       <AssetPanel
-        onPlace={onPlaceAsset}
+        onPlace={handlePlaceAsset}
         onReplace={onReplaceAsset}
         canReplace={adapter?.getSelection().kind === "image"}
-        onUpload={onUploadAsset}
-        onApplyLayout={(layout) => adapter?.applyLayout(layout)}
-        onApplyTemplate={(template) => adapter?.applyTemplate(template)}
-        onAddText={(preset) => adapter?.createTextPreset(preset)}
+        onUpload={handleUploadAsset}
+        onApplyLayout={handleApplyLayout}
+        onApplyTemplate={handleApplyTemplate}
+        onAddText={handleAddText}
       />
       <main className="gratitude-editor" aria-label="Vision board editor">
         <div
@@ -344,37 +435,23 @@ export const GratitudeShell = ({
         >
           {selectionToolbar}
         </div>
-        {!hasBoardContent && adapter && (
-          <section
-            className="gratitude-board-starter"
-            aria-label="Start your board"
-          >
-            <span>START YOUR VISION</span>
-            <h1>What would you love to see more of?</h1>
-            <p>
-              Choose a gentle starting point. You can change everything later.
-            </p>
-            <div>
-              <button
-                type="button"
-                onClick={() => adapter.applyLayout(VISION_LAYOUTS[0])}
-              >
-                <strong>Start with a layout</strong>
-                <small>Arrange five meaningful moments</small>
-              </button>
-              <button
-                type="button"
-                onClick={() => adapter.createTextPreset(VISION_TEXT_PRESETS[0])}
-              >
-                <strong>Add an intention</strong>
-                <small>Begin with words that guide you</small>
-              </button>
-              <button type="button" onClick={onBoardSettingsOpen}>
-                <strong>Set the mood</strong>
-                <small>Choose your board color and texture</small>
-              </button>
-            </div>
-          </section>
+        {!hasBoardContent && adapter && !lobbyDismissed && (
+          <GratitudeLobby
+            templates={VISION_TEMPLATES}
+            onApplyTemplate={handleApplyTemplate}
+            onUploadPhoto={handleUploadAsset}
+            onBlankCanvas={() => setLobbyDismissed(true)}
+            moodColors={LOBBY_MOOD_COLORS}
+            activeMood={boardColor}
+            onMoodSelect={onMoodSelect}
+            onNotify={onNotify}
+          />
+        )}
+        {showChecklist && (
+          <GratitudeChecklist
+            progress={progress}
+            onDismiss={() => setChecklistDismissed(true)}
+          />
         )}
         {children}
         <div
@@ -405,4 +482,5 @@ export const GratitudeShell = ({
       )}
     </div>
   </div>
-);
+  );
+};

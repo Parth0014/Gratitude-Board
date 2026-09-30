@@ -134,6 +134,8 @@ const ToolIcon = ({ name }: { name: AssetKind | "upload" }) => {
   }
 };
 
+import { AssetThumbnail } from "./AssetThumbnail";
+
 export const AssetPanel = ({
   onPlace,
   onReplace,
@@ -443,7 +445,7 @@ export const AssetPanel = ({
         )}
         <button
           type="button"
-          aria-label="Upload a photo"
+          aria-label="Uploads"
           onClick={() => uploadRef.current?.click()}
         >
           <ToolIcon name="upload" />
@@ -746,7 +748,7 @@ export const AssetPanel = ({
                     }}
                     onClick={() => void place(asset)}
                   >
-                    <img src={asset.previewUrl} alt="" loading="lazy" />
+                    <AssetThumbnail src={asset.previewUrl} title={asset.title} />
                     {asset.type !== "photo" && <span>{asset.title}</span>}
                   </button>
                   <button
@@ -861,7 +863,11 @@ export const AssetPanel = ({
               >
                 ×
               </button>
-              <img src={details.previewUrl} alt="" />
+              <AssetThumbnail
+                src={details.previewUrl}
+                title={details.title}
+                className="gratitude-asset-details__image"
+              />
               <h3>{details.title}</h3>
               {details.license.author && <p>By {details.license.author}</p>}
               <p>

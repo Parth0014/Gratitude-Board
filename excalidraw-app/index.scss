@@ -2619,3 +2619,600 @@
     box-shadow: 0 -12px 36px rgb(43 34 38 / 12%);
   }
 }
+
+/* ==========================================================================
+   Gratitude UI/UX patch · 2026-09-30
+   Design-system consolidation: every rule below uses shared tokens only.
+   Radii scale: 8 controls · 12 cards · 16 panels · 20 hero moments.
+   Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 (var(--s1)…var(--s8)).
+   Type: var(--font-display) for editorial headings, var(--font-ui) for UI.
+   ========================================================================== */
+
+/* ---- 1. Board Setup panel (was completely unstyled) ---------------------- */
+.gratitude-board-settings {
+  display: grid;
+  gap: var(--s6);
+  padding: var(--s4);
+  font: 14px/1.45 var(--font-ui);
+  color: var(--studio-ink);
+}
+
+.gratitude-board-settings section {
+  display: grid;
+  gap: var(--s3);
+  margin: 0;
+  padding-bottom: var(--s6);
+  border-bottom: 1px solid var(--studio-line);
+}
+
+.gratitude-board-settings section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.gratitude-board-settings h3 {
+  margin: 0;
+  font: 600 13px/1.3 var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-muted);
+}
+
+.gratitude-board-settings p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--studio-muted);
+}
+
+.gratitude-board-settings__presets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s2);
+}
+
+.gratitude-board-settings__presets button {
+  display: grid;
+  gap: 2px;
+  padding: var(--s3);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-sm);
+  background: var(--studio-surface);
+  color: var(--studio-ink);
+  font: 600 13px/1.3 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.gratitude-board-settings__presets button small {
+  display: block;
+  font: 400 12px/1.3 var(--font-ui);
+  color: var(--studio-muted);
+}
+
+.gratitude-board-settings__presets button:hover {
+  border-color: var(--studio-accent);
+}
+
+.gratitude-board-settings__presets button[aria-pressed="true"] {
+  border-color: var(--studio-accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--studio-accent);
+}
+
+.gratitude-board-settings__size {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--s2);
+}
+
+.gratitude-board-settings__size label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--studio-muted);
+}
+
+.gratitude-board-settings__size input {
+  width: 84px;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-sm);
+  background: var(--studio-surface);
+  color: var(--studio-ink);
+  font: 600 13px var(--font-ui);
+}
+
+.gratitude-board-settings__size input:focus-visible {
+  outline: 2px solid var(--studio-accent);
+  outline-offset: 1px;
+}
+
+.gratitude-board-settings__size > span {
+  padding-bottom: var(--s2);
+  color: var(--studio-muted);
+}
+
+.gratitude-board-settings__size button {
+  padding: var(--s2) var(--s4);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--studio-accent);
+  color: #fff;
+  font: 700 13px var(--font-ui);
+  cursor: pointer;
+}
+
+.gratitude-board-settings__size button:hover {
+  filter: brightness(1.06);
+}
+
+.gratitude-board-settings__color {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.gratitude-board-settings__color input[type="color"] {
+  width: 44px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-sm);
+  background: var(--studio-surface);
+  cursor: pointer;
+}
+
+.gratitude-board-settings__color span {
+  font: 600 13px var(--font-ui);
+  letter-spacing: 0.06em;
+  color: var(--studio-muted);
+}
+
+.gratitude-board-settings__textures {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s2);
+}
+
+.gratitude-board-settings__textures button {
+  display: grid;
+  justify-items: center;
+  gap: var(--s2);
+  padding: var(--s3) var(--s2);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-sm);
+  background: var(--studio-surface);
+  color: var(--studio-ink);
+  font: 600 12px var(--font-ui);
+  cursor: pointer;
+}
+
+.gratitude-board-settings__textures button[aria-pressed="true"] {
+  border-color: var(--studio-accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--studio-accent);
+}
+
+.gratitude-board-settings__texture {
+  display: block;
+  width: 100%;
+  height: 28px;
+  border: 1px solid var(--studio-line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.gratitude-board-settings__texture--paper {
+  background: repeating-linear-gradient(0deg, #fff, #fff 5px, #f3ece7 6px);
+}
+
+.gratitude-board-settings__texture--dots {
+  background-image: radial-gradient(#d9c9c2 1.2px, transparent 1.2px);
+  background-size: 10px 10px;
+  background-color: #fff;
+}
+
+.gratitude-board-settings__texture--grid {
+  background-image: linear-gradient(#e4d8d2 1px, transparent 1px),
+    linear-gradient(90deg, #e4d8d2 1px, transparent 1px);
+  background-size: 10px 10px;
+  background-color: #fff;
+}
+
+.gratitude-board-settings__upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s3) var(--s4);
+  border: 1px dashed var(--studio-accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--studio-accent);
+  font: 700 13px var(--font-ui);
+  cursor: pointer;
+}
+
+.gratitude-board-settings__upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.gratitude-board-settings__remove {
+  justify-self: start;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--studio-muted);
+  font: 600 12px var(--font-ui);
+  cursor: pointer;
+}
+
+.gratitude-board-settings__remove:hover {
+  border-color: var(--studio-accent);
+  color: var(--studio-accent);
+}
+
+/* ---- 2. Unavailable asset tile (thumbnail failure state) ----------------- */
+.gratitude-asset-card__unavailable {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  min-height: 126px;
+  padding: var(--s3);
+  background: var(--bg-app);
+  color: var(--studio-muted);
+  text-align: center;
+}
+
+.gratitude-asset-card__unavailable strong {
+  font: 700 12px/1.3 var(--font-ui);
+  color: var(--studio-ink);
+}
+
+.gratitude-asset-card__unavailable span {
+  font: 400 11px/1.4 var(--font-ui);
+}
+
+.gratitude-asset-card__unavailable svg {
+  width: 22px;
+  height: 22px;
+  opacity: 0.6;
+}
+
+/* ---- 3. Inspiration Lobby (replaces the three bland starter buttons) ----- */
+.gratitude-lobby {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: min(680px, calc(100% - 48px));
+  max-height: calc(100% - 48px);
+  overflow: auto;
+  padding: var(--s8);
+  border: 1px solid var(--studio-line);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: var(--shadow-float), 0 22px 70px rgb(52 45 53 / 14%);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+}
+
+.gratitude-lobby__eyebrow {
+  color: var(--studio-accent);
+  font: 800 11px/1 var(--font-ui);
+  letter-spacing: 0.14em;
+}
+
+.gratitude-lobby h1 {
+  margin: var(--s2) 0 4px;
+  font: 400 clamp(24px, 3.4vw, 34px)/1.15 var(--font-display);
+  color: var(--studio-ink);
+}
+
+.gratitude-lobby > p {
+  margin: 0 0 var(--s4);
+  color: var(--studio-muted);
+  font: 400 14px/1.5 var(--font-ui);
+}
+
+.gratitude-lobby__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s2);
+  margin-bottom: var(--s4);
+}
+
+.gratitude-lobby__chips button {
+  padding: var(--s2) var(--s4);
+  border: 1px solid var(--studio-line);
+  border-radius: 999px;
+  background: var(--studio-surface);
+  color: var(--studio-ink);
+  font: 600 13px var(--font-ui);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.gratitude-lobby__chips button:hover {
+  border-color: var(--studio-accent);
+}
+
+.gratitude-lobby__chips button[aria-pressed="true"] {
+  border-color: var(--studio-accent);
+  background: var(--studio-accent);
+  color: #fff;
+}
+
+.gratitude-lobby__recipes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s3);
+  margin-bottom: var(--s4);
+  text-align: left;
+}
+
+.gratitude-lobby__recipe {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  min-height: 128px;
+  padding: var(--s4);
+  padding-top: var(--s6);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-md);
+  background: var(--studio-surface);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+}
+
+.gratitude-lobby__recipe::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  background: var(--recipe-accent, var(--studio-accent));
+}
+
+.gratitude-lobby__recipe:hover {
+  border-color: var(--studio-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+.gratitude-lobby__recipe.is-highlighted {
+  border-color: var(--studio-accent);
+  box-shadow: 0 0 0 2px var(--studio-accent), var(--shadow-float);
+}
+
+.gratitude-lobby__recipe > span {
+  font: 800 10px/1 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--recipe-accent, var(--studio-accent));
+}
+
+.gratitude-lobby__recipe strong {
+  font: 400 17px/1.25 var(--font-display);
+  color: var(--studio-ink);
+}
+
+.gratitude-lobby__recipe em {
+  font: italic 400 12px/1.45 var(--font-display);
+  color: var(--studio-muted);
+}
+
+.gratitude-lobby__recipe small {
+  margin-top: auto;
+  padding-top: var(--s2);
+  font: 700 12px var(--font-ui);
+  color: var(--studio-accent);
+}
+
+.gratitude-lobby__mood {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s3);
+  margin-bottom: var(--s4);
+  font: 600 13px var(--font-ui);
+  color: var(--studio-muted);
+}
+
+.gratitude-lobby__swatches {
+  display: flex;
+  gap: var(--s2);
+}
+
+.gratitude-lobby__swatches button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgb(43 34 38 / 14%);
+  cursor: pointer;
+}
+
+.gratitude-lobby__swatches button:hover {
+  transform: scale(1.1);
+}
+
+.gratitude-lobby__swatches button[aria-pressed="true"] {
+  border-color: var(--studio-accent);
+}
+
+.gratitude-lobby__routes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s2);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--studio-line);
+}
+
+.gratitude-lobby__routes button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-sm);
+  background: var(--studio-surface);
+  color: var(--studio-ink);
+  font: 700 13px var(--font-ui);
+  cursor: pointer;
+}
+
+.gratitude-lobby__routes button:hover {
+  border-color: var(--studio-accent);
+  color: var(--studio-accent);
+}
+
+.gratitude-lobby__routes button.is-primary {
+  border-color: var(--studio-accent);
+  background: var(--studio-accent);
+  color: #fff;
+}
+
+.gratitude-lobby__routes button.is-primary:hover {
+  color: #fff;
+  filter: brightness(1.06);
+}
+
+/* ---- 4. Momentum checklist (guided first-90-seconds overlay) -------------- */
+.gratitude-checklist {
+  position: absolute;
+  z-index: 4;
+  right: var(--s4);
+  bottom: var(--s4);
+  width: min(300px, calc(100% - 32px));
+  padding: var(--s4);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 96%);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(8px);
+  text-align: left;
+}
+
+.gratitude-checklist header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.gratitude-checklist h2 {
+  margin: 0;
+  font: 400 17px/1.3 var(--font-display);
+  color: var(--studio-ink);
+}
+
+.gratitude-checklist header button {
+  border: 0;
+  background: transparent;
+  color: var(--studio-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--s1);
+}
+
+.gratitude-checklist ol {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gratitude-checklist li {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font: 400 13px/1.4 var(--font-ui);
+  color: var(--studio-muted);
+}
+
+.gratitude-checklist li.is-done {
+  color: var(--studio-ink);
+  text-decoration: line-through;
+  text-decoration-color: var(--studio-accent);
+}
+
+.gratitude-checklist li::before {
+  content: "";
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--studio-line);
+  border-radius: 50%;
+  background: var(--studio-surface);
+}
+
+.gratitude-checklist li.is-done::before {
+  border-color: var(--studio-accent);
+  background: var(--studio-accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.5l3 3 4.5-6' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ---- 5. Radius scale normalization for in-scope components ---------------- */
+.gratitude-export-dialog__options button {
+  border-radius: var(--radius-md);
+}
+
+.gratitude-assets__grid .gratitude-asset-card {
+  border-radius: var(--radius-md);
+}
+
+.gratitude-assets__grid .gratitude-template-card,
+.gratitude-assets__grid .gratitude-layout-card,
+.gratitude-assets__grid .gratitude-text-card {
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 640px) {
+  .gratitude-lobby {
+    padding: var(--s6);
+  }
+
+  .gratitude-lobby__recipes {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .gratitude-checklist {
+    right: var(--s3);
+    left: var(--s3);
+    bottom: var(--s3);
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gratitude-lobby__recipe,
+  .gratitude-lobby__chips button,
+  .gratitude-lobby__swatches button {
+    transition: none;
+  }
+
+  .gratitude-lobby__recipe:hover {
+    transform: none;
+  }
+}
