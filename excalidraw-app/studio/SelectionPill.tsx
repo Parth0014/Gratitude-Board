@@ -167,14 +167,21 @@ export const SelectionPill = ({
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        // Capture phase + stopPropagation: closing a popover must not
+        // bubble to the engine, which would deselect the image.
+        event.stopPropagation();
         setPanel(null);
       }
     };
     ownerDocument?.addEventListener("pointerdown", close);
-    ownerDocument?.addEventListener("keydown", closeOnEscape);
+    ownerDocument?.addEventListener("keydown", closeOnEscape, {
+      capture: true,
+    });
     return () => {
       ownerDocument?.removeEventListener("pointerdown", close);
-      ownerDocument?.removeEventListener("keydown", closeOnEscape);
+      ownerDocument?.removeEventListener("keydown", closeOnEscape, {
+        capture: true,
+      });
     };
   }, [panel]);
 
@@ -490,6 +497,88 @@ export const SelectionPill = ({
                 >
                   Flip vertical
                 </button>
+                <div
+                  className="selection-pill__section"
+                  role="group"
+                  aria-label="Finish"
+                >
+                  <strong className="selection-pill__section-title">
+                    Finish
+                  </strong>
+                  <Slider
+                    label="Grain"
+                    value={style.imageEdits?.grain ?? 0}
+                    min={0}
+                    max={100}
+                    step={5}
+                    suffix="%"
+                    onChange={(grain) =>
+                      rootRef.current &&
+                      void adapter.updateImageEdits(
+                        { grain },
+                        rootRef.current.ownerDocument,
+                      )
+                    }
+                  />
+                  <Slider
+                    label="Shadow"
+                    value={style.imageEdits?.shadow ?? 0}
+                    min={0}
+                    max={100}
+                    step={5}
+                    suffix="%"
+                    onChange={(shadow) =>
+                      rootRef.current &&
+                      void adapter.updateImageEdits(
+                        { shadow },
+                        rootRef.current.ownerDocument,
+                      )
+                    }
+                  />
+                  <Slider
+                    label="Glow"
+                    value={style.imageEdits?.glow ?? 0}
+                    min={0}
+                    max={100}
+                    step={5}
+                    suffix="%"
+                    onChange={(glow) =>
+                      rootRef.current &&
+                      void adapter.updateImageEdits(
+                        { glow },
+                        rootRef.current.ownerDocument,
+                      )
+                    }
+                  />
+                  <Slider
+                    label="Border"
+                    value={style.imageEdits?.borderWidth ?? 0}
+                    min={0}
+                    max={20}
+                    suffix="px"
+                    onChange={(borderWidth) =>
+                      rootRef.current &&
+                      void adapter.updateImageEdits(
+                        { borderWidth },
+                        rootRef.current.ownerDocument,
+                      )
+                    }
+                  />
+                  {(style.imageEdits?.borderWidth ?? 0) > 0 && (
+                    <Swatches
+                      label="Border color"
+                      value={style.imageEdits?.borderColor || "#ffffff"}
+                      colors={FILL_COLORS}
+                      onChange={(borderColor) =>
+                        rootRef.current &&
+                        void adapter.updateImageEdits(
+                          { borderColor },
+                          rootRef.current.ownerDocument,
+                        )
+                      }
+                    />
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={(event) =>
