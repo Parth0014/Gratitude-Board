@@ -20,7 +20,6 @@ import {
 } from "@excalidraw/common";
 import polyfill from "@excalidraw/excalidraw/polyfill";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { loadFromBlob } from "@excalidraw/excalidraw/data/blob";
 import { t } from "@excalidraw/excalidraw/i18n";
 
@@ -78,8 +77,6 @@ import {
   userToFollowAtom,
 } from "./collab/Collab";
 import { AppFooter } from "./components/AppFooter";
-import { GratitudeSelectionToolbar } from "./components/GratitudeSelectionToolbar";
-import { AppMainMenu } from "./components/AppMainMenu";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
 
 import {
@@ -114,7 +111,10 @@ import DebugCanvas, {
 
 import "./index.scss";
 
-import { GratitudeShell } from "./components/GratitudeShell";
+import "./studio/studio.scss";
+
+import { StudioShell } from "./studio/StudioShell";
+import { SelectionPill } from "./studio/SelectionPill";
 
 import { BoardSettings } from "./components/BoardSettings";
 import { fetchAsset } from "./assets/registry";
@@ -127,6 +127,10 @@ import { createCanvasAdapter } from "./vision/canvasAdapter";
 import { EMPTY_VISION_SELECTION } from "./vision/contracts";
 import { VisionDocumentRepository } from "./vision/repository";
 import { getLayoutSlotBounds, VISION_LAYOUTS } from "./vision/layouts";
+import type { VisionTemplate } from "./vision/templates";
+import { curatedLocalProvider } from "./assets/providers/curatedLocal";
+import { openverseProvider } from "./assets/providers/openverse";
+import type { AssetProvider } from "./assets/contracts";
 import { LEGACY_VISION_TEMPLATE_STYLES } from "./vision/templates";
 
 import {
@@ -141,7 +145,7 @@ import {
 import { inspectBoardScene } from "./vision/engine/sceneGuard";
 import { createBackgroundImageUpdater } from "./vision/engine/backgroundImage";
 
-import type { VisionSelection } from "./vision/contracts";
+import type { VisionSelection, VisionTextPreset } from "./vision/contracts";
 
 import type { BoardTexture } from "./components/BoardSettings";
 import type { GratitudeAsset } from "./assets/contracts";
@@ -356,7 +360,6 @@ const ExcalidrawWrapper = () => {
     EMPTY_VISION_SELECTION,
   );
   const [hasBoardContent, setHasBoardContent] = useState(false);
-  const [footerTarget, setFooterTarget] = useState<HTMLDivElement | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
   const hasFittedPageRef = useRef(false);
   const lastGoodBoardSceneRef = useRef<readonly OrderedExcalidrawElement[]>([]);
@@ -372,6 +375,131 @@ const ExcalidrawWrapper = () => {
   const fitBoardPage = useCallback(() => {
     canvasAdapter?.fitBoard();
   }, [canvasAdapter]);
+
+  const newBoard = useCallback(() => {
+    canvasAdapter?.clearBoard();
+  }, [canvasAdapter]);
+
+  const applyTemplate = useCallback(
+    (template: VisionTemplate) => {
+      canvasAdapter?.applyTemplate(template);
+    },
+    [canvasAdapter],
+  );
+
+  // Module 4: sticker catalog for the Elements panel.
+  const [stickers, setStickers] = useState<GratitudeAsset[]>([]);
+  const [stickersLoading, setStickersLoading] = useState(true);
+  useEffect(() => {
+    const ownerWindow =
+      editorRootRef.current?.ownerDocument.defaultView as
+        | (Window & typeof globalThis)
+        | null
+        | undefined;
+    if (!ownerWindow) {
+      setStickersLoading(false);
+      return;
+    }
+    let cancelled = false;
+    curatedLocalProvider
+      .search({ type: "sticker", limit: 40 }, ownerWindow)
+      .then((page) => {
+        if (!cancelled) {
+          setStickers(page.items);
+          setStickersLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStickersLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const getOwnerWindow = useCallback(
+    () =>
+      editorRootRef.current?.ownerDocument.defaultView as
+        | (Window & typeof globalThis)
+        | null
+        | undefined,
+    [],
+  );
+
+  const insertProviderAsset = useCallback(
+    async (provider: AssetProvider, asset: GratitudeAsset) => {
+      const ownerWindow = getOwnerWindow();
+      const ownerDocument = editorRootRef.current?.ownerDocument;
+      if (!ownerWindow || !ownerDocument || !canvasAdapter) {
+        throw new Error("Board is not ready.");
+      }
+      const resolved = await provider.resolve(asset.id, ownerWindow);
+      const blob = await provider.fetchAsset(resolved, ownerWindow);
+      // The engine only accepts raster images; vector stickers are
+      // sanitized and rasterized before insertion.
+      const raster =
+        blob.type === "image/svg+xml"
+          ? await svgToPng(blob, ownerDocument)
+          : blob;
+      await canvasAdapter.createImage(raster, ownerWindow, resolved);
+    },
+    [canvasAdapter, getOwnerWindow],
+  );
+
+  const insertSticker = useCallback(
+    (asset: GratitudeAsset) =>
+      insertProviderAsset(curatedLocalProvider, asset),
+    [insertProviderAsset],
+  );
+
+  const insertTextPreset = useCallback(
+    (preset: VisionTextPreset) => {
+      canvasAdapter?.createTextPreset(preset);
+    },
+    [canvasAdapter],
+  );
+
+  const searchPhotos = useCallback(
+    async (query: string) => {
+      const ownerWindow = getOwnerWindow();
+      if (!ownerWindow) {
+        throw new Error("Board is not ready.");
+      }
+      const page = await openverseProvider.search(
+        { search: query, type: "photo", limit: 24 },
+        ownerWindow,
+      );
+      return page.items;
+    },
+    [getOwnerWindow],
+  );
+
+  const insertPhoto = useCallback(
+    (asset: GratitudeAsset) =>
+      insertProviderAsset(openverseProvider, asset),
+    [insertProviderAsset],
+  );
+
+  const uploadFiles = useCallback(
+    async (files: File[]) => {
+      const ownerWindow = getOwnerWindow();
+      if (!ownerWindow || !canvasAdapter) {
+        throw new Error("Board is not ready.");
+      }
+      for (const file of files) {
+        // eslint-disable-next-line no-await-in-loop
+        await canvasAdapter.createImage(file, ownerWindow);
+      }
+    },
+    [canvasAdapter, getOwnerWindow],
+  );
+
+  // Module 6: share dialog state.
+  const [shareOpen, setShareOpen] = useState(false);
+  const openShare = useCallback(() => setShareOpen(true), []);
+  const closeShare = useCallback(() => setShareOpen(false), []);
 
   useEffect(() => {
     const storage =
@@ -1478,112 +1606,30 @@ const ExcalidrawWrapper = () => {
   }
 
   return (
-    <GratitudeShell
-      adapter={canvasAdapter}
-      name={boardTitle}
+    <StudioShell
+      boardName={boardTitle}
       onNameChange={changeBoardTitle}
-      theme={editorTheme}
-      onPlaceAsset={placeAsset}
-      onReplaceAsset={async (asset, ownerDocument) => {
-        const ownerWindow = ownerDocument.defaultView;
-        if (!excalidrawAPI || !ownerWindow) {
-          return;
-        }
-        try {
-          const downloaded = await fetchAsset(asset, ownerWindow);
-          const image =
-            asset.mimeType === "image/svg+xml"
-              ? await svgToPng(
-                  downloaded,
-                  ownerDocument,
-                  asset.customization?.color,
-                )
-              : downloaded;
-          await canvasAdapter?.replaceSelectedImage(image, ownerWindow, asset);
-        } catch {
-          excalidrawAPI.setToast({
-            message: "That photo could not replace the selection. Try again.",
-          });
-        }
-      }}
-      onUploadAsset={async (file: File, ownerDocument: Document) => {
-        const ownerWindow = ownerDocument.defaultView;
-        if (!excalidrawAPI || !ownerWindow) {
-          return;
-        }
-        try {
-          if (
-            !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
-            file.size <= 0 ||
-            file.size > 20_000_000
-          ) {
-            throw new Error("Unsupported upload");
-          }
-          const asset: GratitudeAsset = {
-            id: `upload:${ownerWindow.crypto.randomUUID()}`,
-            provider: "upload",
-            type: "photo",
-            title: file.name,
-            tags: [],
-            previewUrl: "",
-            assetUrl: "",
-            mimeType: file.type,
-            license: {
-              tier: "A",
-              id: "user-provided",
-              label: "User provided",
-              attributionRequired: false,
-            },
-            editable: { crop: true, filters: true },
-          };
-          await canvasAdapter?.createImage(file, ownerWindow, asset);
-        } catch {
-          excalidrawAPI.setToast({
-            message: "That photo could not be added. Use PNG, JPEG, or WebP.",
-          });
-        }
-      }}
-      boardSettingsOpen={boardSettingsOpen}
-      onBoardSettingsOpen={() => {
-        excalidrawAPI?.updateScene({ appState: { selectedElementIds: {} } });
-        setBoardSettingsOpen(true);
-      }}
-      boardSettings={
-        <BoardSettings
-          {...boardState}
-          onSizeChange={changeBoardSize}
-          onColorChange={changeBoardColor}
-          onTextureChange={changeBoardTexture}
-          onImageChange={(file) => {
-            if (
-              !["image/png", "image/jpeg", "image/webp"].includes(file.type)
-            ) {
-              excalidrawAPI?.setToast({
-                message: "Use a PNG, JPEG, or WebP image.",
-              });
-              return;
-            }
-            void setBackgroundImage(file, "photo").catch(() =>
-              excalidrawAPI?.setToast({
-                message: "That image could not be added.",
-              }),
-            );
-          }}
-          onImageRemove={() => void setBackgroundImage(null, "photo")}
-        />
-      }
-      onRightToggle={() => setBoardSettingsOpen(false)}
-      footerRef={setFooterTarget}
-      selectionToolbar={
-        <GratitudeSelectionToolbar
-          adapter={canvasAdapter}
-          selection={visionSelection}
-        />
-      }
+      onNewBoard={newBoard}
       hasBoardContent={hasBoardContent}
+      onApplyTemplate={applyTemplate}
+      stickers={stickers}
+      stickersLoading={stickersLoading}
+      onInsertSticker={insertSticker}
+      onInsertText={insertTextPreset}
+      onSearchPhotos={searchPhotos}
+      onInsertPhoto={insertPhoto}
+      onUploadFiles={uploadFiles}
       boardColor={boardState.color}
-      onMoodSelect={changeBoardColor}
-      onNotify={(message) => excalidrawAPI?.setToast({ message })}
+      onBoardColor={changeBoardColor}
+      boardTexture={boardState.texture}
+      onBoardTexture={changeBoardTexture}
+      shareOpen={shareOpen}
+      onOpenShare={openShare}
+      onCloseShare={closeShare}
+      canvasAdapter={canvasAdapter}
+      theme={editorTheme}
+      onFitBoard={fitBoardPage}
+      hasSelection={visionSelection.count > 0}
     >
       <div
         ref={editorRootRef}
@@ -1634,48 +1680,7 @@ const ExcalidrawWrapper = () => {
         <Excalidraw
           name={boardTitle || "My vision board"}
           snapToBoard={keepInsideBoard}
-          renderEditorUI={(slots) => (
-            <>
-              {footerTarget &&
-                createPortal(
-                  <div className="gratitude-board-controls">
-                    {slots.history}
-                    {slots.zoom}
-                    <button
-                      type="button"
-                      className={`gratitude-snap-toggle${
-                        keepInsideBoard ? " is-active" : ""
-                      }`}
-                      aria-label={`Keep items inside board: ${
-                        keepInsideBoard ? "on" : "off"
-                      }`}
-                      aria-pressed={keepInsideBoard}
-                      title="Keep every movable item inside the board"
-                      onClick={() => setKeepInsideBoard((enabled) => !enabled)}
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        aria-hidden="true"
-                      >
-                        <rect x="4" y="4" width="16" height="16" rx="2" />
-                        <path d="M8 4v4H4m12-4v4h4M8 20v-4H4m12 4v-4h4" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      className="gratitude-fit-page"
-                      onClick={fitBoardPage}
-                    >
-                      Fit page
-                    </button>
-                  </div>,
-                  footerTarget,
-                )}
-            </>
-          )}
+          ui={false}
           viewportStatusFrame={viewportStatusFrame}
           userToFollow={userToFollow}
           onChange={onChange}
@@ -1736,12 +1741,10 @@ const ExcalidrawWrapper = () => {
             }
           }}
         >
-          <AppMainMenu theme={appTheme} />
           <OverwriteConfirmDialog>
             <OverwriteConfirmDialog.Actions.ExportToImage />
             <OverwriteConfirmDialog.Actions.SaveToDisk />
           </OverwriteConfirmDialog>
-          <AppFooter onChange={() => excalidrawAPI?.refresh()} />
           {isCollaborating && isOffline && (
             <div className="alert alert--warning">
               {t("alerts.collabOfflineWarning")}
@@ -1765,8 +1768,11 @@ const ExcalidrawWrapper = () => {
             />
           )}
         </Excalidraw>
+        {canvasAdapter && visionSelection.count > 0 && (
+          <SelectionPill adapter={canvasAdapter} selection={visionSelection} />
+        )}
       </div>
-    </GratitudeShell>
+    </StudioShell>
   );
 };
 
