@@ -141,6 +141,8 @@ export interface CanvasAdapter {
   rotateSelection(degrees: number): void;
   select(ids: string[]): void;
   delete(ids: string[]): void;
+  /** Remove every content element, keeping the board page and background. Undoable. */
+  clearBoard(): void;
   duplicateSelection(): void;
   arrangeSelection(position: "front" | "back"): void;
   activateTool(tool: "image" | "note" | "text"): void;

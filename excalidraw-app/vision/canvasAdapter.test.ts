@@ -102,6 +102,31 @@ describe("CanvasAdapter", () => {
     expect(getElements().map(({ id }) => id)).toEqual(["page"]);
   });
 
+  it("clearBoard removes content but keeps the protected board page", () => {
+    const { api, updateScene, getElements } = createApi();
+    const adapter = createCanvasAdapter(api);
+
+    adapter.clearBoard();
+
+    expect(getElements().map(({ id }) => id)).toEqual(["page"]);
+    expect(updateScene).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      }),
+    );
+  });
+
+  it("clearBoard is a no-op on an empty board", () => {
+    const { api, updateScene } = createApi();
+    const adapter = createCanvasAdapter(api);
+
+    adapter.clearBoard();
+    updateScene.mockClear();
+    adapter.clearBoard();
+
+    expect(updateScene).not.toHaveBeenCalled();
+  });
+
   it("creates semantic layout slots in one undoable scene update", () => {
     const { api, updateScene, getElements } = createApi();
     const adapter = createCanvasAdapter(api);

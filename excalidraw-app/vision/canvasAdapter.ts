@@ -23,6 +23,7 @@ import type {
 import type { Radians } from "@excalidraw/math";
 
 import { getBoardBackground, getBoardPage } from "./engine/boardPage";
+import { inspectBoardScene } from "./engine/sceneGuard";
 import { rescaleImageCrop } from "./engine/imageCrop";
 
 import { registerVisionFonts, VISION_FONTS } from "./fonts";
@@ -1100,6 +1101,32 @@ export const createCanvasAdapter = (
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,
       });
     },
+    clearBoard() {
+      const elements = api.getSceneElements();
+      const inspection = inspectBoardScene({
+        elements,
+        appState: api.getAppState(),
+        previousElements: elements,
+        allowBoardLayerReplacement: false,
+      });
+      const removableIds = new Set(
+        elements
+          .filter(
+            (element) =>
+              !element.isDeleted && !inspection.protectedIds.has(element.id),
+          )
+          .map((element) => element.id),
+      );
+      if (!removableIds.size) {
+        return;
+      }
+      api.updateScene({
+        elements: elements.filter(
+          (element) => !removableIds.has(element.id),
+        ),
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+    },
     duplicateSelection() {
       const appState = api.getAppState();
       const scene = api.getSceneElements();
@@ -1293,10 +1320,14 @@ export const createCanvasAdapter = (
         });
       });
       const fontFamily = FONT_VALUES["lilita-one"];
+      const headingText =
+        typeof template.heading === "string" && template.heading.length > 0
+          ? template.heading
+          : "My vision board";
       const heading = newTextElement({
         x: page.x + page.width * 0.08,
         y: page.y + page.height * 0.025,
-        text: template.heading,
+        text: headingText,
         fontSize: 34,
         fontFamily,
         lineHeight: getLineHeight(fontFamily),
