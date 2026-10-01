@@ -14,8 +14,8 @@ export interface StudioDockProps {
 
 /**
  * Atelier dock: the six studio tools float bottom-center over the canvas
- * as a frosted-glass bar. Tapping a tool toggles its panel, which rises
- * as a card above the dock.
+ * as a frosted-glass bar. Tapping a tool toggles its panel, which slides
+ * in as a floating card docked to the left edge — clear of the canvas.
  */
 export const StudioDock = ({
   activeTab,
