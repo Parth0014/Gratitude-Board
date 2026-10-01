@@ -117,7 +117,7 @@ import { StudioShell } from "./studio/StudioShell";
 import { SelectionPill } from "./studio/SelectionPill";
 
 import { BoardSettings } from "./components/BoardSettings";
-import { fetchAsset } from "./assets/registry";
+import { fetchAsset, resolveAsset } from "./assets/registry";
 import {
   GRATITUDE_ASSET_DRAG_TYPE,
   isGratitudeAsset,
@@ -128,9 +128,7 @@ import { EMPTY_VISION_SELECTION } from "./vision/contracts";
 import { VisionDocumentRepository } from "./vision/repository";
 import { getLayoutSlotBounds, VISION_LAYOUTS } from "./vision/layouts";
 import type { VisionTemplate } from "./vision/templates";
-import { curatedLocalProvider } from "./assets/providers/curatedLocal";
 import { openverseProvider } from "./assets/providers/openverse";
-import type { AssetProvider } from "./assets/contracts";
 import { LEGACY_VISION_TEMPLATE_STYLES } from "./vision/templates";
 
 import {
@@ -387,37 +385,9 @@ const ExcalidrawWrapper = () => {
     [canvasAdapter],
   );
 
-  // Module 4: sticker catalog for the Elements panel.
-  const [stickers, setStickers] = useState<GratitudeAsset[]>([]);
-  const [stickersLoading, setStickersLoading] = useState(true);
-  useEffect(() => {
-    const ownerWindow =
-      editorRootRef.current?.ownerDocument.defaultView as
-        | (Window & typeof globalThis)
-        | null
-        | undefined;
-    if (!ownerWindow) {
-      setStickersLoading(false);
-      return;
-    }
-    let cancelled = false;
-    curatedLocalProvider
-      .search({ type: "sticker", limit: 40 }, ownerWindow)
-      .then((page) => {
-        if (!cancelled) {
-          setStickers(page.items);
-          setStickersLoading(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStickersLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Asset browser: insertion resolves the asset's own provider from the
+  // registry, so every category (stickers, doodles, frames, patterns,
+  // photos) inserts through the same path.
 
   const getOwnerWindow = useCallback(
     () =>
@@ -428,16 +398,16 @@ const ExcalidrawWrapper = () => {
     [],
   );
 
-  const insertProviderAsset = useCallback(
-    async (provider: AssetProvider, asset: GratitudeAsset) => {
+  const insertAsset = useCallback(
+    async (asset: GratitudeAsset) => {
       const ownerWindow = getOwnerWindow();
       const ownerDocument = editorRootRef.current?.ownerDocument;
       if (!ownerWindow || !ownerDocument || !canvasAdapter) {
         throw new Error("Board is not ready.");
       }
-      const resolved = await provider.resolve(asset.id, ownerWindow);
-      const blob = await provider.fetchAsset(resolved, ownerWindow);
-      // The engine only accepts raster images; vector stickers are
+      const resolved = await resolveAsset(asset.provider, asset.id, ownerWindow);
+      const blob = await fetchAsset(resolved, ownerWindow);
+      // The engine only accepts raster images; vector assets are
       // sanitized and rasterized before insertion.
       const raster =
         blob.type === "image/svg+xml"
@@ -446,12 +416,6 @@ const ExcalidrawWrapper = () => {
       await canvasAdapter.createImage(raster, ownerWindow, resolved);
     },
     [canvasAdapter, getOwnerWindow],
-  );
-
-  const insertSticker = useCallback(
-    (asset: GratitudeAsset) =>
-      insertProviderAsset(curatedLocalProvider, asset),
-    [insertProviderAsset],
   );
 
   const insertTextPreset = useCallback(
@@ -477,9 +441,8 @@ const ExcalidrawWrapper = () => {
   );
 
   const insertPhoto = useCallback(
-    (asset: GratitudeAsset) =>
-      insertProviderAsset(openverseProvider, asset),
-    [insertProviderAsset],
+    (asset: GratitudeAsset) => insertAsset(asset),
+    [insertAsset],
   );
 
   const uploadFiles = useCallback(
@@ -1612,9 +1575,7 @@ const ExcalidrawWrapper = () => {
       onNewBoard={newBoard}
       hasBoardContent={hasBoardContent}
       onApplyTemplate={applyTemplate}
-      stickers={stickers}
-      stickersLoading={stickersLoading}
-      onInsertSticker={insertSticker}
+      onInsertAsset={insertAsset}
       onInsertText={insertTextPreset}
       onSearchPhotos={searchPhotos}
       onInsertPhoto={insertPhoto}

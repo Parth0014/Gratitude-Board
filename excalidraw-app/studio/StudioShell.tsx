@@ -27,9 +27,7 @@ export interface StudioShellProps {
   onNewBoard: () => void;
   hasBoardContent: boolean;
   onApplyTemplate: (template: VisionTemplate) => void;
-  stickers: GratitudeAsset[];
-  stickersLoading: boolean;
-  onInsertSticker: (asset: GratitudeAsset) => Promise<void>;
+  onInsertAsset: (asset: GratitudeAsset) => Promise<void>;
   onInsertText: (preset: VisionTextPreset) => void;
   onSearchPhotos: (query: string) => Promise<GratitudeAsset[]>;
   onInsertPhoto: (asset: GratitudeAsset) => Promise<void>;
@@ -65,9 +63,7 @@ export const StudioShell = ({
   onNewBoard,
   hasBoardContent,
   onApplyTemplate,
-  stickers,
-  stickersLoading,
-  onInsertSticker,
+  onInsertAsset,
   onInsertText,
   onSearchPhotos,
   onInsertPhoto,
@@ -91,11 +87,7 @@ export const StudioShell = ({
     activeTab === "templates" ? (
       <TemplatesPanel onApplyTemplate={onApplyTemplate} />
     ) : activeTab === "elements" ? (
-      <ElementsPanel
-        stickers={stickers}
-        stickersLoading={stickersLoading}
-        onInsertSticker={onInsertSticker}
-      />
+      <ElementsPanel onInsertAsset={onInsertAsset} />
     ) : activeTab === "text" ? (
       <TextPanel onInsertText={onInsertText} />
     ) : activeTab === "photos" ? (
