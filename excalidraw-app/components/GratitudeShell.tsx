@@ -208,21 +208,6 @@ const ExportMenu = ({ adapter }: { adapter: CanvasAdapter | null }) => {
                 <strong>Reel plan</strong>
                 <span>9:16 sequence manifest for video rendering</span>
               </button>
-              <button
-                type="button"
-                disabled={!adapter || busy !== null}
-                onClick={(event) =>
-                  void runExport(
-                    "credits",
-                    async (ownerDocument) =>
-                      void (await adapter?.downloadAttributions(ownerDocument)),
-                    event.currentTarget.ownerDocument,
-                  )
-                }
-              >
-                <strong>Asset credits</strong>
-                <span>Required creator and license details</span>
-              </button>
             </div>
             {error && (
               <p className="gratitude-export-dialog__error" role="alert">

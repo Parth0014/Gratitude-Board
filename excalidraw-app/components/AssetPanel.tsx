@@ -134,6 +134,34 @@ const ToolIcon = ({ name }: { name: AssetKind | "upload" }) => {
   }
 };
 
+const AssetThumbnail = ({ asset }: { asset: GratitudeAsset }) => {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <span className="gratitude-asset-thumb gratitude-asset-thumb--fallback">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="6" y="7" width="36" height="34" rx="6" />
+          <path d="M8 35 18 24l7 7 6-8 9 12" />
+          <circle cx="17" cy="16" r="3" />
+        </svg>
+        <span>Preview unavailable</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="gratitude-asset-thumb">
+      <img
+        src={asset.previewUrl}
+        alt=""
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+    </span>
+  );
+};
+
 export const AssetPanel = ({
   onPlace,
   onReplace,
@@ -153,7 +181,6 @@ export const AssetPanel = ({
 }) => {
   const rootRef = useRef<HTMLElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
-  const detailsCloseRef = useRef<HTMLButtonElement>(null);
   const scrollPositions = useRef<Partial<Record<AssetKind, number>>>({});
   const [query, setQuery] = useState("");
   const [queries, setQueries] = useState<Partial<Record<AssetKind, string>>>(
@@ -170,10 +197,6 @@ export const AssetPanel = ({
   const [orientation, setOrientation] = useState<
     "any" | "landscape" | "portrait" | "square"
   >("any");
-  const [license, setLicense] = useState<
-    "any" | "no-credit" | "credit-required"
-  >("any");
-  const [details, setDetails] = useState<GratitudeAsset | null>(null);
   const [assetColor, setAssetColor] = useState("#c94f7c");
   const [panelOpen, setPanelOpen] = useState(true);
   const [library, setLibrary] = useState(EMPTY_ASSET_LIBRARY);
@@ -214,41 +237,6 @@ export const AssetPanel = ({
       panel.scrollTop = scrollPositions.current[kind] || 0;
     });
   }, [kind]);
-
-  useEffect(() => {
-    if (!details) {
-      return;
-    }
-    detailsCloseRef.current?.focus();
-    const ownerDocument = rootRef.current?.ownerDocument;
-    const handleDialogKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setDetails(null);
-        return;
-      }
-      if (event.key === "Tab") {
-        const controls = Array.from(
-          rootRef.current?.querySelectorAll<HTMLElement>(
-            ".gratitude-asset-details section button:not(:disabled), .gratitude-asset-details section a[href]",
-          ) || [],
-        );
-        if (!controls.length) {
-          return;
-        }
-        const first = controls[0];
-        const last = controls[controls.length - 1];
-        if (event.shiftKey && ownerDocument?.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && ownerDocument?.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    ownerDocument?.addEventListener("keydown", handleDialogKey);
-    return () => ownerDocument?.removeEventListener("keydown", handleDialogKey);
-  }, [details]);
 
   const chooseKind = (nextKind: AssetKind) => {
     const panel = rootRef.current?.querySelector<HTMLElement>(
@@ -328,7 +316,6 @@ export const AssetPanel = ({
             search: query,
             type: getAssetType(kind),
             orientation: orientation === "any" ? undefined : orientation,
-            license: license === "any" ? undefined : license,
             limit: 20,
           },
           ownerWindow,
@@ -365,7 +352,7 @@ export const AssetPanel = ({
       active = false;
       ownerWindow.clearTimeout(timer);
     };
-  }, [query, kind, orientation, license, refreshToken]);
+  }, [query, kind, orientation, refreshToken]);
 
   const loadMore = async () => {
     const ownerWindow = rootRef.current?.ownerDocument.defaultView;
@@ -379,7 +366,6 @@ export const AssetPanel = ({
           search: query,
           type: getAssetType(kind),
           orientation: orientation === "any" ? undefined : orientation,
-          license: license === "any" ? undefined : license,
           cursor: nextCursor,
           limit: 20,
         },
@@ -539,19 +525,6 @@ export const AssetPanel = ({
                 <option value="landscape">Landscape</option>
                 <option value="portrait">Portrait</option>
                 <option value="square">Square</option>
-              </select>
-            </label>
-            <label>
-              <span>License</span>
-              <select
-                value={license}
-                onChange={(event) =>
-                  setLicense(event.currentTarget.value as typeof license)
-                }
-              >
-                <option value="any">Any safe license</option>
-                <option value="no-credit">No credit needed</option>
-                <option value="credit-required">Credit required</option>
               </select>
             </label>
           </div>
@@ -740,7 +713,7 @@ export const AssetPanel = ({
                     }}
                     onClick={() => void place(asset)}
                   >
-                    <img src={asset.previewUrl} alt="" loading="lazy" />
+                    <AssetThumbnail asset={asset} />
                     {asset.type !== "photo" && <span>{asset.title}</span>}
                   </button>
                   <button
@@ -772,19 +745,6 @@ export const AssetPanel = ({
                       ? "♥"
                       : "♡"}
                   </button>
-                  <button
-                    type="button"
-                    className="gratitude-asset-card__info"
-                    aria-label={`View source and license for ${asset.title}`}
-                    onClick={() => setDetails(asset)}
-                  >
-                    i
-                  </button>
-                  {asset.license.attributionRequired && (
-                    <span className="gratitude-asset-card__license">
-                      Credit
-                    </span>
-                  )}
                   {canReplace && asset.type === "photo" && (
                     <button
                       type="button"
@@ -819,96 +779,6 @@ export const AssetPanel = ({
                 : "No matching assets. Try another search."}
             </p>
           )}
-        {(kind === "photo" || kind === "all") && (
-          <p className="gratitude-assets__credit">
-            Photos from{" "}
-            <a href="https://www.pexels.com/" target="_blank" rel="noreferrer">
-              Pexels
-            </a>{" "}
-            ,{" "}
-            <a href="https://openverse.org/" target="_blank" rel="noreferrer">
-              Openverse
-            </a>
-            , Wikimedia Commons, Smithsonian Open Access and Rijksmuseum.
-          </p>
-        )}
-        {details && (
-          <div
-            className="gratitude-asset-details"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Asset details"
-          >
-            <button
-              type="button"
-              className="gratitude-asset-details__backdrop"
-              aria-label="Close asset details"
-              onClick={() => setDetails(null)}
-            />
-            <section>
-              <button
-                ref={detailsCloseRef}
-                type="button"
-                className="gratitude-asset-details__close"
-                aria-label="Close"
-                onClick={() => setDetails(null)}
-              >
-                ×
-              </button>
-              <img src={details.previewUrl} alt="" />
-              <h3>{details.title}</h3>
-              {details.license.author && <p>By {details.license.author}</p>}
-              <p>
-                <strong>{details.license.label}</strong>
-                {details.license.attributionRequired
-                  ? " · Credit required"
-                  : " · No credit required"}
-              </p>
-              <div>
-                {details.license.sourceUrl && (
-                  <a
-                    href={details.license.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View source
-                  </a>
-                )}
-                {details.license.licenseUrl && (
-                  <a
-                    href={details.license.licenseUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    License terms
-                  </a>
-                )}
-              </div>
-              <button
-                type="button"
-                className="gratitude-asset-details__add"
-                onClick={() => {
-                  void place(details);
-                  setDetails(null);
-                }}
-              >
-                Add to board
-              </button>
-              {canReplace && details.type === "photo" && (
-                <button
-                  type="button"
-                  className="gratitude-asset-details__add"
-                  onClick={() => {
-                    void replace(details);
-                    setDetails(null);
-                  }}
-                >
-                  Replace selected photo
-                </button>
-              )}
-            </section>
-          </div>
-        )}
       </div>
     </aside>
   );
